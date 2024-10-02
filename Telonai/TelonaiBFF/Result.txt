@@ -1,0 +1,1000 @@
+1.Total number of allowances you are claiming(Enter zero (0), or the number of allowances from Page 2, line 16 of the NC-4 Allowance Worksheet)
+,
+00.Additional amount, if any, withheld from each pay period  (Enter whole dollars)2.Single
+Head of Household
+Married or Surviving Spouse
+Marital Status
+First Name(USE CAPITAL  LETTERS FOR YOUR NAME AND ADDRESS)
+M.I.
+Last Name
+Address
+County (Enter first five letters)
+Zip Code (5 Digit)
+State
+Country  (If not U.S.)
+I certify, under penalties provided by law, that I am entitled to the number of withholding allowances claimed on line 1 above.Employee’s Signature                                                                  
+Date
+
+Cut here and give this certificate to your employer.  Keep the top portion for your records.
+PURPOSE - Complete Form NC-4, Employee’s Withholding Allowance Certificate, so that your employer can withhold the correct amount of 
+State income tax from your pay.  If you do not provide an NC-4 to your 
+employer, your employer is required to withhold based on single with 
+zero allowances.FORM NC-4 EZ - You may use this form if you intend to claim either: exempt status, or the N.C. standard deduction and no tax credits or only 
+the credit for children.  FORM NC-4 NRA - If you are a nonresident alien you must use Form NC-4 NRA.  FORM NC-4 BASIC INSTRUCTIONS - Complete the Allowance Worksheet.  The worksheet will help you figure the number of withholding 
+allowances you are entitled to claim.  The worksheet is provided for 
+employees to adjust their withholding allowances based on N.C. itemized 
+deductions, federal adjustments to income, N.C. additions to federal 
+adjusted gross income, N.C. deductions from federal adjusted gross 
+income, and N.C. tax credits.  However, you may claim fewer allowances 
+if you wish to increase the tax withheld during the year.  If your withholding 
+allowances decrease, you must file a new NC-4 with your employer within 
+10 days after the change occurs.  Exception:  When an individual ceases to 
+be head of household after maintaining the household for the major portion 
+of the year, a new NC-4 is not required until the next year.TWO OR MORE JOBS - If you have more than one job, figure the total number of allowances you are entitled to claim on all jobs using one Form 
+NC-4 Allowance Worksheet.  Your withholding will usually be most accurate 
+when all allowances are claimed on the NC-4 filed for the higher paying job 
+and zero allowances are claimed for the other.  You should also refer to the 
+Multiple Jobs Table to determine the additional amount to be withheld on 
+line 2 of Form NC-4  (See Allowance Worksheet).NONWAGE INCOME - If you have a large amount of nonwage income, such as interest or dividends, you should consider making estimated tax 
+payments using Form NC-40 to avoid underpayment of estimated tax 
+interest.  Form NC-40 is available on our website at www.dornc.com under individual income tax forms.HEAD OF HOUSEHOLD -  Generally you may claim head of household status on your tax return only if you are unmarried and pay more than 
+50% of the costs of keeping up a home for yourself and your dependent(s) 
+or other qualifying individuals.  Note:  “Head of Household” for State tax 
+purposes is the same as for federal tax purposes.SURVIVING SPOUSE - You may claim surviving spouse status only if your spouse died in either of the two preceding tax years and you meet the 
+following requirements:1.
+ 
+Your home is maintained as the main household of a child or stepchild for whom you can claim a federal exemption; and 2.
+ 
+You were entitled to file a joint return with your spouse in the year of your spouse s death.MARRIED TAXPAYERS - For married taxpayers, both spouses must agree as to whether they will each complete the Allowance Worksheet based on 
+married filing jointly or married filing separately. 
+ 
+•
+ 
+For married taxpayers completing the Allowance Worksheet based on married filing jointly, you will consider the sum of both spouses’ 
+incomes, adjustments, additions, deductions, and credits on the 
+Allowance Worksheet to determine the number of allowances. •
+ 
+For married taxpayers completing the worksheet on the basis of married filing separately, each spouse will consider only his or her 
+portion of income, adjustments, additions, deductions, and credits on 
+the Allowance Worksheet to determine the number of allowances.  
+All NC-4 forms are subject to review by the North Carolina Department 
+of Revenue.  Your employer may be required to send this form to the 
+North Carolina Department of Revenue.
+CAUTION:  If you furnish an employer with an Employee’s Withholding Allowance Certificate that contains information which has no reasonable basis and results in a lesser amount of tax being withheld than would have been withheld had you furnished reasonable 
+information, you are subject to a penalty of 50% of the amount not properly withheld.Web9-16
+Employee’s WithholdingAllowance CertificateNC-4
+City
+Social Security Number
+Web9-16Employee’s Withholding Allowance CertificateNC-4
+NC-4 Allowance WorksheetAnswer all of the following questions for your filing status.  Single -
+ 
+1.
+ 
+Will your N.C. itemized deductions from Page 3, Schedule 1 exceed $11,249? 
+ 
+Yes
+ 
+o
+ 
+No
+ 
+o2.
+ 
+Will you have adjustments or deductions from income from Page 3, Schedule 2?
+ 
+Yes
+ 
+o
+ 
+No
+ 
+o3.
+ 
+Will you be able to claim any N.C. tax credits or tax credit carryovers from
+ 
+Page 4, Schedule 4?
+  
+Yes
+ 
+o
+ 
+No
+ 
+oIf you answered  No  to all of the above, STOP HERE and enter ZERO (0) as total allowances on Form NC-4, Line 1.  If you answered “Yes” to any of the above, you may choose to go to Page 2, Part II to determine if you qualify for additional allowances.  Otherwise, enter ZERO (0) on Form NC-4, Line 1.Married Filing Jointly -1.
+ 
+Will your N.C. itemized deductions from Page 3, Schedule 1 exceed $19,999?
+ 
+Yes
+ 
+o
+ 
+No
+ 
+o2.
+ 
+Will you have adjustments or deductions from income from Page 3, Schedule 2?
+ 
+Yes
+ 
+o
+ 
+No
+ 
+o3.
+ 
+Will you be able to claim any N.C. tax credits or tax credit carryovers from
+ 
+Page 4, Schedule 4?
+  
+Yes
+ 
+o
+ 
+No
+ 
+o4.
+ 
+Will your spouse receive combined wages and taxable
+ 
+pensions of less than $6,250 or only retirement benefits not subject to N.C. income tax?
+ 
+Yes
+ 
+o
+ 
+No
+ 
+oIf you answered  No  to all of the above, STOP HERE and enter ZERO (0) as total allowances on Form NC-4, Line 1.  If you answered “Yes” to any of the above, you may choose to go to Page 2, Part II to determine if you qualify for additional allowances.  Otherwise, enter ZERO (0) on Form NC-4, Line 1.Married Filing Separately -1.
+ 
+Will your portion of N.C. itemized deductions from Page 3, Schedule 1 exceed $11,249?
+ 
+Yes
+ 
+o
+ 
+No
+ 
+o2.
+ 
+Will you have adjustments or deductions from income from Page 3, Schedule 2?
+ 
+Yes
+ 
+o
+ 
+No
+ 
+o3.
+ 
+Will you be able to claim any N.C. tax credits or tax credit carryovers from
+ 
+Page 4, Schedule 4?
+  
+Yes
+ 
+o
+ 
+No
+ 
+oIf you answered  No  to all of the above, STOP HERE and enter ZERO (0) as total allowances on Form NC-4, Line 1.  If you answered “Yes” to any of the above, you may choose to go to Page 2, Part II to determine if you qualify for additional allowances.  Otherwise, enter ZERO (0) on Form NC-4, Line 1.Head of Household-1.
+ 
+Will your N.C. itemized deductions from Page 3, Schedule 1 exceed $16,499?
+ 
+Yes
+ 
+o
+ 
+No
+ 
+o2.
+ 
+Will you have adjustments or deductions from income from Page 3, Schedule 2?
+ 
+Yes
+ 
+o
+ 
+No
+ 
+o3.
+ 
+Will you be able to claim any N.C. tax credits or tax credit carryovers from
+ 
+Page 4, Schedule 4?
+  
+Yes
+ 
+o
+ 
+No
+ 
+oIf you answered  No  to all of the above, STOP HERE and enter ZERO (0) as total allowances on Form NC-4, Line 1.  If you answered “Yes” to any of the above, you may choose to go to Page 2, Part II to determine if you qualify for additional allowances.  Otherwise, enter ZERO (0) on Form NC-4, Line 1.
+Part I
+Page
+1
+NC-4 Allowance WorksheetSurviving Spouse -1. 
+ 
+Will your N.C. itemized deductions from Page 3, Schedule 1 exceed $19,999?
+ 
+Yes
+ 
+o
+ 
+No
+ 
+o2.
+ 
+Will you have adjustments or deductions from income from Page 3, Schedule 2?
+ 
+Yes
+ 
+o
+ 
+No
+ 
+o3.
+ 
+Will you be able to claim any N.C. tax credits or tax credit carryovers from
+ 
+Page 4, Schedule 4?
+  
+Yes
+ 
+o
+ 
+No
+ 
+o
+ 
+If you answered “No” to all of the above, STOP HERE and enter THREE (3) as total allowances on Form NC-4, Line 1.  If you answered “Yes” to any of the above, you may choose to go to Part II to determine if you qualify for additional allowances.  Otherwise, enter THREE (3) on Form NC-4, Line 1.
+ 
+1.
+ 
+Enter your total estimated N.C. itemized deductions from Page 3, Schedule 1
+ 
+.....................................................
+ 
+1.
+  
+_______________________
+ 
+ 
+2.
+ 
+Enter the applicable
+  
+$  8,750 if single
+  
+N.C. standard deduction
+ 
+$17,500 if married filing jointly or surviving spouse
+  
+based on your filing status. 
+ 
+$  8,750 if married filing separately 
+    
+$14,000 if head of household 
+ 
+.................................................................
+ 
+2.
+  
+_______________________
+ 
+3.
+ 
+Subtract line 2 from line 1.  If line 1 is less than line 2, enter ZERO (0)
+ 
+.................................................................
+ 
+3.
+  
+_______________________
+ 
+4.
+ 
+Enter an estimate of your total federal adjustments to income and State deductions from 
+  
+federal adjusted gross income from Page 3, Schedule 2
+ 
+.......................................................................................
+ 
+4.
+  
+_______________________
+ 
+5.
+ 
+Add lines 3 and 4
+  
+................................................................................................................................................
+ 
+5.
+  
+_______________________
+ 
+6.
+ 
+Enter an estimate of your nonwage income (such as dividends or interest)
+ 
+............6.
+  
+_____________________
+  
+7.
+ 
+Enter an estimate of your State additions to federal adjusted gross
+  
+income from Page 3, Schedule 3
+ 
+..........................................................................7.
+  
+______________________
+ 
+8.
+ 
+Add lines 6 and 7
+  
+................................................................................................................................................
+ 
+8.
+  
+_______________________
+ 
+9.
+ 
+Subtract line 8 from line 5  (Do not enter less than zero)
+ 
+.......................................................................................
+ 
+9.
+  
+_______________________
+ 
+10.
+ 
+Divide the amount on line 9 by $2,500 .  Round down to whole number
+ 
+...............................................................
+ 
+10.
+  
+_______________________
+  
+Ex. $3,900 ÷ $2,500 = 1.56 rounds down to 1
+ 
+11.
+ 
+Enter the amount of your estimated N.C. tax credits from Page 4, Schedule 4
+ 
+..11.
+  
+______________________12.
+ 
+Divide the amount on line 11 by $140.   Round down to whole number
+ 
+................................................................
+ 
+12.
+  
+_______________________
+  
+Ex. $200 ÷ $140 = 1.43 rounds down to 1
+ 
+13.
+ 
+If filing as single, head of household, or married filing separately, enter zero (0) on this line.  
+  
+If filing as surviving spouse, enter 3.
+  
+If filing as married filing jointly, enter the appropriate number from either (a), (b), (c), or (d) below.(a)
+ 
+Your spouse expects to have zero wages and expects to receive retirement benefits that will all be nontaxable for N.C. purposes, enter 3. (Nontaxable retirement benefits include: Bailey, Social Security, and Railroad retirement)(b)
+ 
+Your spouse expects to have combined wages and taxable pensions of more than $1, but less than $3,750, enter 2.(c)
+ 
+Your spouse expects to have combined wages and taxable pensions of more than $3,750 but less than $6,250, enter 1.(d)
+ 
+Your spouse expects to have combined wages and taxable pensions of more than
+ 
+$6,250, enter 0
+ 
+.............................................................................................................................................13.
+  
+_______________________
+ 
+14.
+ 
+Add lines 10, 12, and 13, and enter the total here
+ 
+..................................................................................................
+ 
+14.
+  
+_______________________
+ 
+15.
+ 
+If you completed this worksheet on the basis of married filing jointly, the total number of allowances determined
+  
+on line 14 may be split between you and your spouse, however, you choose.  Enter the number of allowances
+  
+from line 14 that your spouse plans to claim
+ 
+..........................................................................................................
+ 
+15.
+  
+_______________________
+ 
+16.
+ 
+Subtract line 15 from line 14 and enter the total number of allowances here and on line 1 of your
+  
+Form NC-4, Employee’s Withholding Allowance Certificate
+ 
+............................................................................
+ 
+16.
+  
+_______________________
+{NC-4 Part II
+$.$.$.$.$.$.$.$.$.$.Page
+2
+NC-4 Allowance Worksheet Schedules
+Page
+3Important:  If you cannot reasonably estimate the amount to enter in the schedules below, you should enter ZERO (0) on line 1, NC-4.
+Schedule 1
+ 
+Estimated N.C. Itemized DeductionsQualifying mortgage interest
+  
+__________________
+  
+Real estate property taxes
+  
+__________________
+    
+Total qualifying mortgage interest and real estate property taxes*
+   
+__________________
+ 
+Charitable Contributions (Same as allowed for federal purposes)
+   
+__________________
+ 
+Medical and Dental Expenses (Same as allowed for federal purposes)
+   
+__________________Total estimated N.C. itemized deductions.  Enter on Page 2, Part II, Line 1
+  
+__________________
+    
+*The sum of your qualified mortgage interest and real estate property taxes may not exceed $20,000.  For married taxpayers, the $20,000 limitation applies to the combined total of qualified mortgage interest and real estate property taxes claimed by both spouses, rather than to each spouse separately.Schedule 2
+ 
+Estimated Federal Adjustments to IncomeFederal adjustments to income are the amounts that are deducted from total income claimed on your federal return. Adjustments to income may include:Health savings account deduction
+  
+__________________Moving expenses
+  
+__________________Alimony paid
+  
+__________________IRA deduction
+  
+__________________Student loan interest deduction
+  
+__________________Certain business expenses of reservists, performing artist, and fee-basis governmental officials
+  
+__________________Total Federal Adjustments to Income
+    
+__________________Estimated State Deductions from FederalAdjusted Gross Income to Consider for NC-4 Purposes20% of prior bonus depreciation addback 
+  
+__________________20% of prior section 179 addback 
+  
+__________________
+ 
+Amount by which North Carolina basis of property exceeds
+federal basis of property - in year taxpayer disposes of property
+  
+__________________Total State Deductions from Federal Adjusted Gross Income
+   
+__________________(Do not consider any amount of the portion of Bailey Retirement
+Benefits, Social Security Benefits, or Railroad Retirement Benefitsincluded in Adjusted Gross Income.) Total Federal Adjustments to Income and State Deductions from Federal AdjustedGross Income.  Enter on Page 2, Part II, Line 4
+   
+__________________Schedule 3
+ 
+Estimated State Additions to FederalAdjusted Gross Income to Consider for NC-4 PurposesShareholder’s share of built-in gains tax that the S corporation paid for federal income tax purposes
+  
+__________________Amount by which federal basis of property exceeds NC basis of property   in year taxpayer
+disposes of property
+    
+__________________Amount of gross income from domestic production activities that a taxpayer excludes from gross income under section 199 of the Internal Revenue Code
+   
+__________________Amount excluded from the taxpayer’s gross income for the discharge of qualified principalresidence indebtedness under Section 108 of the code.
+   
+__________________Adjustment for bonus depreciation
+    
+__________________Adjustment for section 179 expense deduction
+    
+__________________Total State Additions to Federal Adjusted Gross Income.  Enter on Page 2, Part II, Line 7
+  
+__________________
+ 
+$.$.$.$.$.$.$.$.$.
+$.$.$.$.$.$.$.$.$.$.$.$.
+.$$.$.$.
+NC-4 Allowance Worksheet Schedules
+Page
+4Schedule 4Estimated N.C. Tax CreditsTax Credit for Income Taxes Paid to Other States by Individuals 
+   
+__________________Credit for ChildrenA taxpayer who is allowed a federal child tax credit under section 24 of the Internal Revenue Code is allowed a tax creditfor each dependent child unless adjusted gross income exceeds the threshold amount shown below.
+The credit can be claimed only for a child who is under 17 years of age on the last day of the year. 
+  
+No. of
+ 
+Credit Amount per
+ 
+EstimatedFiling Status
+ 
+Adjusted Gross Income
+ 
+Children
+ 
+Qualifying Child
+ 
+Credit
+  
+ Single
+ 
+Up to $20,000
+  
+__________
+ 
+$125
+  
+___________
+  
+        
+ 
+Over  $20,000 and up to $50,000
+  
+__________
+ 
+$100
+  
+___________
+ 
+Over  $50,000
+  
+__________
+ 
+$0
+  
+___________Married Filing Jointly or
+ 
+Up to $40,000
+  
+__________
+ 
+$125
+  
+___________Surviving Spouse  
+ 
+Over  $40,000 and up to $100,000
+  
+__________
+ 
+$100
+  
+___________                                     
+ 
+Over  $100,000
+  
+__________
+ 
+$0
+  
+___________Head of Household
+ 
+Up to $32,000
+  
+__________
+ 
+$125
+  
+___________
+ 
+Over  $32,000 and up to $80,000
+  
+__________
+ 
+$100
+  
+___________                                       
+ 
+Over  $80,000
+  
+__________
+ 
+$0
+  
+___________Married Filing Separately
+ 
+Up to  $20,000
+  
+__________
+ 
+$125
+  
+____________       
+ 
+Over   $20,000 and up to $50,000
+  
+__________
+ 
+$100
+  
+___________                                     
+ 
+Over   $50,000 
+  
+__________
+ 
+$0
+  
+___________Additional Tax Credits and CarryoversG.S.
+ 
+105-129.105, Credit for Rehabilitating Income-Producing Historic Structure
+  
+________________
+  
+G.S.
+ 
+105-129.106, Credit for Rehabilitating Nonincome-Producing Historic Structure
+  
+________________
+  
+Tax Credit Carryover from previous years
+    
+________________
+  
+Total Tax Credits and Carryovers.  Enter on Page 2, Part II, Line 11
+  
+________________
+    
+$.$.$.$.$.$.$.$.$.$.$.$.$.$.$.$.
+$.
+Page
+5Page
+5
+Multiple Jobs TableFind the amount of your estimated annual wages from your lowest paying job(s) in the left hand column.  Follow across to find the amount of additional tax to be withheld for each pay period.  Enter the additional amount to be withheld on line 2 of 
+your Form NC-4.Additional Withholding for Single, Married, or Surviving Spouse with Multiple Jobs
+ 
+Estimated Annual Wages
+   
+Payroll Period
+ 
+At Least
+ 
+But Less Than
+ 
+Monthly
+ 
+Semimonthly
+ 
+Biweekly
+ 
+Weekly
+ 
+0
+ 
+500
+ 
+1
+ 
+1
+ 
+1
+ 
+0
+ 
+500
+ 
+1500
+ 
+5
+ 
+2
+ 
+2
+ 
+1
+ 
+1500
+ 
+2500
+ 
+9
+ 
+5
+ 
+4
+ 
+2
+ 
+2500
+ 
+3500
+ 
+14
+ 
+7
+ 
+6
+ 
+3
+ 
+3500
+ 
+4500
+ 
+19
+ 
+9
+ 
+9
+ 
+4
+ 
+4500
+ 
+5500
+ 
+23
+ 
+12
+ 
+11
+ 
+5
+ 
+5500
+ 
+6500
+ 
+28
+ 
+14
+ 
+13
+ 
+6
+ 
+6500
+ 
+7500
+ 
+33
+ 
+16
+ 
+15
+ 
+8
+ 
+7500
+ 
+8500
+ 
+37
+ 
+19
+ 
+17
+ 
+9
+ 
+8500
+ 
+Unlimited
+ 
+41
+ 
+20
+ 
+19
+ 
+9Additional Withholding for Head of Household Filers with Multiple Jobs
+ 
+Estimated Annual Wages
+   
+Payroll Period
+ 
+At Least
+ 
+But Less Than
+ 
+Monthly
+ 
+Semimonthly
+ 
+Biweekly
+ 
+Weekly
+ 
+0
+ 
+1000
+ 
+2
+ 
+1
+ 
+1
+ 
+1
+ 
+1000
+ 
+2000
+ 
+7
+ 
+3
+ 
+3
+ 
+2
+ 
+2000
+ 
+3000
+ 
+12
+ 
+6
+ 
+5
+ 
+3
+ 
+3000
+ 
+4000
+ 
+16
+ 
+8
+ 
+8
+ 
+4
+ 
+4000
+ 
+5000
+ 
+21
+ 
+10
+ 
+10
+ 
+5
+ 
+5000
+ 
+6000
+ 
+26
+ 
+13
+ 
+12
+ 
+6
+ 
+6000
+ 
+7000
+ 
+30
+ 
+15
+ 
+14
+ 
+7
+ 
+7000
+ 
+8000
+ 
+35
+ 
+17
+ 
+16
+ 
+8
+ 
+8000
+ 
+9000
+ 
+40
+ 
+20
+ 
+18
+ 
+9
+ 
+9000
+ 
+10000
+ 
+44
+ 
+22
+ 
+20
+ 
+10
+ 
+10000
+ 
+11000
+ 
+49
+ 
+24
+ 
+23
+ 
+11
+ 
+11000
+ 
+12000
+ 
+54
+ 
+27
+ 
+25
+ 
+12
+ 
+12000
+ 
+13000
+ 
+58
+ 
+29
+ 
+27
+ 
+13
+ 
+13000
+ 
+14000
+ 
+63
+ 
+31
+ 
+29
+ 
+15
+ 
+14000
+ 
+Unlimited
+ 
+65
+ 
+33
+ 
+30
+ 
+15
