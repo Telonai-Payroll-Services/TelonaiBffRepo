@@ -45,8 +45,8 @@ public class DocumentManager : IDocumentManager
 
     public DocumentManager()
     {
-        //_s3Client = new AmazonS3Client("your-access-key", "your-secret-key", Amazon.RegionEndpoint.USEast2 );
-        _s3Client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
+        _s3Client = new AmazonS3Client("AKIARTEG7VLRZM2XOBQA", "/DfldqzGtFfkZsxDgfCedQ9rTHmsBqhBD1eH2sJb", Amazon.RegionEndpoint.USEast2 );
+        //_s3Client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
         _transferUtility = new TransferUtility(_s3Client);
     }
 
