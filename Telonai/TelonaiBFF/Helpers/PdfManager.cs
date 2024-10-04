@@ -53,7 +53,7 @@ public class PDFManager : IPDFManager
         doc.SetMargins(0, 0, 0, 0);
         doc.SetMargins(10, 10, 10, 0);
 
-        var s3Client = new AmazonS3Client("your-access-key", "your-secret-key", Amazon.RegionEndpoint.USEast2);
+        var s3Client = new AmazonS3Client("AKIARTEG7VLRZM2XOBQA", "/DfldqzGtFfkZsxDgfCedQ9rTHmsBqhBD1eH2sJb", Amazon.RegionEndpoint.USEast2);
 
         using (var workStream = new MemoryStream())
         {
