@@ -13,11 +13,12 @@ public class TimecardUsaController : ControllerBase
 {
     private readonly ITimecardUsaService _timecardService;
     private readonly ITimecardUsaNoteService _timecardNoteService;
-
-    public TimecardUsaController(ITimecardUsaService timecardService, ITimecardUsaNoteService timecardNoteService)
+    private readonly IScopedAuthorization _scopedAuthorization;
+    public TimecardUsaController(ITimecardUsaService timecardService, ITimecardUsaNoteService timecardNoteService, IScopedAuthorization scopedAuthorization)
     {
         _timecardService = timecardService;
         _timecardNoteService = timecardNoteService;
+        _scopedAuthorization = scopedAuthorization;
     }
 
     [HttpGet("open")]
@@ -56,7 +57,7 @@ public class TimecardUsaController : ControllerBase
     [HttpGet("companies/{companyId}/payrolls/{payrollId}")]
     public async Task<IActionResult> GetByPayrollId(int companyId, int payrollId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
 
         var timecards = await _timecardService.GetTimeCardsByPayrollId(companyId,payrollId);
         return Ok(timecards);
@@ -64,7 +65,7 @@ public class TimecardUsaController : ControllerBase
     [HttpGet("companies/{companyId}/payrolls/{payrollId}/employees/{employeeId}")]
     public async Task<IActionResult> GetByPayrollIdAndEmployee(int companyId, int payrollId, int employeeId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
 
         var timecard = await _timecardService.GetTimeCardsByPayrollIdAndEmployee(companyId, payrollId,employeeId);
         return Ok(timecard);
@@ -73,7 +74,7 @@ public class TimecardUsaController : ControllerBase
     [HttpGet("companies/{companyId}/payrolls/sequences/{seqId}/employee/{employeeId}")]
     public IActionResult GetByPayrollSequenceAndEmployee(int companyId, int seqId, int employeeId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
 
         var timecard = _timecardService.GetTimeCardsByPayrollSequenceAndEmployee(companyId, seqId,  employeeId);
         return Ok(timecard);
@@ -82,7 +83,7 @@ public class TimecardUsaController : ControllerBase
     [HttpGet("job/{jobId}/generic")]
     public IActionResult GetByJobAndTime(int jobId, [FromQuery(Name = "startTime")] DateTime startTime, [FromQuery(Name = "endTime")] DateTime endTime)
     {
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, jobId);
+        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, jobId);
 
         var timecard = _timecardService.GetReport(jobId, startTime, endTime);
         return Ok(timecard);
@@ -92,7 +93,7 @@ public class TimecardUsaController : ControllerBase
     public IActionResult GetById(int id)
     {
         var user = _timecardService.GetById(id);
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, user.JobId);
+        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, user.JobId);
         return Ok(user);
     }
 
@@ -100,7 +101,7 @@ public class TimecardUsaController : ControllerBase
     public IActionResult Create(int jobId)
     {
         var email = Request.HttpContext.User?.Claims.FirstOrDefault(e => e.Type == "email")?.Value;
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.User, jobId);
+        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.User, jobId);
 
         _timecardService.Create(email,jobId);
         return Ok(new { message = "Timecard updated." });
@@ -109,7 +110,7 @@ public class TimecardUsaController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult Update(int id, TimecardUsaModel model)
     {
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, model.JobId);
+        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, model.JobId);
         _timecardService.Update(id, model);
         return Ok(new { message = "Timecard updated." });
     }
@@ -119,7 +120,7 @@ public class TimecardUsaController : ControllerBase
     {
         var jobId= model.TimecardUsaModels.First().JobId;
         var isValid = model.TimecardUsaModels.Any(e => e.JobId != jobId) ? throw new AppException("Invalid Request") : true;
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, jobId);
+        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, jobId);
 
         _timecardService.Update(model.TimecardUsaModels);
         model.TimecardUsaNoteModels.ForEach(e => _timecardNoteService.Create(e));
@@ -129,7 +130,7 @@ public class TimecardUsaController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        ScopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
 
         _timecardService.Delete(id);
         return Ok(new { message = "Timecard deleted." });

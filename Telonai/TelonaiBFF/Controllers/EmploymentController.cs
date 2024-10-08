@@ -13,16 +13,18 @@ using TelonaiWebApi.Services;
 public class EmploymentController : ControllerBase
 {
     private readonly IEmploymentService<EmploymentModel, Employment> _service;
-    public EmploymentController(IEmploymentService<EmploymentModel, Employment> service)
+    private readonly IScopedAuthorization _scopedAuthorization;
+    public EmploymentController(IEmploymentService<EmploymentModel, Employment> service, IScopedAuthorization scopedAuthorization)
     {
         _service = service;
+        _scopedAuthorization = scopedAuthorization;
     }
 
     [HttpGet("{id}")]
     public IActionResult GetById(int id)
     {
         var result = _service.GetById(id);
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, result.JobId);
+        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, result.JobId);
 
         return Ok(result);
     }
@@ -30,7 +32,7 @@ public class EmploymentController : ControllerBase
     [HttpPost("companies/{companyid}/completeadding")]
     public IActionResult InviteEmployee(int companyId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
 
         var currentUserEmail = Request.HttpContext.User.Claims.First(e => e.Type == "email").Value;
       
@@ -40,7 +42,7 @@ public class EmploymentController : ControllerBase
     [HttpPut("{id}/companies/{companyid}/terminate")]
     public IActionResult TerminateEmployee(int id, int companyId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
 
         _service.DeleteAsync(id, companyId);
         return Ok(new { message = "Employee Terminated" });

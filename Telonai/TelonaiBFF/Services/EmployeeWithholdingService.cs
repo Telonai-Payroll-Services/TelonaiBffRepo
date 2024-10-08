@@ -20,14 +20,15 @@ public class EmployeeWithholdingService : IEmployeeWithholdingService<EmployeeWi
     private readonly IMapper _mapper;
     private readonly IDocumentManager _documentManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
-
+    private readonly IScopedAuthorization _scopedAuthorization;
     public EmployeeWithholdingService(DataContext context, IMapper mapper, IDocumentManager documentManager,
-      IHttpContextAccessor httpContextAccessor)
+      IHttpContextAccessor httpContextAccessor, IScopedAuthorization scopedAuthorization)
     {
         _context = context;
         _mapper = mapper;
         _documentManager = documentManager;
         _httpContextAccessor = httpContextAccessor;
+        _scopedAuthorization = scopedAuthorization;
     }
   
     public IList<EmployeeWithholdingModel> Get()
@@ -45,7 +46,7 @@ public class EmployeeWithholdingService : IEmployeeWithholdingService<EmployeeWi
             throw new InvalidDataException("User not found");
         }
 
-        ScopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, companyId);
 
         var obj = _context.EmployeeWithholding.Where(e=>e.Employment.Job.CompanyId==companyId);
         var result = _mapper.Map<IList<EmployeeWithholdingModel>>(obj);
@@ -55,7 +56,7 @@ public class EmployeeWithholdingService : IEmployeeWithholdingService<EmployeeWi
     public EmployeeWithholdingModel GetById(int id)
     {
         var person = GetCurrentUserAsync()?.Result;
-        ScopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
         var obj = GetEmployeeWithholding(id);
         var result = _mapper.Map<EmployeeWithholdingModel>(obj);
@@ -68,7 +69,7 @@ public class EmployeeWithholdingService : IEmployeeWithholdingService<EmployeeWi
         var person = GetCurrentUserAsync()?.Result;
         if (emp.PersonId == person.Id) { throw new InvalidDataException("User not found"); }
 
-        ScopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
         var obj = _context.EmployeeWithholding.Include(e => e.Field).FirstOrDefault(e => e.EmploymentId == empId &&
         e.FieldId == fieldId && !e.Deactivated);
@@ -84,7 +85,7 @@ public class EmployeeWithholdingService : IEmployeeWithholdingService<EmployeeWi
     public async Task CreateAsync(EmployeeWithholdingModel model, Stream file)
     {
         var person = await GetCurrentUserAsync();
-        ScopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
         var emp = await _context.Employment.FindAsync(model.EmploymentId) ?? throw new InvalidDataException("User not found");
         if(emp.PersonId== person.Id) { throw new InvalidDataException("User not found"); }

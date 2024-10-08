@@ -12,15 +12,17 @@ using TelonaiWebApi.Services;
 public class PayrollsController : ControllerBase
 {
     private readonly IPayrollService _payrollService;
-    public PayrollsController(IPayrollService payrollService)
+    private readonly IScopedAuthorization _scopedAuthorization;
+    public PayrollsController(IPayrollService payrollService, IScopedAuthorization scopedAuthorization)
     {
         _payrollService = payrollService;
+        _scopedAuthorization = scopedAuthorization;
     }
 
     [HttpGet("companies/{companyId}/current")]
     public IActionResult GetCurrentPayroll(int companyId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         var payroll = _payrollService.GetCurrentPayroll(companyId);
         return Ok(payroll);
     }
@@ -28,7 +30,7 @@ public class PayrollsController : ControllerBase
     [HttpGet("companies/{companyId}/previous")]
     public IActionResult GetPreviousPayroll(int companyId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         var payroll = _payrollService.GetPreviousPayroll(companyId);
         return Ok(payroll);
     }
@@ -36,7 +38,7 @@ public class PayrollsController : ControllerBase
     [HttpGet("companies/{companyId}/report")]
     public IActionResult GetByCompanyAndTimeForUser(int companyId, [FromQuery(Name = "startTime")] DateOnly startTime, [FromQuery(Name = "endTime")] DateOnly endTime)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         var payroll = _payrollService.GetReport(companyId, startTime, endTime);
         return Ok(payroll);
     }
@@ -44,7 +46,7 @@ public class PayrollsController : ControllerBase
     [HttpGet("companies/{companyId}/{count}")]
     public IActionResult GetByCompanyAndCount(int companyId, int count)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         var payroll = _payrollService.GetLatestByCount(companyId, count);
         return Ok(payroll);
     }
@@ -54,14 +56,14 @@ public class PayrollsController : ControllerBase
     {
         var item = _payrollService.GetById(id);
 
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, item.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, item.CompanyId);
         return Ok(item);
     }
 
     [HttpPost("companies/{companyId}")]
     public IActionResult Create(int companyId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         _payrollService.Create(companyId);
         return Ok(new { message = "Payroll created." });
     }
@@ -77,7 +79,7 @@ public class PayrollsController : ControllerBase
     [HttpPut("{id}/companies/{companyId}")]
     public IActionResult Update(int id, int companyId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
 
         _payrollService.Update(id,companyId);
         return Ok(new { message = "Payrolls updated." });

@@ -12,16 +12,18 @@ using TelonaiWebApi.Services;
 public class TimecardUsaNoteController : ControllerBase
 {
     private readonly ITimecardUsaNoteService _timecardNoteService;
-    public TimecardUsaNoteController(ITimecardUsaNoteService timecardNoteService)
+    private readonly IScopedAuthorization _scopedAuthorization;
+    public TimecardUsaNoteController(ITimecardUsaNoteService timecardNoteService, IScopedAuthorization scopedAuthorization)
     {
         _timecardNoteService = timecardNoteService;
+        _scopedAuthorization = scopedAuthorization;
     }
 
 
     [HttpGet("companies/{companyId}/payrolls/{payrollId}")]
     public async Task<IActionResult> GetByPayrollId(int companyId, int payrollId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
 
         var timecards = await _timecardNoteService.GetNotesByPayrollId(companyId,payrollId);
         return Ok(timecards);
@@ -30,7 +32,7 @@ public class TimecardUsaNoteController : ControllerBase
     [HttpPost("companies/{companyId}")]
     public async Task<IActionResult> GetByTimeCardIds(int companyId, [FromBody] List<int> timecardIds)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
 
         var timecards = await _timecardNoteService.GetNotesByTimeCardIds(companyId, timecardIds);
         return Ok(timecards);
@@ -40,7 +42,7 @@ public class TimecardUsaNoteController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult Update(int id, TimecardUsaNoteModel model)
     {
-        ScopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.Admin);
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.Admin);
         _timecardNoteService.Update(id, model);
         return Ok(new { message = "Timecard updated." });
     }
@@ -48,7 +50,7 @@ public class TimecardUsaNoteController : ControllerBase
     [HttpPut("jobs/{jobId}")]
     public IActionResult Update(int jobId, [FromBody]List<TimecardUsaNoteModel> models)
     {
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, jobId);
+        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, jobId);
 
         _timecardNoteService.Update(models);
         return Ok(new { message = "Timecard updated." });
@@ -56,7 +58,7 @@ public class TimecardUsaNoteController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        ScopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
 
         _timecardNoteService.Delete(id);
         return Ok(new { message = "Timecard deleted." });

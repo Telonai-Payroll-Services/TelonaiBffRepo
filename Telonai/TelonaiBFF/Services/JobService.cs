@@ -36,7 +36,6 @@ public class JobService : IJobService<JobModel,Job>
         return result;
     }
 
-
     public async Task<Job> CreateAsync(JobModel model)
     {
      throw new NotImplementedException();
