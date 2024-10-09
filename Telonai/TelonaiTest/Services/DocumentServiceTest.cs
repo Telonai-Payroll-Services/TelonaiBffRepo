@@ -7,6 +7,10 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Amazon.Auth.AccessControlPolicy;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Authorization;
+using System.Net.Sockets;
 
 namespace TelonaiWebAPITest.Services
 {
@@ -32,6 +36,7 @@ namespace TelonaiWebAPITest.Services
             _mockPersonService = new Mock<IPersonService<PersonModel, Person>>();
             _documentService = new DocumentService(_mockDataContext.Object, _mockMapper.Object, _mockDocumentManager.Object, _mockHttpContextAccessor.Object, _mockPersonService.Object, _mockScopedAuthorization.Object);
         }
+        
         [Fact]
         public void GetOwnDocumentDetailsByDocumentTypeAsync_WhenDocumentExist_WithCorrectdDocumentType()
         {
@@ -54,16 +59,11 @@ namespace TelonaiWebAPITest.Services
                 CompanyId = 42,
             };
             _mockPersonService.Setup(person => person.GetCurrentUserAsync()).ReturnsAsync(currentUser);
-            var mockClaimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            var mockClaimsPrincipal = new Mock<ClaimsPrincipal>(new ClaimsIdentity(new Claim[]
             {
                 new Claim("custom:scope", "SystemAdmin")
             }));
-
-            var mockHttpContext = new DefaultHttpContext
-            {
-                User = mockClaimsPrincipal
-            };
-            _mockScopedAuthorization.Setup(x => x.ValidateByCompanyId(mockHttpContext.User, AuthorizationType.Admin, 42));
+                                    
             var documentType = new DocumentType
             {
                 Id = 1,
@@ -76,7 +76,8 @@ namespace TelonaiWebAPITest.Services
                 DocumentTypeId = (int)DocumentTypeModel.INine,
                 DocumentType = documentType,
                 IsDeleted = false,
-                PersonId = currentUser.Id
+                PersonId = currentUser.Id,
+                CreatedDate = DateTime.Now
             };
             
             var documents = new List<Document> { document }.AsQueryable();
@@ -85,6 +86,7 @@ namespace TelonaiWebAPITest.Services
             _mockDocumentSet.As<IQueryable<Document>>().Setup(m => m.ElementType).Returns(documents.ElementType);
             _mockDocumentSet.As<IQueryable<Document>>().Setup(m => m.GetEnumerator()).Returns(documents.GetEnumerator());
             _mockDataContext.Setup(c => c.Document).Returns(_mockDocumentSet.Object);
+            _mockDataContext.Setup(c => c.SaveChanges()).Returns(1);
 
             //Return DocumentModel
             var documentModel = new DocumentModel
@@ -95,6 +97,7 @@ namespace TelonaiWebAPITest.Services
                 PersonId = currentUser.Id
             };
             _mockMapper.Setup(m => m.Map<DocumentModel>(It.IsAny<Document>())).Returns(documentModel);
+            _mockScopedAuthorization.Setup(x => x.ValidateByCompanyId(mockClaimsPrincipal.Object, AuthorizationType.Admin, 42));
 
             // Act
             var result =  _documentService.GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel.INine);
