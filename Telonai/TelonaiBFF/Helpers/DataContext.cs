@@ -69,7 +69,7 @@ public class DataContext : DbContext
         }
         return base.SaveChanges();
     }
-    public async Task<int> SaveChangesAsync()
+    public virtual async Task<int> SaveChangesAsync()
     {
         this.ChangeTracker.DetectChanges();
         var added = this.ChangeTracker.Entries()
