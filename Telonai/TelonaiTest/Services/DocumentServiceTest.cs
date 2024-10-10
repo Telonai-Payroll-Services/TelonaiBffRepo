@@ -7,6 +7,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio;
 using Amazon.Auth.AccessControlPolicy;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Authorization;
@@ -38,7 +39,7 @@ namespace TelonaiWebAPITest.Services
         }
         
         [Fact]
-        public void GetOwnDocumentDetailsByDocumentTypeAsync_WhenDocumentExist_WithCorrectdDocumentType()
+        public async Task GetOwnDocumentDetailsByDocumentTypeAsync_WhenDocumentExist_ReturnsDocumentsOwnedByThePerson()
         {
             //Arrange
             var currentUser = new Person
@@ -59,52 +60,67 @@ namespace TelonaiWebAPITest.Services
                 CompanyId = 42,
             };
             _mockPersonService.Setup(person => person.GetCurrentUserAsync()).ReturnsAsync(currentUser);
-            var mockClaimsPrincipal = new Mock<ClaimsPrincipal>(new ClaimsIdentity(new Claim[]
+            var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
             {
                 new Claim("custom:scope", "SystemAdmin")
             }));
-                                    
+            var context = new DefaultHttpContext
+            {
+                User = claimsPrincipal
+            };
+
             var documentType = new DocumentType
             {
                 Id = 1,
                 Value = "123",
-            };
-            var document = new Document
+            };           
+            var documents = new List<Document> 
             {
-                Id = Guid.NewGuid(),
-                FileName = "Sample.Pdf",
-                DocumentTypeId = (int)DocumentTypeModel.INine,
-                DocumentType = documentType,
-                IsDeleted = false,
-                PersonId = currentUser.Id,
-                CreatedDate = DateTime.Now
-            };
-            
-            var documents = new List<Document> { document }.AsQueryable();
+                new Document
+                {
+                    Id = Guid.NewGuid(),
+                    FileName = "INine.Pdf",
+                    DocumentTypeId = (int)DocumentTypeModel.INine,
+                    DocumentType = documentType,
+                    IsDeleted = false,
+                    PersonId = currentUser.Id,
+                    CreatedDate = DateTime.Now
+                },
+                new Document
+                {
+                    Id = Guid.NewGuid(),
+                    FileName = "INine.Pdf",
+                    DocumentTypeId = (int)DocumentTypeModel.INine,
+                    DocumentType = documentType,
+                    IsDeleted = false,
+                    PersonId = 12,
+                    CreatedDate = DateTime.Now
+                }
+            }.AsQueryable();
+
             _mockDocumentSet.As<IQueryable<Document>>().Setup(m => m.Provider).Returns(documents.Provider);
             _mockDocumentSet.As<IQueryable<Document>>().Setup(m => m.Expression).Returns(documents.Expression);
             _mockDocumentSet.As<IQueryable<Document>>().Setup(m => m.ElementType).Returns(documents.ElementType);
             _mockDocumentSet.As<IQueryable<Document>>().Setup(m => m.GetEnumerator()).Returns(documents.GetEnumerator());
-            _mockDataContext.Setup(c => c.Document).Returns(_mockDocumentSet.Object);
-            _mockDataContext.Setup(c => c.SaveChanges()).Returns(1);
-
+            _mockDataContext.Setup(d => d.Document).Returns(_mockDocumentSet.Object);
             //Return DocumentModel
             var documentModel = new DocumentModel
             {
-                Id = document.Id,
-                FileName = "Sample.Pdf",
+                Id = documents.ToList().FirstOrDefault().Id,
+                FileName = "INine.Pdf",
                 DocumentType = DocumentTypeModel.INine,
                 PersonId = currentUser.Id
             };
             _mockMapper.Setup(m => m.Map<DocumentModel>(It.IsAny<Document>())).Returns(documentModel);
-            _mockScopedAuthorization.Setup(x => x.ValidateByCompanyId(mockClaimsPrincipal.Object, AuthorizationType.Admin, 42));
+            _mockHttpContextAccessor.Setup(i => i.HttpContext).Returns(context);
+            _mockScopedAuthorization.Setup(x => x.ValidateByCompanyId(claimsPrincipal, AuthorizationType.Admin, 42)).Callback(() => {  });
 
             // Act
-            var result =  _documentService.GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel.INine);
+            var result = await _documentService.GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel.INine);
 
             //Assert
             Assert.NotNull(result);  // Document exists, so result should not be null
-            Assert.Equal(document.Id, result.Result.Id);  // Verify that the document is correctly mapped
+            Assert.Equal(documents.ToList().FirstOrDefault().Id, result.Id);  // Verify that the document is correctly mapped
         }
     }
 }
