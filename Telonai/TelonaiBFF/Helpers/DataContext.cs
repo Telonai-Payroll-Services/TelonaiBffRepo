@@ -112,7 +112,7 @@ public class DataContext : DbContext
     public DbSet<Country> Country { get; set; }
     public DbSet<BusinessType> BusinessType { get; set; }
     public  DbSet<CompanyContact> CompanyContact { get; set; }
-    public DbSet<ContactType> ContactType { get; set; }
+    public virtual DbSet<ContactType> ContactType { get; set; }
     public virtual DbSet<Job> Job { get; set; }
     public DbSet<TimecardUsa> TimecardUsa { get; set; }
     public DbSet<TimecardUsaNote> TimecardUsaNote { get; set; }
