@@ -18,11 +18,11 @@ public class CompaniesController : ControllerBase
     private readonly IInvitationService<InvitationModel, Invitation> _invitationService;
     private readonly IEmploymentService<EmploymentModel, Employment> _employmentService;
     private readonly IJobService<JobModel, Job> _jobService;
-
+    private readonly IScopedAuthorization _scopedAuthorization;
 
     public CompaniesController(ICompanyService<CompanyModel, Company> companyService, IUserService userService, IPersonService<PersonModel, Person> personService
         , IInvitationService<InvitationModel, Invitation> invitationService, IEmploymentService<EmploymentModel, 
-            Employment> employmentService, IJobService<JobModel, Job> jobService)
+            Employment> employmentService, IJobService<JobModel, Job> jobService, IScopedAuthorization scopedAuthorization)
     {
         _service = companyService;
         _userService = userService;
@@ -30,6 +30,7 @@ public class CompaniesController : ControllerBase
         _invitationService = invitationService;
         _employmentService = employmentService;
         _jobService = jobService;
+        _scopedAuthorization = scopedAuthorization;
     }
 
     [HttpGet]
@@ -121,7 +122,7 @@ public class CompaniesController : ControllerBase
     [HttpGet("{id}/summary")]
     public IActionResult GetSummary(int id)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, id);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, id);
 
         var result = _service.GetSummary(id,4);
 

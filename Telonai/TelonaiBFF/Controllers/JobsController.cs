@@ -15,18 +15,19 @@ public class JobsController : ControllerBase
 {
     private readonly IJobService<JobModel,Job> _service;
     private readonly IMapper _mapper;
+    private readonly IScopedAuthorization _scopedAuthorization;
 
-    public JobsController(IJobService<JobModel, Job> jobService, IMapper mapper)
+    public JobsController(IJobService<JobModel, Job> jobService, IMapper mapper, IScopedAuthorization scopedAuthorization)
     {
         _service = jobService;
         _mapper = mapper;
-
+        _scopedAuthorization = scopedAuthorization;
     }
 
     [HttpGet]
     public IActionResult GetAll()
     {
-        ScopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
         var jobs = _service.Get();
         return Ok(jobs);
     }
@@ -42,7 +43,7 @@ public class JobsController : ControllerBase
     public IActionResult Create(JobRequestModel model)
     {
         var principal = Request.HttpContext.User;
-        ScopedAuthorization.ValidateByCompanyId(principal, AuthorizationType.Admin, model.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(principal, AuthorizationType.Admin, model.CompanyId);
 
         var jModel = _mapper.Map<JobModel>(model);
         var email = principal.Claims.First(e => e.Type == "email").Value;
@@ -56,14 +57,14 @@ public class JobsController : ControllerBase
     public IActionResult Update(int id, JobModel model)
     {
         _service.UpdateAsync(id, model);
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, id);
+        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, id);
         return Ok(new { message = "Job updated" });
     }
 
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        ScopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
         _service.DeleteAsync(id);
         return Ok(new { message = "Job deleted" });
     }

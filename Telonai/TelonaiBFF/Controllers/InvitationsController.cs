@@ -16,10 +16,12 @@ public class InvitationsController : ControllerBase
 {
     private readonly IInvitationService<InvitationModel, Invitation> _service;
     private readonly ILogger<InvitationsController> _logger;
-    public InvitationsController(IInvitationService<InvitationModel, Invitation> service, ILogger<InvitationsController> logger)
+    private readonly IScopedAuthorization _scopedAuthrorization;
+    public InvitationsController(IInvitationService<InvitationModel, Invitation> service, ILogger<InvitationsController> logger, IScopedAuthorization scopedAuthrorization)
     {
         _service = service;
         _logger = logger;
+        _scopedAuthrorization = scopedAuthrorization;
     }
 
     [Authorize]
@@ -27,7 +29,7 @@ public class InvitationsController : ControllerBase
     public IActionResult GetById(Guid id)
     {
         var result = _service.GetById(id);
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, result.JobId.Value);
+        _scopedAuthrorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, result.JobId.Value);
 
         return Ok(result);
     }
@@ -75,7 +77,7 @@ public class InvitationsController : ControllerBase
     [HttpPost]
     public IActionResult InviteEmployee([FromBody] InvitationModel model)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, model.Employment.CompanyId);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, model.Employment.CompanyId);
         _service.CreateAsync(model,true);        
         return Ok();
     }

@@ -15,17 +15,20 @@ public interface IPersonService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     Task<PersonModel> GetByEmailAsync(string email);
     IList<PersonModel> GetByCompanyId(int companyId);
     Task<PersonModel> GetByEmailAndCompanyIdAsync(string email, int companyId);
+    Task<Person> GetCurrentUserAsync();
+
 }
 
 public class PersonService : IPersonService<PersonModel,Person>
 {
     private readonly DataContext _context;
     private readonly IMapper _mapper;
-
-    public PersonService(DataContext context, IMapper mapper)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    public PersonService(DataContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _mapper = mapper;
+        _httpContextAccessor = httpContextAccessor;
     }
     public IList<PersonModel> GetByCompanyId(int companyId)
     {
@@ -151,5 +154,12 @@ public class PersonService : IPersonService<PersonModel,Person>
     private Person GetPerson(int id)
     {
         return _context.Person.Find(id);       
+    }
+
+    public async Task<Person> GetCurrentUserAsync()
+    {
+        var currentUserEmail = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(e => e.Type == "email").Value.ToLower();
+        var person = await _context.Person.FirstOrDefaultAsync(e => e.Email.ToLower() == currentUserEmail) ?? throw new InvalidDataException("User not found");
+        return person;
     }
 }
