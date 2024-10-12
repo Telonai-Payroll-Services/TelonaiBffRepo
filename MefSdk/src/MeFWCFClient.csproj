@@ -1,0 +1,233 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7EF46ABD-E592-43A6-8512-32753D64EE78}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MeFWCFClient</RootNamespace>
+    <AssemblyName>MeFWCFClient</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\build\debug\mefdoc.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\build\debug\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\build\debug\mefdoc.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Common, Version=4.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\Microsoft.Practices.EnterpriseLibrary.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Logging, Version=4.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\Microsoft.Practices.EnterpriseLibrary.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.ObjectBuilder2, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\Microsoft.Practices.ObjectBuilder2.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ClientInfo.cs" />
+    <Compile Include="Configuration\ClientConfiguration.cs" />
+    <Compile Include="EfileAttachments\AckNotification.cs" />
+    <Compile Include="EfileAttachments\AckNotificationList.cs" />
+    <Compile Include="EfileAttachments\Acknowledgement.cs" />
+    <Compile Include="EfileAttachments\AcknowledgementList.cs" />
+    <Compile Include="EfileAttachments\EntityBase.cs" />
+    <Compile Include="EfileAttachments\Interface\IEfileAttachment.cs" />
+    <Compile Include="EfileAttachments\NamespaceDoc.cs" />
+    <Compile Include="EfileAttachments\StatusRecord.cs" />
+    <Compile Include="EfileAttachments\StatusRecordList.cs" />
+    <Compile Include="EfileAttachments\SubmissionReceipt.cs" />
+    <Compile Include="EfileAttachments\SubmissionReceiptList.cs" />
+    <Compile Include="encoders\login\ConfigurationStrings.cs" />
+    <Compile Include="encoders\login\CustomTextMessageEncoder.cs" />
+    <Compile Include="encoders\login\CustomTextMessageEncoderFactory.cs" />
+    <Compile Include="encoders\login\CustomTextMessageEncodingBindingElement.cs" />
+    <Compile Include="encoders\login\CustomTextMessageEncodingBindingSection.cs" />
+    <Compile Include="encoders\logout\ConfigurationStrings.cs" />
+    <Compile Include="encoders\logout\CustomTextMessageEncoder.cs" />
+    <Compile Include="encoders\logout\CustomTextMessageEncoderFactory.cs" />
+    <Compile Include="encoders\logout\CustomTextMessageEncodingBindingElement.cs" />
+    <Compile Include="encoders\logout\CustomTextMessageEncodingBindingSection.cs" />
+    <Compile Include="encoders\Mime\MimeContent.cs" />
+    <Compile Include="encoders\Mime\MimeParser.cs" />
+    <Compile Include="encoders\Mime\MimePart.cs" />
+    <Compile Include="encoders\services MTOM\ConfigurationStringsMTOM.cs" />
+    <Compile Include="encoders\services MTOM\CustomTextMessageEncoderFactoryMTOM.cs" />
+    <Compile Include="encoders\services MTOM\CustomTextMessageEncoderMTOM.cs" />
+    <Compile Include="encoders\services MTOM\CustomTextMessageEncodingBindingElementMTOM.cs" />
+    <Compile Include="encoders\services MTOM\CustomTextMessageEncodingBindingSectionMTOM.cs" />
+    <Compile Include="encoders\services\ConfigurationStrings.cs" />
+    <Compile Include="encoders\services\CustomTextMessageEncoder.cs" />
+    <Compile Include="encoders\services\CustomTextMessageEncoderFactory.cs" />
+    <Compile Include="encoders\services\CustomTextMessageEncodingBindingElement.cs" />
+    <Compile Include="encoders\services\CustomTextMessageEncodingBindingSection.cs" />
+    <Compile Include="Extensions\CollectionExtensions.cs" />
+    <Compile Include="Extensions\DateTimeExtensions.cs" />
+    <Compile Include="Extensions\DirectoryInfoExtensions.cs" />
+    <Compile Include="Extensions\FileInfoExtensions.cs" />
+    <Compile Include="Extensions\NamespaceDoc.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Extensions\XAttributeExtensions.cs" />
+    <Compile Include="Extensions\XElementExtensions.cs" />
+    <Compile Include="Extensions\XLinqExtensions.cs" />
+    <Compile Include="Extensions\XStreamingReader.cs" />
+    <Compile Include="Helpers\ApiHelper.cs" />
+    <Compile Include="Helpers\CustomObjectDumper.cs" />
+    <Compile Include="Helpers\RequestHelper.cs" />
+    <Compile Include="Helpers\ResponseHandler.cs" />
+    <Compile Include="Helpers\StreamingHelper.cs" />
+    <Compile Include="Helpers\XmlHelper.cs" />
+    <Compile Include="Helpers\ZipHelper.cs" />
+    <Compile Include="Logging\Audit.cs" />
+    <Compile Include="Logging\Constants.cs" />
+    <Compile Include="Logging\Log.cs" />
+    <Compile Include="Logging\LoggingCategory.cs" />
+    <Compile Include="Logging\LoggingPriority.cs" />
+    <Compile Include="Logging\MessageBuilder.cs" />
+    <Compile Include="MeFClientBase.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServiceContext.cs" />
+    <Compile Include="Services\ETEC\Get2290Schedule1Client.cs" />
+    <Compile Include="Services\ETEC\Get2290Schedule1Result.cs" />
+    <Compile Include="Services\ETEC\Get2290Schedule1sByMsgIDClient.cs" />
+    <Compile Include="Services\ETEC\Get2290Schedule1sByMsgIDResult.cs" />
+    <Compile Include="Services\ETEC\Get2290Schedule1sClient.cs" />
+    <Compile Include="Services\ETEC\Get2290Schedule1sResult.cs" />
+    <Compile Include="Services\ETEC\GetNew2290Schedule1sClient.cs" />
+    <Compile Include="Services\ETEC\GetNew2290Schedule1sResult.cs" />
+    <Compile Include="Services\FileItem.cs" />
+    <Compile Include="Services\MSI\EtinRetrievalClient.cs" />
+    <Compile Include="Services\MSI\EtinRetrievalResult.cs" />
+    <Compile Include="Services\MSI\EtinStatusClient.cs" />
+    <Compile Include="Services\MSI\EtinStatusResult.cs" />
+    <Compile Include="Services\MSI\GetStateParticipantsListClient.cs" />
+    <Compile Include="Services\MSI\GetStateParticipantsListResult.cs" />
+    <Compile Include="Services\MSI\LoginClient.cs" />
+    <Compile Include="Services\MSI\LoginResult.cs" />
+    <Compile Include="Services\MSI\LogoutClient.cs" />
+    <Compile Include="Services\MSI\LogoutResult.cs" />
+    <Compile Include="Services\NamespaceDoc.cs" />
+    <Compile Include="Services\ServiceException.cs" />
+    <Compile Include="Services\State\GetAckNotificationClient.cs" />
+    <Compile Include="Services\State\GetAckNotificationResult.cs" />
+    <Compile Include="Services\State\GetAckNotificationsClient.cs" />
+    <Compile Include="Services\State\GetAckNotificationsResult.cs" />
+    <Compile Include="Services\State\GetNewAckNotificationsClient.cs" />
+    <Compile Include="Services\State\GetNewAckNotificationsResult.cs" />
+    <Compile Include="Services\State\GetNewSubmissionsClient.cs" />
+    <Compile Include="Services\State\GetNewSubmissionsResult.cs" />
+    <Compile Include="Services\State\GetSubmissionByMsgIDClient.cs" />
+    <Compile Include="Services\State\GetSubmissionClient.cs" />
+    <Compile Include="Services\State\GetSubmissionReconciliationListClient.cs" />
+    <Compile Include="Services\State\GetSubmissionReconciliationListResult.cs" />
+    <Compile Include="Services\State\GetSubmissionResult.cs" />
+    <Compile Include="Services\State\GetSubmissionsByMsgIDResult.cs" />
+    <Compile Include="Services\State\GetSubmissionsClient.cs" />
+    <Compile Include="Services\State\GetSubmissionsResult.cs" />
+    <Compile Include="Services\State\SendAcksClient.cs" />
+    <Compile Include="Services\State\SendAcksResult.cs" />
+    <Compile Include="Services\State\SendSubmissionReceiptsClient.cs" />
+    <Compile Include="Services\State\SendSubmissionReceiptsResult.cs" />
+    <Compile Include="Services\State\StateSubmissionContainer.cs" />
+    <Compile Include="Services\State\StateSubmissionData.cs" />
+    <Compile Include="Services\SubmissionArchives\BinaryAttachment.cs" />
+    <Compile Include="Services\SubmissionArchives\InputCompositionBase.cs" />
+    <Compile Include="Services\SubmissionArchives\IrsSubmissionArchive.cs" />
+    <Compile Include="Services\SubmissionArchives\ISubmissionArchive.cs" />
+    <Compile Include="Services\SubmissionArchives\ISubmissionArchiveItem.cs" />
+    <Compile Include="Services\SubmissionArchives\ISubmissionInfo.cs" />
+    <Compile Include="Services\SubmissionArchives\PostmarkedSubmissionArchive.cs" />
+    <Compile Include="Services\SubmissionArchives\StateSubmissionArchive.cs" />
+    <Compile Include="Services\SubmissionArchives\SubmissionArchive.cs" />
+    <Compile Include="Services\SubmissionArchives\SubmissionBuilder.cs" />
+    <Compile Include="Services\SubmissionArchives\SubmissionManifest.cs" />
+    <Compile Include="Services\SubmissionArchives\SubmissionXml.cs" />
+    <Compile Include="Services\SubmissionErrorItem.cs" />
+    <Compile Include="Services\Transmitter\GetAckClient.cs" />
+    <Compile Include="Services\Transmitter\GetAckResult.cs" />
+    <Compile Include="Services\Transmitter\GetAcksByMsgIDClient.cs" />
+    <Compile Include="Services\Transmitter\GetAcksByMsgIDResult.cs" />
+    <Compile Include="Services\Transmitter\GetAcksClient.cs" />
+    <Compile Include="Services\Transmitter\GetAcksResult.cs" />
+    <Compile Include="Services\Transmitter\GetNewAcksClient.cs" />
+    <Compile Include="Services\Transmitter\GetNewAcksResult.cs" />
+    <Compile Include="Services\Transmitter\GetNewSubmissionsStatusClient.cs" />
+    <Compile Include="Services\Transmitter\GetNewSubmissionsStatusResult.cs" />
+    <Compile Include="Services\Transmitter\GetSubmissionsStatusClient.cs" />
+    <Compile Include="Services\Transmitter\GetSubmissionsStatusResult.cs" />
+    <Compile Include="Services\Transmitter\GetSubmissionStatusClient.cs" />
+    <Compile Include="Services\Transmitter\GetSubmissionStatusResult.cs" />
+    <Compile Include="Services\Transmitter\SendSubmissionsClient.cs" />
+    <Compile Include="Services\Transmitter\SendSubmissionsResult.cs" />
+    <Compile Include="Services\Transmitter\SubmissionContainer.cs" />
+    <Compile Include="SessionInfo.cs" />
+    <Compile Include="ToolkitException.cs" />
+    <Compile Include="Utilities\AttachmentUtil.cs" />
+    <Compile Include="Utilities\Constants.cs" />
+    <Compile Include="Utilities\EfileXmlReader.cs" />
+    <Compile Include="Utilities\NamespaceDoc.cs" />
+    <Compile Include="Utilities\StringUtils.cs" />
+    <Compile Include="Utilities\ZipStreamReader.cs" />
+    <Compile Include="Validation\NamespaceDoc.cs" />
+    <Compile Include="Validation\Validate.cs" />
+    <Compile Include="Validation\ValidationHelper.cs" />
+    <Compile Include="WCFProxies\efileAttachments.designer.cs" />
+    <Compile Include="WCFProxies\ETECTransmitterServices.cs" />
+    <Compile Include="WCFProxies\MeFHeader.cs" />    
+    <Compile Include="WCFProxies\MeFMSIServices.cs" />
+    <Compile Include="WCFProxies\MeFStateServices.cs" />
+    <Compile Include="WCFProxies\MefTransmitterServices.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Configuration\mefclientsdk.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
