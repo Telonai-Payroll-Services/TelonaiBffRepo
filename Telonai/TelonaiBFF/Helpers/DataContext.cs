@@ -6,7 +6,7 @@ using TelonaiWebApi.Entities;
 using Newtonsoft.Json;
 using Amazon.SecretsManager.Extensions.Caching;
 using TelonaiWebApi.Helpers.Interface;
-public class DataContext : DbContext, IDataContext
+public class DataContext : DbContext
 {
     private readonly IHttpContextAccessor _context;
     private readonly SecretsManagerCache _cache;
@@ -69,7 +69,7 @@ public class DataContext : DbContext, IDataContext
         }
         return base.SaveChanges();
     }
-    public async Task<int> SaveChangesAsync()
+    public virtual async Task<int> SaveChangesAsync()
     {
         this.ChangeTracker.DetectChanges();
         var added = this.ChangeTracker.Entries()
@@ -105,7 +105,7 @@ public class DataContext : DbContext, IDataContext
     }
 
     public DbSet<Employment> Employment { get; set; }
-    public DbSet<Person> Person { get; set; }
+    public virtual DbSet<Person> Person { get; set; }
     public DbSet<Company> Company { get; set; }
     public DbSet<City> City { get; set; }
     public DbSet<State> State { get; set; }
