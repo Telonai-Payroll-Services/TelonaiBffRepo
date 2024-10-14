@@ -2,3 +2,6 @@
 Telonai/TelonaiBFF/aws-logger-errors.txt
 *.suo
 .vs
+Debug/
+Release/
+obj/
