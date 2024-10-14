@@ -12,15 +12,17 @@ using TelonaiWebApi.Services;
 public class PayrollScheduleController : ControllerBase
 {
     private readonly IPayrollScheduleService _PayrollScheduleService;
-    public PayrollScheduleController(IPayrollScheduleService PayrollScheduleService)
+    private readonly IScopedAuthorization _scopedAuthrorization;
+    public PayrollScheduleController(IPayrollScheduleService PayrollScheduleService, IScopedAuthorization scopedAuthrorization)
     {
         _PayrollScheduleService = PayrollScheduleService;
+        _scopedAuthrorization = scopedAuthrorization;
     }
 
     [HttpGet("companies/{companyId}")]
     public IActionResult GetPayrollSchedule(int companyId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         var PayrollSchedule = _PayrollScheduleService.GetLatestByCompanyId(companyId);
         return Ok(PayrollSchedule);
     }
@@ -29,7 +31,7 @@ public class PayrollScheduleController : ControllerBase
     [HttpGet("companies/{companyId}/all")]
     public IActionResult GetAllPayrollSchedules(int companyId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         var PayrollSchedule = _PayrollScheduleService.GetLatestByCompanyId(companyId);
         return Ok(PayrollSchedule);
     }
@@ -44,7 +46,7 @@ public class PayrollScheduleController : ControllerBase
     [HttpPost()]
     public IActionResult Create([FromBody]PayrollScheduleModel model)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, model.CompanyId);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, model.CompanyId);
         _PayrollScheduleService.Create(model);
         return Ok(new { message = "Payroll Schedule created." });
     }
@@ -52,7 +54,7 @@ public class PayrollScheduleController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult Update(int id,PayrollScheduleModel model)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, model.CompanyId);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, model.CompanyId);
         _PayrollScheduleService.Update(id,  model);
         return Ok(new { message = "Payroll Schedule updated." });
     }

@@ -14,9 +14,11 @@ using TelonaiWebApi.Services;
 public class DocumentsController : ControllerBase
 {
     private readonly IDocumentService _documentService;
-    public DocumentsController(IDocumentService documentService)
+    private readonly IScopedAuthorization _scopedAuthrorization;
+    public DocumentsController(IDocumentService documentService, IScopedAuthorization scopedAuthrorization)
     {
         _documentService = documentService;
+        _scopedAuthrorization = scopedAuthrorization;
     }
 
     [HttpGet("{id}")]
@@ -62,7 +64,7 @@ public class DocumentsController : ControllerBase
     [HttpGet("documentType/{documentType}/unsigned")]
     public async Task<IActionResult> GetGovernmentDocumentByDocumentType(DocumentTypeModel documentType)
     {
-        ScopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+        _scopedAuthrorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
 
         var document = await _documentService.GetDocumentByDocumentTypeAsync(documentType);
         return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf"); 
@@ -91,7 +93,7 @@ public class DocumentsController : ControllerBase
     public async Task<IActionResult> Update(Guid id, DocumentModel model)
     {
         var doc = await _documentService.GetDocumentDetailsByDocumentIdAsync(id);
-        ScopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+        _scopedAuthrorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
 
         _documentService.Update(id, model);
         return Ok(new { message = "Documents updated." });
@@ -102,7 +104,7 @@ public class DocumentsController : ControllerBase
     [Authorize(Policy = "SystemAdmin")]
     public IActionResult Delete(Guid id)
     {
-        ScopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+        _scopedAuthrorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
 
         _documentService.Delete(id);
         return Ok(new { message = "Document deleted." });

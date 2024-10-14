@@ -16,15 +16,17 @@ using TelonaiWebApi.Services;
 public class PayStubController : ControllerBase
 {
     private readonly IPayStubService _PayStubService;
-    public PayStubController(IPayStubService PayStubService)
+    private readonly IScopedAuthorization _scopedAuthrorization;
+    public PayStubController(IPayStubService PayStubService, IScopedAuthorization scopedAuthrorization)
     {
         _PayStubService = PayStubService;
+        _scopedAuthrorization = scopedAuthrorization;
     }
 
     [HttpGet("companies/{companies}")]
     public IActionResult GetCurrentPayStubs(int companyId)
     {
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthrorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         var PayStub = _PayStubService.GetCurrentByCompanyId(companyId);
         return Ok(PayStub);
     }
@@ -32,7 +34,7 @@ public class PayStubController : ControllerBase
     [HttpGet("companies/{companies}/persons/{personId}")]
     public IActionResult GetCurrentByJobIdAndPersonId(int companyId, int personId)
     {
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.User, companyId);
+        _scopedAuthrorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.User, companyId);
         var PayStub = _PayStubService.GetCurrentByCompanyIdAndPersonId(companyId, personId);
         return Ok(PayStub);
     }
@@ -40,7 +42,7 @@ public class PayStubController : ControllerBase
     [HttpGet("companies/{companyId}/report")]
     public IActionResult GetByTimeForUser(int companyId, [FromQuery(Name = "startTime")] DateOnly startTime, [FromQuery(Name = "endTime")] DateOnly endTime)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         var PayStub = _PayStubService.GetReport(companyId, startTime, endTime);
         return Ok(PayStub);
     }
@@ -49,7 +51,7 @@ public class PayStubController : ControllerBase
     public IActionResult GetCurrentByPayrollId(int payrollId)
     {
         var payStubs = _PayStubService.GetCurrentByPayrollId(payrollId);
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, payStubs.FirstOrDefault().Payroll.CompanyId);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, payStubs.FirstOrDefault().Payroll.CompanyId);
         return Ok(payStubs);
     }
 
@@ -57,7 +59,7 @@ public class PayStubController : ControllerBase
     [HttpGet("payrolls/{payrollId}/companies/{companyId}/generate")]
     public IActionResult GeneratePayStubPdfs(int payrollId, int companyId)
     {
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
 
         _PayStubService.GeneratePayStubPdfs(payrollId, companyId);
         return Ok();
@@ -68,7 +70,7 @@ public class PayStubController : ControllerBase
     {
         var item = _PayStubService.GetById(id);
 
-        ScopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.User, item.Payroll.CompanyId);
+        _scopedAuthrorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.User, item.Payroll.CompanyId);
         return Ok(item);
     }
 
@@ -76,7 +78,7 @@ public class PayStubController : ControllerBase
     public IActionResult GetDocumentByPayStubId(int id)
     {
         var item = _PayStubService.GetById(id);
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, item.Payroll.CompanyId);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, item.Payroll.CompanyId);
 
         var stream = _PayStubService.GetDocumentByDocumentId(item.DocumentId.Value).Result;
         using (MemoryStream ms = new())
@@ -97,7 +99,7 @@ public class PayStubController : ControllerBase
     public IActionResult Update(int id, PayStubModel model)
     {
         var stub = _PayStubService.GetById(id);
-        ScopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, stub.Payroll.CompanyId);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, stub.Payroll.CompanyId);
 
         _PayStubService.Update(id, model);
         return Ok(new { message = "PayStub updated." });

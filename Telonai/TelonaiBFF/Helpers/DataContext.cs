@@ -105,7 +105,7 @@ public class DataContext : DbContext
     }
 
     public virtual DbSet<Employment> Employment { get; set; }
-    public DbSet<Person> Person { get; set; }
+    public virtual DbSet<Person> Person { get; set; }
     public virtual DbSet<Company> Company { get; set; }
     public DbSet<City> City { get; set; }
     public DbSet<State> State { get; set; }

@@ -1,10 +1,15 @@
 namespace TelonaiWebApi.Helpers;
 
 using System.Security.Claims;
-
-public class ScopedAuthorization
+public interface IScopedAuthorization
 {
-    public static void ValidateByJobId(ClaimsPrincipal principal, AuthorizationType authType, int jobId)
+    public  void ValidateByJobId(ClaimsPrincipal principal, AuthorizationType authType, int jobId);
+    public void ValidateByCompanyId(ClaimsPrincipal principal, AuthorizationType authType, int companyId);
+    public void Validate(ClaimsPrincipal principal, AuthorizationType authType);
+}
+public class ScopedAuthorization: IScopedAuthorization
+{
+    public  void ValidateByJobId(ClaimsPrincipal principal, AuthorizationType authType, int jobId)
     {
 
         var roles = principal.Claims.Where(e => e.Type == ClaimTypes.Role);
@@ -34,7 +39,7 @@ public class ScopedAuthorization
 
         throw new UnauthorizedAccessException();
     }
-    public static void ValidateByCompanyId(ClaimsPrincipal principal, AuthorizationType authType, int companyId)
+    public  void ValidateByCompanyId(ClaimsPrincipal principal, AuthorizationType authType, int companyId)
     {        
         var scope = principal.Claims.First(e => e.Type == "custom:scope").Value;
         var desiredScope = "SystemAdmin";
@@ -62,7 +67,7 @@ public class ScopedAuthorization
 
         throw new UnauthorizedAccessException();
     }
-    public static void Validate(ClaimsPrincipal principal, AuthorizationType authType)
+    public  void Validate(ClaimsPrincipal principal, AuthorizationType authType)
     {
 
         var email = principal.Claims.First(e => e.Type == "email").Value;
