@@ -3,11 +3,11 @@ namespace TelonaiWebApi.Helpers;
 using System.Security.Claims;
 public interface IScopedAuthorization
 {
-    public  void ValidateByJobId(ClaimsPrincipal principal, AuthorizationType authType, int jobId);
+    public void ValidateByJobId(ClaimsPrincipal principal, AuthorizationType authType, int jobId);
     public void ValidateByCompanyId(ClaimsPrincipal principal, AuthorizationType authType, int companyId);
     public void Validate(ClaimsPrincipal principal, AuthorizationType authType);
 }
-public class ScopedAuthorization: IScopedAuthorization
+public class ScopedAuthorization : IScopedAuthorization
 {
     public  void ValidateByJobId(ClaimsPrincipal principal, AuthorizationType authType, int jobId)
     {

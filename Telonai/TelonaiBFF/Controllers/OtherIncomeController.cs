@@ -15,11 +15,12 @@ using TelonaiWebApi.Services;
 public class OtherIncomeController : ControllerBase
 {
     private readonly IOtherMoneyReceivedService _otherIncomeService;
-    private readonly IScopedAuthorization _scopedAuthrorization;
-    public OtherIncomeController(IOtherMoneyReceivedService otherIncomeService, IScopedAuthorization scopedAuthrorization)
+    private readonly IScopedAuthorization _scopedAuthorization;
+
+    public OtherIncomeController(IOtherMoneyReceivedService otherIncomeService, IScopedAuthorization scopedAuthorization)
     {
         _otherIncomeService = otherIncomeService;
-        _scopedAuthrorization = scopedAuthrorization;
+        _scopedAuthorization = scopedAuthorization;
     }
 
 
@@ -27,7 +28,7 @@ public class OtherIncomeController : ControllerBase
     public IActionResult GetCurrentByPayrollId(int payrollId)
     {
         var OtherIncomes = _otherIncomeService.GetByPayrollId(payrollId,  out var companyId);
-        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         return Ok(OtherIncomes);
     }
 
@@ -36,7 +37,7 @@ public class OtherIncomeController : ControllerBase
     {
         var item = _otherIncomeService.GetById(id);
 
-        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, item.PayStub.Payroll.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, item.PayStub.Payroll.CompanyId);
         return Ok(item);
     }
 
@@ -51,7 +52,7 @@ public class OtherIncomeController : ControllerBase
     public IActionResult Update([FromBody]OtherMoneyReceivedModel model)
     {
         var stub = _otherIncomeService.GetById(model.Id);
-        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, stub.PayStub.Payroll.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, stub.PayStub.Payroll.CompanyId);
 
         _otherIncomeService.Update(model);
         return Ok(new { message = "OtherIncome updated." });

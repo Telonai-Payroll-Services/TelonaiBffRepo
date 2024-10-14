@@ -5,7 +5,9 @@ VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelonaiWebApi", "TelonaiBFF\TelonaiWebApi.csproj", "{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelonaiWebApi.UnitTest", "TelonaiWebApi.UnitTest\TelonaiWebApi.UnitTest.csproj", "{0859F741-2AA9-4C57-8E02-2C80FB1D5465}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelonaiWebAPITest", "TelonaiTest\TelonaiWebAPITest.csproj", "{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MefClientSdkConsole", "MefClientSdkConsole\MefClientSdkConsole.csproj", "{55AA1907-7F0D-4E12-9907-4673B5E434FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +19,14 @@ Global
 		{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0859F741-2AA9-4C57-8E02-2C80FB1D5465}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0859F741-2AA9-4C57-8E02-2C80FB1D5465}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0859F741-2AA9-4C57-8E02-2C80FB1D5465}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0859F741-2AA9-4C57-8E02-2C80FB1D5465}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55AA1907-7F0D-4E12-9907-4673B5E434FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55AA1907-7F0D-4E12-9907-4673B5E434FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55AA1907-7F0D-4E12-9907-4673B5E434FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55AA1907-7F0D-4E12-9907-4673B5E434FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

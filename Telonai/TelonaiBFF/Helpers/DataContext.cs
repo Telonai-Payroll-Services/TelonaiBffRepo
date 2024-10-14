@@ -5,12 +5,12 @@ using Microsoft.EntityFrameworkCore.Storage;
 using TelonaiWebApi.Entities;
 using Newtonsoft.Json;
 using Amazon.SecretsManager.Extensions.Caching;
-
-public class DataContext : DbContext
+using TelonaiWebApi.Helpers.Interface;
+public class DataContext : DbContext, IDataContext
 {
     private readonly IHttpContextAccessor _context;
     private readonly SecretsManagerCache _cache;
-
+    public DataContext() { }
     public DataContext(IHttpContextAccessor context)
     {
         _cache = new SecretsManagerCache();
@@ -133,7 +133,7 @@ public class DataContext : DbContext
     public DbSet<OtherMoneyReceived> OtherMoneyReceived { get; set; }
     public DbSet<PayRateBasis> PayRateBasis { get; set; }
     public DbSet<IncomeTax> IncomeTax { get; set; }
-    public DbSet<Document> Document { get; set; }
+    public virtual DbSet<Document> Document { get; set; }
     public DbSet<StateStandardDeduction> StateStandardDeduction { get; set; }
 
 }

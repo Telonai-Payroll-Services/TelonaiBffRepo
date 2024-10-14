@@ -24,14 +24,14 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
     private DataContext _context;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IScopedAuthorization _scopedAuthrorization;
+    private readonly IScopedAuthorization _scopedAuthorization;
 
-    public OtherMoneyReceivedService(DataContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, IScopedAuthorization scopedAuthrorization)
+    public OtherMoneyReceivedService(DataContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, IScopedAuthorization scopedAuthorization)
     {
         _context = context;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
-        _scopedAuthrorization = scopedAuthrorization;
+        _scopedAuthorization = scopedAuthorization;
     }
 
     public OtherMoneyReceivedModel GetById(int id)
@@ -57,7 +57,7 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
     public void Create(OtherMoneyReceivedModel model)
     {
         var dtoPayStub = GetPayStub(model.PayStubId) ?? throw new KeyNotFoundException("PayStub not found");
-        _scopedAuthrorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, dtoPayStub.Payroll.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, dtoPayStub.Payroll.CompanyId);
 
         dtoPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.OtherPay;
         var objOtherMoney = _mapper.Map<OtherMoneyReceived>(model);
