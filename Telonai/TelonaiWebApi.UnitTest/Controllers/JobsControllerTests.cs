@@ -2,19 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using TelonaiWebApi.Controllers;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 
 namespace TelonaiWebApi.UnitTest.Controllers
 {
@@ -121,14 +114,14 @@ namespace TelonaiWebApi.UnitTest.Controllers
             Assert.NotNull(result);
             Assert.Equal(200, result.StatusCode);
             var okResult = Assert.IsType<OkObjectResult>(result);
-            // Assert.Equal("Job created", ((dynamic)okResult.Value).message);
+           
 
 
         }
         [Fact]
         public async Task Update_ReturnsOkResult()
         {
-            // Arrange
+           
             int jobId = 1;
             var jobModel = new JobModel();
             var claims = new List<Claim>
@@ -143,19 +136,16 @@ namespace TelonaiWebApi.UnitTest.Controllers
             _mockJobService.Setup(s => s.UpdateAsync(jobId, jobModel)).Returns(Task.CompletedTask);
             _mockScopedAuthorization.Setup(a => a.ValidateByJobId(It.IsAny<ClaimsPrincipal>(), AuthorizationType.Admin, jobId));
 
-
-            // Act
             var result = _controller.Update(jobId, jobModel);
-            // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            // Assert.Equal("Job updated", ((dynamic)okResult.Value).message);
+        
+            Assert.NotNull(result);
+            Assert.IsType<OkObjectResult>(result);
         }
 
 
         [Fact]
         public async Task Delete_ReturnsOkResult()
         {
-            // Arrange
             int jobId = 1;
             var claims = new List<Claim>
         {
@@ -169,12 +159,12 @@ namespace TelonaiWebApi.UnitTest.Controllers
             _mockJobService.Setup(s => s.DeleteAsync(jobId)).Returns(Task.CompletedTask);
             _mockScopedAuthorization.Setup(a => a.Validate(It.IsAny<ClaimsPrincipal>(), AuthorizationType.SystemAdmin));
 
-            // Act
+          
             var result =  _controller.Delete(jobId);
 
-            // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-           // Assert.Equal("Job deleted", ((dynamic)okResult.Value).message);
+            Assert.IsType<OkObjectResult>(result);
+            _mockJobService.Verify(service => service.DeleteAsync(jobId), Times.Once);
+          
         }
     }
 }

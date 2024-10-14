@@ -2,13 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
@@ -55,11 +49,9 @@ namespace TelonaiWebApi.UnitTest.Services
 
             _mockContext.Setup(c => c.Job).Returns(mockSet.Object);
             _mockMapper.Setup(m => m.Map<IList<JobModel>>(It.IsAny<IQueryable<Job>>())).Returns(jobModels);
-
           
             var result = _service.Get();
-
-            
+           
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
             Assert.Equal("JobLocation1", result.First().LocationName);
@@ -78,7 +70,6 @@ namespace TelonaiWebApi.UnitTest.Services
             _mockMapper.Setup(m => m.Map<JobModel>(It.IsAny<Job>())).Returns(jobModel);
             
             var result = _service.GetById(1);
-
             
             Assert.NotNull(result);
             Assert.Equal("JobLocation1", result.LocationName);

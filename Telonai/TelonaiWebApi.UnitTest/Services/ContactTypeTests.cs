@@ -2,11 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Services;
@@ -41,14 +36,10 @@ namespace TelonaiWebApi.UnitTest.Services
             _mockContext.Setup(c => c.ContactType).Returns(mockSet.Object);
             _mockContext.Setup(c => c.SaveChanges()).Returns(1);
 
-
             var result = _service.GetAll();
 
-
             Assert.NotNull(result);
-            Assert.Equal(2, result.Count());
-
-            
+            Assert.Equal(2, result.Count());            
         }
         [Fact]
         public void GetByValue_ReturnsCorrectContactType()
@@ -84,7 +75,6 @@ namespace TelonaiWebApi.UnitTest.Services
             mockSet.Setup(m => m.Find(It.IsAny<int>())).Returns(contactType);
 
             _mockContext.Setup(c => c.ContactType).Returns(mockSet.Object);
-
             
             _service.Delete(1);
             
