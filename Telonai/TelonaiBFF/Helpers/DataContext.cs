@@ -69,7 +69,7 @@ public class DataContext : DbContext, IDataContext
         }
         return base.SaveChanges();
     }
-    public async Task<int> SaveChangesAsync()
+    public virtual async Task<int> SaveChangesAsync()
     {
         this.ChangeTracker.DetectChanges();
         var added = this.ChangeTracker.Entries()
@@ -104,16 +104,16 @@ public class DataContext : DbContext, IDataContext
         return await base.SaveChangesAsync();
     }
 
-    public DbSet<Employment> Employment { get; set; }
-    public DbSet<Person> Person { get; set; }
-    public DbSet<Company> Company { get; set; }
+    public virtual DbSet<Employment> Employment { get; set; }
+    public virtual DbSet<Person> Person { get; set; }
+    public virtual DbSet<Company> Company { get; set; }
     public DbSet<City> City { get; set; }
     public DbSet<State> State { get; set; }
     public DbSet<Country> Country { get; set; }
     public DbSet<BusinessType> BusinessType { get; set; }
-    public DbSet<CompanyContact> CompanyContact { get; set; }
-    public DbSet<ContactType> ContactType { get; set; }
-    public DbSet<Job> Job { get; set; }
+    public  DbSet<CompanyContact> CompanyContact { get; set; }
+    public virtual DbSet<ContactType> ContactType { get; set; }
+    public virtual DbSet<Job> Job { get; set; }
     public DbSet<TimecardUsa> TimecardUsa { get; set; }
     public DbSet<TimecardUsaNote> TimecardUsaNote { get; set; }
     public DbSet<Invitation> Invitation { get; set; }

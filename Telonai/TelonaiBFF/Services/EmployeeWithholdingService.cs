@@ -30,7 +30,7 @@ public class EmployeeWithholdingService : IEmployeeWithholdingService<EmployeeWi
         _httpContextAccessor = httpContextAccessor;
         _scopedAuthorization = scopedAuthorization;
     }
-  
+
     public IList<EmployeeWithholdingModel> Get()
     {
         var obj =  _context.EmployeeWithholding;        
