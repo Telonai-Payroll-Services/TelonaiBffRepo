@@ -119,9 +119,9 @@ public class DataContext : DbContext, IDataContext
     public DbSet<Invitation> Invitation { get; set; }
     public DbSet<Zipcode> Zipcode { get; set; }
     public DbSet<RoleType> RoleType { get; set; }
-    public DbSet<PayrollSchedule> PayrollSchedule { get; set; }
+    public virtual DbSet<PayrollSchedule> PayrollSchedule { get; set; }
     public DbSet<PayrollScheduleType> PayrollScheduleType { get; set; }
-    public DbSet<Payroll> Payroll { get; set; }
+    public virtual DbSet<Payroll> Payroll { get; set; }
     public DbSet<Holiday> Holiday { get; set; }
     public DbSet<WorkSchedule> WorkSchedule { get; set; }
     public DbSet<WorkScheduleNote> WorkScheduleNote { get; set; }
