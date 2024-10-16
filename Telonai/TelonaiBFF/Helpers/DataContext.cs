@@ -114,7 +114,7 @@ public class DataContext : DbContext, IDataContext
     public  DbSet<CompanyContact> CompanyContact { get; set; }
     public virtual DbSet<ContactType> ContactType { get; set; }
     public virtual DbSet<Job> Job { get; set; }
-    public DbSet<TimecardUsa> TimecardUsa { get; set; }
+    public virtual DbSet<TimecardUsa> TimecardUsa { get; set; }
     public DbSet<TimecardUsaNote> TimecardUsaNote { get; set; }
     public DbSet<Invitation> Invitation { get; set; }
     public DbSet<Zipcode> Zipcode { get; set; }
@@ -129,7 +129,7 @@ public class DataContext : DbContext, IDataContext
     public DbSet<IncomeTaxType> IncomeTaxType { get; set; }
     public DbSet<EmployeeWithholding> EmployeeWithholding { get; set; }
     public DbSet<EmployeeWithholdingField> EmployeeWithholdingField { get; set; }
-    public DbSet<PayStub> PayStub { get; set; }
+    public virtual DbSet<PayStub> PayStub { get; set; }
     public DbSet<OtherMoneyReceived> OtherMoneyReceived { get; set; }
     public DbSet<PayRateBasis> PayRateBasis { get; set; }
     public DbSet<IncomeTax> IncomeTax { get; set; }
