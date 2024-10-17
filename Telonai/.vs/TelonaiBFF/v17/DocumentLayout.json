@@ -3,32 +3,28 @@
   "WorkspaceRootPath": "C:\\Project\\TelonaiBffRepo\\Telonai\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiTest\\TelonaiWebAPITest.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaitest\\services\\documentservicetest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiTest\\TelonaiWebAPITest.csproj|solutionrelative:telonaitest\\services\\documentservicetest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaiwebapi.unittest\\services\\documentservicetest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|solutionrelative:telonaiwebapi.unittest\\services\\documentservicetest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\services\\documentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\services\\documentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\helpers\\datacontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\helpers\\datacontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaiwebapi.unittest\\controllers\\documentcontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|solutionrelative:telonaiwebapi.unittest\\controllers\\documentcontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaiwebapi.unittest\\helpers\\testhelpers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|solutionrelative:telonaiwebapi.unittest\\helpers\\testhelpers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\controllers\\documentscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\controllers\\documentscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\services\\companyservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\services\\companyservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\helpers\\automapperprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\helpers\\automapperprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -38,58 +34,70 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "CompanyService.cs",
-              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\CompanyService.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Services\\CompanyService.cs",
-              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\CompanyService.cs",
-              "RelativeToolTip": "TelonaiBFF\\Services\\CompanyService.cs",
-              "ViewState": "AgIAAD0AAAAAAAAAAADwv0sAAAAWAAAAAAAAAA==",
+              "DocumentIndex": 3,
+              "Title": "TestHelpers.cs",
+              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiWebApi.UnitTest\\Helpers\\TestHelpers.cs",
+              "RelativeDocumentMoniker": "TelonaiWebApi.UnitTest\\Helpers\\TestHelpers.cs",
+              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiWebApi.UnitTest\\Helpers\\TestHelpers.cs",
+              "RelativeToolTip": "TelonaiWebApi.UnitTest\\Helpers\\TestHelpers.cs",
+              "ViewState": "AgIAADgAAAAAAAAAAAAUwFoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-14T09:45:42.103Z",
+              "WhenOpened": "2024-10-17T09:51:08.686Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\appsettings.json",
+              "RelativeDocumentMoniker": "TelonaiBFF\\appsettings.json",
+              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\appsettings.json",
+              "RelativeToolTip": "TelonaiBFF\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-10-16T10:57:28.827Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "DataContext.cs",
-              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Helpers\\DataContext.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Helpers\\DataContext.cs",
-              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Helpers\\DataContext.cs",
-              "RelativeToolTip": "TelonaiBFF\\Helpers\\DataContext.cs",
-              "ViewState": "AgIAACcAAAAAAAAAAAAowBEAAAAFAAAAAAAAAA==",
+              "Title": "DocumentControllerTest.cs",
+              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiWebApi.UnitTest\\Controllers\\DocumentControllerTest.cs",
+              "RelativeDocumentMoniker": "TelonaiWebApi.UnitTest\\Controllers\\DocumentControllerTest.cs",
+              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiWebApi.UnitTest\\Controllers\\DocumentControllerTest.cs",
+              "RelativeToolTip": "TelonaiWebApi.UnitTest\\Controllers\\DocumentControllerTest.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAAwDAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-14T08:25:27.392Z",
+              "WhenOpened": "2024-10-15T06:44:34.495Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "DocumentsController.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Controllers\\DocumentsController.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Controllers\\DocumentsController.cs",
               "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Controllers\\DocumentsController.cs",
               "RelativeToolTip": "TelonaiBFF\\Controllers\\DocumentsController.cs",
-              "ViewState": "AgIAADwAAAAAAAAAAAAUwFgAAAAWAAAAAAAAAA==",
+              "ViewState": "AgIAABgAAAAAAAAAAAA6wEAAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-14T07:12:22.553Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "AutoMapperProfile.cs",
-              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
-              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
-              "RelativeToolTip": "TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAA+AAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "DocumentServiceTest.cs",
+              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiWebApi.UnitTest\\Services\\DocumentServiceTest.cs",
+              "RelativeDocumentMoniker": "TelonaiWebApi.UnitTest\\Services\\DocumentServiceTest.cs",
+              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiWebApi.UnitTest\\Services\\DocumentServiceTest.cs*",
+              "RelativeToolTip": "TelonaiWebApi.UnitTest\\Services\\DocumentServiceTest.cs*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-14T07:16:51.208Z",
+              "WhenOpened": "2024-10-14T16:23:44.839Z",
               "EditorCaption": ""
             },
             {
@@ -98,37 +106,11 @@
               "Title": "DocumentService.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\DocumentService.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Services\\DocumentService.cs",
-              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\DocumentService.cs",
-              "RelativeToolTip": "TelonaiBFF\\Services\\DocumentService.cs",
-              "ViewState": "AgIAALYAAAAAAAAAAAAuwMUAAAAIAAAAAAAAAA==",
+              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\DocumentService.cs*",
+              "RelativeToolTip": "TelonaiBFF\\Services\\DocumentService.cs*",
+              "ViewState": "AgIAABgAAAAAAAAAAAAjwB4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-07T21:12:06.263Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "DocumentServiceTest.cs",
-              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiTest\\Services\\DocumentServiceTest.cs",
-              "RelativeDocumentMoniker": "TelonaiTest\\Services\\DocumentServiceTest.cs",
-              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiTest\\Services\\DocumentServiceTest.cs*",
-              "RelativeToolTip": "TelonaiTest\\Services\\DocumentServiceTest.cs*",
-              "ViewState": "AgIAAA0FAAAAAAAAAAAhwBgFAAA6AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-10T07:34:57.036Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Program.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Program.cs",
-              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Program.cs",
-              "RelativeToolTip": "TelonaiBFF\\Program.cs",
-              "ViewState": "AgIAABoAAAAAAAAAAAAhwCgAAAAxAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-08T08:14:09.856Z",
               "EditorCaption": ""
             }
           ]

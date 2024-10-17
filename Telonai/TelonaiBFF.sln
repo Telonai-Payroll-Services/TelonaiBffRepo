@@ -5,7 +5,7 @@ VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelonaiWebApi", "TelonaiBFF\TelonaiWebApi.csproj", "{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelonaiWebAPITest", "TelonaiTest\TelonaiWebAPITest.csproj", "{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelonaiWebAPI.UnitTest", "TelonaiWebApi.UnitTest\TelonaiWebAPI.UnitTest.csproj", "{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

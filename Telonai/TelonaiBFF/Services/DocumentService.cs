@@ -25,8 +25,8 @@ public interface IDocumentService
     Task UploadInternalDocumentAsync(DocumentTypeModel documentType);
     Task CreateAsync(DocumentModel model, Stream file);
     Task AddGovernmentDocumentAsync(Stream file, DocumentTypeModel documentType);
-    void Update(Guid id, DocumentModel model);
-    void Delete(Guid id);
+    Task Update(Guid id, DocumentModel model);
+    Task Delete(Guid id);
 }
 
 public class DocumentService : IDocumentService
@@ -193,16 +193,17 @@ public class DocumentService : IDocumentService
 
     }
 
-    public async void Update(Guid id, DocumentModel model)
+    public async Task Update(Guid id, DocumentModel model)
     {
-        var dto = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
-        _context.Document.Update(dto);
-        _context.SaveChanges();
+        var document = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
+        var updatedDocument =  _mapper.Map<Document>(model);
+        document = updatedDocument;
+        await _context.SaveChangesAsync();
     }
 
-    public async void Delete(Guid id)
+    public async Task Delete(Guid id)
     {
-        var dto = await GetDocument(id);
+        var dto = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found"); ;
         _context.Document.Remove(dto);
         _context.SaveChanges();
     }
