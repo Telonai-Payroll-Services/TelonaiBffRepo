@@ -102,13 +102,11 @@ namespace TelonaiWebAPITest.Services
                 }
             }.AsQueryable();
 
-            var asyncProvider = new TestAsyncQueryProvider<Document>(documents.Provider);
-            _mockDocumentSet.As<IQueryable<Document>>().Setup(m => m.Provider).Returns(asyncProvider);
+            _mockDocumentSet.As<IQueryable<Document>>().Setup(m => m.Provider).Returns(documents.Provider);
             _mockDocumentSet.As<IQueryable<Document>>().Setup(m => m.Expression).Returns(documents.Expression);
             _mockDocumentSet.As<IQueryable<Document>>().Setup(m => m.ElementType).Returns(documents.ElementType);
             _mockDocumentSet.As<IQueryable<Document>>().Setup(m => m.GetEnumerator()).Returns(documents.GetEnumerator());
-            _mockDocumentSet.As<IAsyncEnumerable<Document>>().Setup(m => m.GetAsyncEnumerator(default))
-                .Returns(new TestAsyncEnumerator<Document>(documents.GetEnumerator()));
+           
             _mockDataContext.Setup(d => d.Document).Returns(_mockDocumentSet.Object);
             //Return DocumentModel
             var documentModel = new DocumentModel
