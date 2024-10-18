@@ -423,7 +423,7 @@ public class PayrollServiceTests
 
         var newPayroll1 = addedPayrolls.Single(p => p.CompanyId == companyId1);
         var newPayroll2 = addedPayrolls.Single(p => p.CompanyId == companyId2);
-
+       
         Assert.Equal(existingSchedule1.Id, newPayroll1.PayrollScheduleId);
         Assert.Equal(currentPayroll1.ScheduledRunDate.AddDays(1).AddMonths(1), newPayroll1.ScheduledRunDate);
         Assert.Equal(existingSchedule2.Id, newPayroll2.PayrollScheduleId);

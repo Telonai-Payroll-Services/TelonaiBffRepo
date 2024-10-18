@@ -68,13 +68,15 @@ namespace TelonaiWebApi.UnitTest.Controllers
             var principal = new ClaimsPrincipal(claimsIdentity);
             _mockHttpContext.Setup(c => c.Request.HttpContext.User).Returns(principal);
 
-            _mockScopedAuthorization.Setup(a => a.ValidateByCompanyId(It.IsAny<ClaimsPrincipal>(), AuthorizationType.Admin, It.IsAny<int>()));
+            _mockScopedAuthorization.Setup(a => a.ValidateByCompanyId(It.IsAny<ClaimsPrincipal>(), AuthorizationType.Admin, It.IsAny<int>()))
+            .Throws(new UnauthorizedAccessException());
+
+            Assert.Throws<UnauthorizedAccessException>(() => _controller.GetByCompanyId(1));
+
+           /* var result = _controller.GetByCompanyId(1);
 
 
-            var result = _controller.GetByCompanyId(1);
-
-
-            Assert.IsType<UnauthorizedResult>(result);
+            Assert.IsType<UnauthorizedResult>(result);*/
         }
         [Fact]
         public void GetAll_ReturnsOkResult_WithListOfProfiles()
