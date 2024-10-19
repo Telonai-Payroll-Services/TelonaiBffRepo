@@ -12,6 +12,7 @@ using System.ComponentModel;
 using Newtonsoft.Json;
 using Amazon.S3;
 using Amazon.SQS;
+using TelonaiWebApi.Models.FileScan;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,6 +93,12 @@ var builder = WebApplication.CreateBuilder(args);
         config.AddAWSProvider(configuration.GetAWSLoggingConfigSection());
         config.SetMinimumLevel(LogLevel.Debug);
     });
+
+    var fileScanSettings = builder.Configuration.GetSection("FileScan");
+    builder.Services.Configure<FileScanSettings>(fileScanSettings);
+
+    var fileScanLogin = builder.Configuration.GetSection("FileScanLogin");
+    builder.Services.Configure<FileScanLogin>(fileScanLogin);
 
     // Adds Amazon Cognito as Identity Provider
     services.AddCognitoIdentity();
