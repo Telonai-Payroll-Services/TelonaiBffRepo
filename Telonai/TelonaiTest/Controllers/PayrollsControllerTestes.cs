@@ -10,6 +10,9 @@ using TelonaiWebApi.Services;
 using TelonaiWebApi.Entities;
 using iTextSharp.text.pdf.parser.clipper;
 using System.ComponentModel.Design;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace TelonaiWebApi.UnitTest.Controllers;
 public class PayrollsControllerTests
@@ -379,16 +382,155 @@ public class PayrollsControllerTests
         var context = new DefaultHttpContext { User = user };
         _controller.ControllerContext.HttpContext = context;
 
-        // Act
         var result = _controller.Create(companyId);
 
-        // Assert
         var message = new { message = "Payroll created." };
         var okResult = Assert.IsType<OkObjectResult>(result);
-       // var returnValue = Assert.IsType<AnonymousType>(okResult.Value);
-      //  Assert.Equal("Payroll created.", returnValue.message);
+
+        Assert.Equal(message.ToString(), okResult.Value.ToString());
         _mockScopedAuthorization.Verify();
         _mockPayrollService.Verify();
+    }
+
+    [Fact]
+    public void Create_ReturnsUnauthorized_WhenAuthorizationFails()
+    {
+   
+        int companyId = 1;
+        _mockScopedAuthorization.Setup(auth => auth.ValidateByCompanyId(It.IsAny<ClaimsPrincipal>(), AuthorizationType.Admin, companyId))
+            .Throws(new UnauthorizedAccessException());
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+        }, "mock"));
+
+        var context = new DefaultHttpContext { User = user };
+        _controller.ControllerContext.HttpContext = context;
+
+        Assert.Throws<UnauthorizedAccessException>(() => _controller.Create(companyId));
+    }
+    [Fact]
+    public void CreateNextPayrollForAll_ReturnsOkResult_WithMessage()
+    {
+        int payrollsGenerated = 5;
+        _mockPayrollService.Setup(service => service.CreateNextPayrollForAll()).ReturnsAsync(payrollsGenerated);
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+        }, "mock"));
+
+        var context = new DefaultHttpContext { User = user };
+        _controller.ControllerContext.HttpContext = context;
+        var retuenMessage = new { message = $"{payrollsGenerated} Payrolls generated." };
+        var result = _controller.CreateNextPayrollForAll();
+
+        var okResult = Assert.IsType<OkObjectResult>(result);      
+        Assert.Equal(retuenMessage.ToString(), okResult.Value.ToString());
+        _mockPayrollService.Verify(service => service.CreateNextPayrollForAll(), Times.Once);
+    }
+     [Fact]
+     public void CreateNextPayrollForAll_ReturnsUnauthorized_WhenAuthorizationFails()
+     {
+        _mockPayrollService.Setup(service => service.CreateNextPayrollForAll())
+         .Throws(new UnauthorizedAccessException());
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+       {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+       }, "mock"));
+
+        var context = new DefaultHttpContext { User = user };
+        _controller.ControllerContext.HttpContext = context;
+        Assert.Throws<UnauthorizedAccessException>(() => _controller.CreateNextPayrollForAll());
+
+    }
+
+    [Fact]
+    public void Update_ReturnsOkResult_WithMessage()
+    {
+        int id = 1;
+        int companyId = 1;
+        _mockScopedAuthorization.Setup(auth => auth.ValidateByCompanyId(It.IsAny<ClaimsPrincipal>(), AuthorizationType.Admin, companyId)).Verifiable();
+        _mockPayrollService.Setup(service => service.Update(id, companyId)).Verifiable();
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+        }, "mock"));
+
+        var context = new DefaultHttpContext { User = user };
+        _controller.ControllerContext.HttpContext = context;
+
+        // Act
+        var result = _controller.Update(id, companyId);
+        var message = new { message = "Payrolls updated." };
+        var okResult = Assert.IsType<OkObjectResult>(result);
+
+        Assert.Equal(message.ToString(), okResult.Value.ToString());
+        _mockScopedAuthorization.Verify();
+        _mockPayrollService.Verify();
+    }
+
+    [Fact]
+    public void Update_ReturnsUnauthorized_WhenAuthorizationFails()
+    {
+       
+        int id = 1;
+        int companyId = 1;
+        _mockScopedAuthorization.Setup(auth => auth.ValidateByCompanyId(It.IsAny<ClaimsPrincipal>(), AuthorizationType.Admin, companyId))
+            .Throws(new UnauthorizedAccessException());
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+        }, "mock"));
+
+        var context = new DefaultHttpContext { User = user };
+        _controller.ControllerContext.HttpContext = context;
+        Assert.Throws<UnauthorizedAccessException>(() => _controller.Update(id, companyId));
+    }
+
+    [Fact]
+    public void Delete_ReturnsOkResult_WithMessage()
+    {
+        // Arrange
+        int id = 1;
+        _mockPayrollService.Setup(service => service.Delete(id)).Verifiable();
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+        }, "mock"));
+
+        var context = new DefaultHttpContext { User = user };
+        _controller.ControllerContext.HttpContext = context;
+
+        var result = _controller.Delete(id);
+        var message = new { message = "Payroll deleted." };
+        var okResult = Assert.IsType<OkObjectResult>(result);
+
+        Assert.Equal(message.ToString(), okResult.Value.ToString());
+     
+        _mockPayrollService.Verify();
+    }
+
+    [Fact]
+    public void Delete_ReturnsUnauthorized_WhenAuthorizationFails()
+    {
+        int id = 1;
+        _mockPayrollService.Setup(service => service.Delete(id))
+            .Throws(new UnauthorizedAccessException());
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+        }, "mock"));
+
+        var context = new DefaultHttpContext { User = user };
+        _controller.ControllerContext.HttpContext = context;
+
+        Assert.Throws<UnauthorizedAccessException>(() => _controller.Delete(id));
     }
 
 }
