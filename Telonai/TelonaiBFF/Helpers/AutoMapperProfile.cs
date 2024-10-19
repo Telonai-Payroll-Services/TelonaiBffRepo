@@ -28,7 +28,6 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.PersonId, opt => opt.MapFrom(src => src.PersonId))
              .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.FileName));
         CreateMap<DocumentModel, Document>()
-            //.ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.PersonId, opt => opt.MapFrom(src => src.PersonId))
             .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.FileName))
             .ForMember(dest => dest.DocumentTypeId, opt => opt.MapFrom(src => (int)src.DocumentType));
