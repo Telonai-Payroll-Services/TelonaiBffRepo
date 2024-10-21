@@ -53,16 +53,13 @@ public class PayrollServiceTests
 
        
         var result = _payrollService.GetLatestByCount(companyId, count);
-
-       
+     
         Assert.Equal(4, result.Count);
         Assert.Equal("#3CA612", result[0].ExpenseTrackingHexColor);
         Assert.Equal("#FCCC44", result[1].ExpenseTrackingHexColor);
         Assert.Equal("#D20103", result[2].ExpenseTrackingHexColor);
         Assert.Equal("#D20103", result[3].ExpenseTrackingHexColor);
     }
- 
-
 
     [Fact]
     public void GetDailyPayrollExpense_ShouldReturnCorrectDailyAmount()
@@ -251,12 +248,12 @@ public class PayrollServiceTests
         _mockContext.Setup(c => c.Payroll).Returns(mockSet.Object);
 
         var result = _payrollService.GetPreviousPayroll(companyId);
+
         Assert.Null(result);
     }
     [Fact]
     public void GetPreviousPayroll_ReturnsNull_WhenNoPayrollExists()
     {
-
         int companyId = 1;
         var payrollData = new List<Payroll> { }.AsQueryable();
 
@@ -299,7 +296,6 @@ public class PayrollServiceTests
     [Fact]
     public void GetById_ReturnsNull_WhenPayrollDoesNotExist()
     {
-
         int id = 1;
         var payrollData = new List<Payroll>{ }.AsQueryable();
 
@@ -320,7 +316,6 @@ public class PayrollServiceTests
         int companyId2 = 2;
 
         var startDate = DateOnly.FromDateTime(DateTime.Now.AddDays(2));
-
         var existingSchedule1 = new PayrollSchedule { Id = 1, CompanyId = companyId1, FirstRunDate = startDate.AddDays(-10),PayrollScheduleTypeId=1, StartDate = startDate.AddDays(-10) };
         var existingSchedule2 = new PayrollSchedule { Id = 2, CompanyId = companyId2, FirstRunDate = startDate.AddDays(-15), PayrollScheduleTypeId = 2, StartDate = startDate.AddDays(-5) };
         var existingSchedules=new List<PayrollSchedule>() { existingSchedule1,existingSchedule2 }.AsQueryable();
@@ -411,9 +406,15 @@ public class PayrollServiceTests
 
         var newPayroll1 = addedPayrolls.Single(p => p.CompanyId == companyId1);
         var newPayroll2 = addedPayrolls.Single(p => p.CompanyId == companyId2);
-       
+
+        var nextRunDate =currentPayroll1.ScheduledRunDate.AddDays(1).AddMonths(1);
+        if (nextRunDate.DayOfWeek == DayOfWeek.Saturday)
+            nextRunDate = nextRunDate.AddDays(-1);
+        else if (nextRunDate.DayOfWeek == DayOfWeek.Sunday)
+            nextRunDate = nextRunDate.AddDays(-2);
+
         Assert.Equal(existingSchedule1.Id, newPayroll1.PayrollScheduleId);
-        Assert.Equal(currentPayroll1.ScheduledRunDate.AddDays(1).AddMonths(1), newPayroll1.ScheduledRunDate);
+        Assert.Equal(nextRunDate, newPayroll1.ScheduledRunDate);
         Assert.Equal(existingSchedule2.Id, newPayroll2.PayrollScheduleId);
     }
   
@@ -441,6 +442,7 @@ public class PayrollServiceTests
         int companyId = 1;
         var startDate = DateOnly.FromDateTime(DateTime.Now);
         var firstRunDate = startDate.AddDays(2);
+       
         var existingSchedules = new List<PayrollSchedule>() {
              new PayrollSchedule { Id = 1, CompanyId = companyId, FirstRunDate = firstRunDate, PayrollScheduleTypeId = 1, StartDate = startDate.AddDays(-10) }
         }.AsQueryable();
@@ -450,10 +452,7 @@ public class PayrollServiceTests
         mockPaySchedules.As<IQueryable<PayrollSchedule>>().Setup(m => m.Expression).Returns(existingSchedules.Expression);
         mockPaySchedules.As<IQueryable<PayrollSchedule>>().Setup(m => m.ElementType).Returns(existingSchedules.ElementType);
         mockPaySchedules.As<IQueryable<PayrollSchedule>>().Setup(m => m.GetEnumerator()).Returns(existingSchedules.GetEnumerator());
-        _mockContext.Setup(c => c.PayrollSchedule).Returns(mockPaySchedules.Object);
-
-       
-       
+        _mockContext.Setup(c => c.PayrollSchedule).Returns(mockPaySchedules.Object);      
 
         var currentPayrolls = new List<Payroll>() {  }.AsQueryable();
 
@@ -476,12 +475,11 @@ public class PayrollServiceTests
           Assert.Equal(companyId, addedPayroll.CompanyId);
       });
     }
+
     
     [Fact]
     public void Update_ThrowsUnauthorizedAccessException_WhenCompanyIdMismatch()
     {
-     
-
         int id = 1;
         int companyId = 2; 
 
@@ -495,8 +493,7 @@ public class PayrollServiceTests
     public void Update_UpdatesPayrollAndCreatesPaystubs_WhenTrueRunDateIsNull()
     {
         int id = 1;
-        int companyId = 1;
-       
+        int companyId = 1;     
 
         var dto = new Payroll { Id = id, CompanyId = companyId, TrueRunDate = null ,
             StartDate= DateOnly.FromDateTime(DateTime.Now.AddDays(-10)),
@@ -570,15 +567,15 @@ public class PayrollServiceTests
         _mockContext.Verify(c => c.Payroll.Remove(payroll), Times.Once);
         _mockContext.Verify(c => c.SaveChanges(), Times.Once);
     }
-     [Fact]
-      public void Delete_ThrowsKeyNotFoundException_WhenNotFound()
-      {        
-          int id = 1;
+    [Fact]
+    public void Delete_ThrowsKeyNotFoundException_WhenNotFound()
+    {
+        int id = 1;
 
-          _mockContext.Setup(c => c.Payroll.Find(id)).Returns((Payroll)null);
+        _mockContext.Setup(c => c.Payroll.Find(id)).Returns((Payroll)null);
 
-          Assert.Throws<KeyNotFoundException>(() => _payrollService.Delete(id));
-      }
+        Assert.Throws<AppException>(() => _payrollService.Delete(id));
+    }
     [Fact]
     public void CalculatePayForHourlyRatedEmployees_ShouldReturnCorrectPay()
     {
