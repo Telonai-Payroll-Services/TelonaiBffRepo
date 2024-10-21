@@ -197,7 +197,21 @@ public class DocumentService : IDocumentService
     {
         var document = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
         var updatedDocument =  _mapper.Map<Document>(model);
-        document = updatedDocument;
+        if ((int)updatedDocument.DocumentTypeId != document.DocumentTypeId)
+        {
+            document.DocumentTypeId = (int)updatedDocument.DocumentTypeId;
+        }
+
+        if (updatedDocument.FileName != document.FileName)
+        {
+            document.FileName = updatedDocument.FileName;
+        }
+
+        if (updatedDocument.PersonId != document.PersonId)
+        {
+            document.PersonId = updatedDocument.PersonId;
+        }
+        _context.Document.Update(document);
         await _context.SaveChangesAsync();
     }
 

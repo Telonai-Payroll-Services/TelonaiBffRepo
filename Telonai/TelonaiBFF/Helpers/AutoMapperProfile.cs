@@ -30,8 +30,8 @@ public class AutoMapperProfile : Profile
         CreateMap<DocumentModel, Document>()
             .ForMember(dest => dest.PersonId, opt => opt.MapFrom(src => src.PersonId))
             .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.FileName))
-            .ForMember(dest => dest.DocumentTypeId, opt => opt.MapFrom(src => (int)src.DocumentType));
-
+            .ForMember(dest => dest.DocumentTypeId, opt => opt.MapFrom(src => (int)src.DocumentType))
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
         CreateMap<Payroll, PayrollModel>()
            .ForMember(dest => dest.ScheduledRunDate, opt => opt.MapFrom(src => src.ScheduledRunDate.ToDateTime(TimeOnly.MinValue)))
            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)));

@@ -16,7 +16,7 @@ namespace TelonaiWebAPITest.Services
     public class DocumentServiceTest
     {
         private readonly Mock<DataContext> _mockDataContext;
-        private readonly Mock<IMapper> _mockMapper;
+        private readonly Mock<IMapper> _mockMapper; 
         private Mock<DbSet<Document>> _mockDocumentSet;
         private Mock<DbSet<Person>> _mockPersonSet;
         private readonly DocumentService _documentService;
