@@ -476,35 +476,7 @@ public class PayrollServiceTests
           Assert.Equal(companyId, addedPayroll.CompanyId);
       });
     }
-    /*
-   [Fact]
-  public void Create_CreatesNextPayroll_WhenPreviousPayrollExists()
-   {
-       // Arrange (similar setup as previous test, but with existing payroll)
-       var mockContext = new Mock<DataContext>();
-       var mockMapper = new Mock<IMapper>();
-
-       int companyId = 1;
-
-       var startDate = DateOnly.FromDateTime(DateTime.Now);
-       var firstRunDate = startDate.AddDays(2);
-
-       // Mock PayrollSchedule
-       var paySchedule = new PayrollSchedule { Id = 1, CompanyId = companyId, StartDate = startDate, FirstRunDate = firstRunDate, EndDate = null };
-       mockContext.Setup(c => c.PayrollSchedule.FirstOrDefault(e => e.CompanyId == companyId && e.EndDate == null)).Returns(paySchedule);
-
-       // Mock existing payroll
-       var existingPayroll = new Payroll { Id = 1, CompanyId = companyId, ScheduledRunDate = startDate.AddDays(1) };
-       mockContext.Setup(c => c.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefault()).Returns(existingPayroll);
-
-       var service = new PayrollService(mockContext.Object, mockMapper.Object);
-
-       // Act
-       service.Create(companyId);
-
-       // Assert (similar assertions as previous test, but with logic for next run date based on schedule type)
-       // ... (add assertions for next run date based on schedule type)
-   }*/
+    
     [Fact]
     public void Update_ThrowsUnauthorizedAccessException_WhenCompanyIdMismatch()
     {
