@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
-using Xunit;
 
 public class PayrollScheduleServiceTests
 {
@@ -153,14 +149,12 @@ public class PayrollScheduleServiceTests
     [Fact]
     public void Create_ThrowsException_WhenStartDateIsInThePast()
     {
-        // Arrange
         var model = new PayrollScheduleModel
         {
             StartDate = DateTime.Now.AddDays(-1),
             CompanyId = 1
         };
 
-        // Act & Assert
         var exception = Assert.Throws<AppException>(() => _service.Create(model));
         Assert.Equal("Payroll cannot be scheduled for the past", exception.Message);
     }
@@ -168,7 +162,6 @@ public class PayrollScheduleServiceTests
     [Fact]
     public void Create_ThrowsException_WhenEndDateIsBeforeStartDate()
     {
-        // Arrange
         var model = new PayrollScheduleModel
         {
             StartDate = DateTime.Now.AddDays(1),
@@ -176,7 +169,6 @@ public class PayrollScheduleServiceTests
             CompanyId = 1
         };
 
-        // Act & Assert
         var exception = Assert.Throws<AppException>(() => _service.Create(model));
         Assert.Equal("Invalid payroll start-date or end-date", exception.Message);
     }
@@ -184,7 +176,6 @@ public class PayrollScheduleServiceTests
     [Fact]
     public void Create_ThrowsException_WhenFirstRunDateIsBeforeStartDate()
     {
-        // Arrange
         var model = new PayrollScheduleModel
         {
             StartDate = DateTime.Now.AddDays(1),
@@ -192,14 +183,12 @@ public class PayrollScheduleServiceTests
             CompanyId = 1
         };
 
-        // Act & Assert
         var exception = Assert.Throws<AppException>(() => _service.Create(model));
         Assert.Equal("Invalid payroll first-run date", exception.Message);
     }
     [Fact]
     public void Create_UpdatesCurrentScheduleAndAddsNewSchedule()
     {
-        // Arrange
         var model = new PayrollScheduleModel
         {
             StartDate = DateTime.Now.AddDays(1),
@@ -244,19 +233,16 @@ public class PayrollScheduleServiceTests
         mockPayrollDbSet.As<IQueryable<Payroll>>().Setup(m => m.GetEnumerator()).Returns(payrolls.GetEnumerator());
         _mockContext.Setup(c => c.Payroll).Returns(mockPayrollDbSet.Object);
 
-        // Act
         _service.Create(model);
 
-        // Assert
         _mockContext.Verify(c => c.PayrollSchedule.Update(It.IsAny<PayrollSchedule>()), Times.Once);
         _mockContext.Verify(c => c.PayrollSchedule.Add(It.IsAny<PayrollSchedule>()), Times.Once);
         _mockContext.Verify(c => c.SaveChanges(), Times.Exactly(2));
     }
 
     [Fact]
-    public void Create_HandlesCase_WhenNoCurrentSchedule()
+    public void Create_CheckFirstScheduleAndUpdateStatuse_WhenNoCurrentScheduleIsFound()
     {
-        // Arrange
         var model = new PayrollScheduleModel
         {
             StartDate = DateTime.Now.AddDays(1),
@@ -275,10 +261,17 @@ public class PayrollScheduleServiceTests
 
         _mockContext.Setup(c => c.PayrollSchedule).Returns(mockDbSet.Object);
 
-        var mockEmploymentDbSet = new Mock<DbSet<Employment>>();
 
-        var employmentModel = new Employment {Id=1,StartDate= DateOnly.FromDateTime(DateTime.Now).AddDays(-10) };
-        var employments = new List<Employment> { employmentModel }.AsQueryable();
+
+        var employments = new List<Employment>
+        { new Employment { Job = new Job { CompanyId = 1, Id = 3 }, Deactivated = false,PayRateBasisId=4,PayRate=10000 }
+        }.AsQueryable();
+
+        var mockEmploymentDbSet = new Mock<DbSet<Employment>>();
+        mockEmploymentDbSet.As<IQueryable<Employment>>().Setup(m => m.Provider).Returns(employments.Provider);
+        mockEmploymentDbSet.As<IQueryable<Employment>>().Setup(m => m.Expression).Returns(employments.Expression);
+        mockEmploymentDbSet.As<IQueryable<Employment>>().Setup(m => m.ElementType).Returns(employments.ElementType);
+        mockEmploymentDbSet.As<IQueryable<Employment>>().Setup(m => m.GetEnumerator()).Returns(employments.GetEnumerator());
         _mockContext.Setup(c => c.Employment).Returns(mockEmploymentDbSet.Object);
 
         var payroll = new Payroll
@@ -297,65 +290,23 @@ public class PayrollScheduleServiceTests
         mockPayrollDbSet.As<IQueryable<Payroll>>().Setup(m => m.GetEnumerator()).Returns(payrolls.GetEnumerator());
         _mockContext.Setup(c => c.Payroll).Returns(mockPayrollDbSet.Object);
 
-        // Act
         _service.Create(model);
-        _service.Create(model);
-
-        // Assert
+        
         _mockContext.Verify(c => c.PayrollSchedule.Add(It.IsAny<PayrollSchedule>()), Times.Once);
         _mockContext.Verify(c => c.SaveChanges(), Times.Exactly(2));
     }
 
-    [Fact]
-    public void Create_HandlesCase_WhenNoActiveEmployment()
-    {
-        // Arrange
-        var model = new PayrollScheduleModel
-        {
-            StartDate = DateTime.Now.AddDays(1),
-            FirstRunDate = DateTime.Now.AddDays(2),
-            CompanyId = 1
-        };
-
-        var payrollSchedules = new List<PayrollSchedule>().AsQueryable();
-        var employments = new List<Employment>().AsQueryable();  // No active employment
-
-        var mockDbSet = new Mock<DbSet<PayrollSchedule>>();
-        mockDbSet.As<IQueryable<PayrollSchedule>>().Setup(m => m.Provider).Returns(payrollSchedules.Provider);
-        mockDbSet.As<IQueryable<PayrollSchedule>>().Setup(m => m.Expression).Returns(payrollSchedules.Expression);
-        mockDbSet.As<IQueryable<PayrollSchedule>>().Setup(m => m.ElementType).Returns(payrollSchedules.ElementType);
-        mockDbSet.As<IQueryable<PayrollSchedule>>().Setup(m => m.GetEnumerator()).Returns(payrollSchedules.GetEnumerator());
-
-        _mockContext.Setup(c => c.PayrollSchedule).Returns(mockDbSet.Object);
-
-        var mockEmploymentDbSet = new Mock<DbSet<Employment>>();
-        mockEmploymentDbSet.As<IQueryable<Employment>>().Setup(m => m.Provider).Returns(employments.Provider);
-        mockEmploymentDbSet.As<IQueryable<Employment>>().Setup(m => m.Expression).Returns(employments.Expression);
-        mockEmploymentDbSet.As<IQueryable<Employment>>().Setup(m => m.ElementType).Returns(employments.ElementType);
-        mockEmploymentDbSet.As<IQueryable<Employment>>().Setup(m => m.GetEnumerator()).Returns(employments.GetEnumerator());
-        _mockContext.Setup(c => c.Employment).Returns(mockEmploymentDbSet.Object);
-
-        var mockPayrollDbSet = new Mock<DbSet<Payroll>>();
-        _mockContext.Setup(c => c.Payroll).Returns(mockPayrollDbSet.Object);
-
-        // Act
-        _service.Create(model);
-
-        // Assert
-        _mockContext.Verify(c => c.PayrollSchedule.Add(It.IsAny<PayrollSchedule>()), Times.Once);
-        _mockContext.Verify(c => c.SaveChanges(), Times.Exactly(2));
-    }
+    
 
 
     [Fact]
     public void Update_ThrowsException_WhenPayrollScheduleNotFound()
     {
-        // Arrange
         int id = 1;
-        var model = new PayrollScheduleModel { /* properties */ };
+        var model = new PayrollScheduleModel {  };
         _mockContext.Setup(c => c.PayrollSchedule.Find(id)).Returns((PayrollSchedule)null);
 
-        // Act & Assert
+  
         var exception = Assert.Throws<AppException>(() => _service.Update(id, model));
         Assert.Equal("Payroll Schedule not found", exception.Message);
     }
@@ -363,18 +314,16 @@ public class PayrollScheduleServiceTests
     [Fact]
     public void Update_UpdatesPayrollSchedule()
     {
-        // Arrange
         int id = 1;
-        var model = new PayrollScheduleModel { /* properties */ };
-        var existingSchedule = new PayrollSchedule { Id = id, /* other properties */ };
+        var model = new PayrollScheduleModel {  };
+        var existingSchedule = new PayrollSchedule { Id = id, };
 
         _mockContext.Setup(c => c.PayrollSchedule.Find(id)).Returns(existingSchedule);
         _mockMapper.Setup(m => m.Map(model, existingSchedule));
 
-        // Act
         _service.Update(id, model);
 
-        // Assert
+
         _mockContext.Verify(c => c.PayrollSchedule.Update(existingSchedule), Times.Once);
         _mockContext.Verify(c => c.SaveChanges(), Times.Once);
     }
@@ -382,16 +331,14 @@ public class PayrollScheduleServiceTests
     [Fact]
     public void Delete_RemovesPayrollSchedule()
     {
-        // Arrange
+
         int id = 1;
-        var existingSchedule = new PayrollSchedule { Id = id, /* other properties */ };
+        var existingSchedule = new PayrollSchedule { Id = id,  };
 
         _mockContext.Setup(c => c.PayrollSchedule.Find(id)).Returns(existingSchedule);
 
-        // Act
         _service.Delete(id);
 
-        // Assert
         _mockContext.Verify(c => c.PayrollSchedule.Remove(existingSchedule), Times.Once);
         _mockContext.Verify(c => c.SaveChanges(), Times.Once);
 

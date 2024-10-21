@@ -2,17 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Xunit;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Controllers;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Services;
-using TelonaiWebApi.Entities;
-using iTextSharp.text.pdf.parser.clipper;
-using System.ComponentModel.Design;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace TelonaiWebApi.UnitTest.Controllers;
 public class PayrollsControllerTests
@@ -65,7 +58,6 @@ public class PayrollsControllerTests
     [Fact]
     public void GetCurrentPayroll_ReturnsUnauthorized_WhenAuthorizationFails()
     {
-        // Arrange
         int companyId = 1;
         _mockScopedAuthorization.Setup(auth => auth.ValidateByCompanyId(It.IsAny<ClaimsPrincipal>(), AuthorizationType.Admin, companyId))
             .Throws(new UnauthorizedAccessException());
@@ -106,7 +98,6 @@ public class PayrollsControllerTests
     [Fact]
     public void GetPreviousPayroll_ReturnsOkResult_WithPayroll()
     {
-        // Arrange
         int companyId = 1;
         var mockPayroll = new PayrollModel { Id = 1, CompanyId = 25, TrueRunDate = DateTime.UtcNow.AddDays(-10) };
         _mockPayrollService.Setup(service => service.GetPreviousPayroll(companyId)).Returns(mockPayroll);
@@ -462,7 +453,6 @@ public class PayrollsControllerTests
         var context = new DefaultHttpContext { User = user };
         _controller.ControllerContext.HttpContext = context;
 
-        // Act
         var result = _controller.Update(id, companyId);
         var message = new { message = "Payrolls updated." };
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -494,7 +484,6 @@ public class PayrollsControllerTests
     [Fact]
     public void Delete_ReturnsOkResult_WithMessage()
     {
-        // Arrange
         int id = 1;
         _mockPayrollService.Setup(service => service.Delete(id)).Verifiable();
 

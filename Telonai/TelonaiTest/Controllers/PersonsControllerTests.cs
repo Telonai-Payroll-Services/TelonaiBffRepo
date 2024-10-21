@@ -73,10 +73,6 @@ namespace TelonaiWebApi.UnitTest.Controllers
 
             Assert.Throws<UnauthorizedAccessException>(() => _controller.GetByCompanyId(1));
 
-           /* var result = _controller.GetByCompanyId(1);
-
-
-            Assert.IsType<UnauthorizedResult>(result);*/
         }
         [Fact]
         public void GetAll_ReturnsOkResult_WithListOfProfiles()

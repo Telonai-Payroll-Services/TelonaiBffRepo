@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using AutoMapper;
+﻿using AutoMapper;
 using Moq;
-using Xunit;
 using Microsoft.EntityFrameworkCore;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
@@ -11,9 +7,6 @@ using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
 using System.Reflection;
 using System.Linq.Expressions;
-using System.Net.Sockets;
-using Amazon.SimpleEmail.Model;
-using System.ComponentModel.Design;
 using Microsoft.AspNetCore.Http;
 
 public class PayrollServiceTests
@@ -258,7 +251,6 @@ public class PayrollServiceTests
         _mockContext.Setup(c => c.Payroll).Returns(mockSet.Object);
 
         var result = _payrollService.GetPreviousPayroll(companyId);
-        // Assert
         Assert.Null(result);
     }
     [Fact]
@@ -329,7 +321,6 @@ public class PayrollServiceTests
 
         var startDate = DateOnly.FromDateTime(DateTime.Now.AddDays(2));
 
-        // Mock PayrollSchedule data
         var existingSchedule1 = new PayrollSchedule { Id = 1, CompanyId = companyId1, FirstRunDate = startDate.AddDays(-10),PayrollScheduleTypeId=1, StartDate = startDate.AddDays(-10) };
         var existingSchedule2 = new PayrollSchedule { Id = 2, CompanyId = companyId2, FirstRunDate = startDate.AddDays(-15), PayrollScheduleTypeId = 2, StartDate = startDate.AddDays(-5) };
         var existingSchedules=new List<PayrollSchedule>() { existingSchedule1,existingSchedule2 }.AsQueryable();
@@ -345,7 +336,6 @@ public class PayrollServiceTests
         mockPaySchedules.As<IQueryable<PayrollSchedule>>().Setup(m => m.GetEnumerator()).Returns(newSchedules.GetEnumerator());
         _mockContext.Setup(c => c.PayrollSchedule).Returns(mockPaySchedules.Object);
 
-        // Mock current payroll data
         var currentPayroll1 = new Payroll { Id = 1, CompanyId = companyId1, ScheduledRunDate = startDate, PayrollSchedule = existingSchedule1 };
         var currentPayroll2 = new Payroll { Id = 2, CompanyId = companyId2, ScheduledRunDate = startDate.AddDays(1), PayrollSchedule = existingSchedule2 };
         var currentPayrolls = new List<Payroll>() { currentPayroll1, currentPayroll2 }.AsQueryable();
@@ -386,7 +376,6 @@ public class PayrollServiceTests
 
         var startDate = DateOnly.FromDateTime(DateTime.Now.AddDays(2));
 
-        // Mock PayrollSchedule data
         var existingSchedule1 = new PayrollSchedule { Id = 1, CompanyId = companyId1, FirstRunDate = startDate.AddDays(-10), PayrollScheduleTypeId = 1, StartDate = startDate.AddDays(-10) };
         var existingSchedule2 = new PayrollSchedule { Id = 2, CompanyId = companyId2, FirstRunDate = startDate.AddDays(-15), PayrollScheduleTypeId = 2, StartDate = startDate.AddDays(-5) };
         var existingSchedules = new List<PayrollSchedule>() { existingSchedule1, existingSchedule2 }.AsQueryable();
@@ -398,7 +387,6 @@ public class PayrollServiceTests
         mockPaySchedules.As<IQueryable<PayrollSchedule>>().Setup(m => m.GetEnumerator()).Returns(existingSchedules.GetEnumerator());
         _mockContext.Setup(c => c.PayrollSchedule).Returns(mockPaySchedules.Object);
 
-        // Mock current payroll data
         var currentPayroll1 = new Payroll { Id = 1, CompanyId = companyId1, ScheduledRunDate = startDate, PayrollSchedule = existingSchedule1 };
         var currentPayroll2 = new Payroll { Id = 2, CompanyId = companyId2, ScheduledRunDate = startDate.AddDays(1), PayrollSchedule = existingSchedule2 };
         var currentPayrolls = new List<Payroll>() { currentPayroll1, currentPayroll2 }.AsQueryable();
@@ -453,7 +441,6 @@ public class PayrollServiceTests
         int companyId = 1;
         var startDate = DateOnly.FromDateTime(DateTime.Now);
         var firstRunDate = startDate.AddDays(2);
-        // Mock PayrollSchedule
         var existingSchedules = new List<PayrollSchedule>() {
              new PayrollSchedule { Id = 1, CompanyId = companyId, FirstRunDate = firstRunDate, PayrollScheduleTypeId = 1, StartDate = startDate.AddDays(-10) }
         }.AsQueryable();
@@ -483,7 +470,6 @@ public class PayrollServiceTests
         _mockContext.Setup(c => c.Payroll.Add(It.IsAny<Payroll>()))
       .Callback<Payroll>(addedPayroll =>
       {
-          // Assertions on the added payroll
           Assert.Equal(existingSchedules.FirstOrDefault().Id, addedPayroll.PayrollScheduleId);
           Assert.Equal(existingSchedules.FirstOrDefault().StartDate, addedPayroll.StartDate);
           Assert.Equal(firstRunDate, addedPayroll.ScheduledRunDate);
@@ -549,7 +535,6 @@ public class PayrollServiceTests
         _mockContext.Setup(dc => dc.Payroll.Find(It.IsAny<int>()))
         .Returns(dto);
 
-        // Mock CreatePaystubs method 
         var employments = new List<Employment>
         { new Employment { Job = new Job { CompanyId = companyId, Id = 1 }, Deactivated = false,PayRateBasisId=4,PayRate=10000 }           
         }.AsQueryable();
@@ -613,7 +598,7 @@ public class PayrollServiceTests
         _mockContext.Verify(c => c.Payroll.Remove(payroll), Times.Once);
         _mockContext.Verify(c => c.SaveChanges(), Times.Once);
     }
-    /*  [Fact]
+     [Fact]
       public void Delete_ThrowsKeyNotFoundException_WhenNotFound()
       {        
           int id = 1;
@@ -621,11 +606,11 @@ public class PayrollServiceTests
           _mockContext.Setup(c => c.Payroll.Find(id)).Returns((Payroll)null);
 
           Assert.Throws<KeyNotFoundException>(() => _payrollService.Delete(id));
-      }*/
+      }
     [Fact]
     public void CalculatePayForHourlyRatedEmployees_ShouldReturnCorrectPay()
     {
-        // Arrange
+
         var timecards = new List<TimecardUsa>
         {
             new TimecardUsa { PersonId = 1, ClockIn = DateTime.Now.AddDays(-8), HoursWorked = TimeSpan.FromHours(10) },
@@ -640,20 +625,18 @@ public class PayrollServiceTests
         var emp = new Employment { PersonId = 1, PayRate = 20 };
         var frequency = PayrollScheduleTypeModel.Biweekly;
 
-        // Act
         var result = typeof(PayrollService).GetMethod("CalculatePayForHourlyRatedEmployees", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
             .Invoke(null, new object[] { timecards, currentPayroll, emp, frequency }) as Tuple<double, double, double, double>;
 
-        // Assert
         var firstWeekOverTime = (10 + 10 + 10 + 10 + 15 + 15) - 40;
         var secondWeekOverTime = 0;
         var totalHoursWorked = 10 + 10 + 10 + 10 + 15 + 15 + 8;
         var overTimeHours = firstWeekOverTime + secondWeekOverTime;
         var regularHours = totalHoursWorked - overTimeHours;
-        double expectedRegularPay = emp.PayRate * regularHours; // Regular pay calculation
-        double expectedRegularHours = regularHours; // Total regular hours
-        double expectedOverTimePay = emp.PayRate * 1.5 * overTimeHours; // Overtime pay calculation
-        double expectedOverTimeHours = totalHoursWorked- regularHours; // Total overtime hours
+        double expectedRegularPay = emp.PayRate * regularHours; 
+        double expectedRegularHours = regularHours; 
+        double expectedOverTimePay = emp.PayRate * 1.5 * overTimeHours; 
+        double expectedOverTimeHours = totalHoursWorked- regularHours; 
 
         Assert.NotNull(result);
         Assert.Equal(expectedRegularPay, result.Item1, 2);
@@ -664,7 +647,6 @@ public class PayrollServiceTests
     [Fact]
     public void CalculatePayForDailyRatedEmployees_ShouldReturnCorrectPayAndDaysWorked()
     {
-        // Arrange
         var timecards = new List<TimecardUsa>
         {
             new TimecardUsa { PersonId = 1, ClockIn = new DateTime(2024, 10, 1, 9, 0, 0) },
@@ -678,11 +660,9 @@ public class PayrollServiceTests
         };
         var emp = new Employment { PersonId = 1, PayRate = 100 };
 
-        // Act
         var methodInfo = typeof(PayrollService).GetMethod("CalculatePayForDailyRatedEmployees", BindingFlags.NonPublic | BindingFlags.Static);
         var result = (Tuple<double, int>)methodInfo.Invoke(null, new object[] { timecards, currentPayroll, emp });
 
-        // Assert
         Assert.Equal(300, result.Item1); 
         Assert.Equal(3, result.Item2); 
     }
