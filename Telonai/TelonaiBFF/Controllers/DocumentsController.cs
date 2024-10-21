@@ -11,7 +11,7 @@ using TelonaiWebApi.Services;
 
 [ApiController]
 [Route("[controller]")]
-//[Authorize()]
+[Authorize()]
 public class DocumentsController : ControllerBase
 {
     private readonly IDocumentService _documentService;
@@ -166,11 +166,8 @@ public class DocumentsController : ControllerBase
             formFields.SetField(PdfFields.Step4b_Deductions, model.Deductions.ToString());
             formFields.SetField(PdfFields.Step4c_ExtraWithholding, model.ExtraWithholding.ToString());
             
-            SetCheckboxValue(formFields, PdfFields.Step1c_FilingStatus_HeadOfHousehold, true);
-
-            //pdfStamper.FormFlattening = true;
-
-            pdfStamper.FormFlattening = false;
+            pdfStamper.FormFlattening = true;
+            
         }
 
         byte[] fileBytes = System.IO.File.ReadAllBytes(outputPath);
@@ -204,18 +201,5 @@ public class DocumentsController : ControllerBase
 
         return selectedFilingStatus;
     }
-    private void SetCheckboxValue(AcroFields formFields, string fieldName, bool value)
-    {
-        // Attempt to set the checkbox with various possible values
-        string[] possibleValues = { "True","1", "Yes" ,"On" };
-        foreach (var possibleValue in possibleValues)
-        {
-            bool success = formFields.SetField(fieldName, value ? possibleValue : "Off",true);
-            if (success)
-            {
-                return;
-            }
-        }
-        throw new InvalidOperationException($"Failed to set the checkbox '{fieldName}' to '{value}'");
-    }
+   
 }
