@@ -32,7 +32,7 @@ public class PayrollScheduleController : ControllerBase
     public IActionResult GetAllPayrollSchedules(int companyId)
     {
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
-        var PayrollSchedule = _PayrollScheduleService.GetLatestByCompanyId(companyId);
+        var PayrollSchedule = _PayrollScheduleService.GetByCompanyId(companyId);
         return Ok(PayrollSchedule);
     }
 
