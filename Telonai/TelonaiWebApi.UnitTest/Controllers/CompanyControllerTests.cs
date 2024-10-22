@@ -45,7 +45,6 @@ namespace TelonaiWebApi.UnitTest.Controllers
                     HttpContext = _mockHttpContext.Object
                 }
             };
-
         }
 
         [Fact]
