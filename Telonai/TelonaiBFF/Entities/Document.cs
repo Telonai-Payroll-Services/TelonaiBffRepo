@@ -8,4 +8,5 @@ public class Document : BaseTracker
     public DocumentType DocumentType { get; set; }
     public bool IsDeleted { get; set; }
     public int PersonId { get; set; }
+    public DateOnly EffectiveDate { get; set; }
 }
