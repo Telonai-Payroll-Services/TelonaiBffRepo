@@ -95,7 +95,8 @@ public class PayrollScheduleService : IPayrollScheduleService
             CompanyId = model.CompanyId
         };
 
-
+        _context.PayrollSchedule.Add(newSchedule);
+        _context.SaveChanges();
         //Create the first payroll for the new schedule.
         //If there is existing payroll to be run, close it
         var existingPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefault();
@@ -118,8 +119,7 @@ public class PayrollScheduleService : IPayrollScheduleService
              ScheduledRunDate = newSchedule.FirstRunDate,
              CompanyId = newSchedule.CompanyId
         };
-        _context.PayrollSchedule.Add(newSchedule);
-        _context.SaveChanges();
+        
         _context.Payroll.Add(payroll);
         _context.SaveChanges();
         return;
