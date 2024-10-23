@@ -80,6 +80,7 @@
                     case 8:
                         CallGetNewSubmissionsStatus();
                         break;
+                        //Send submission
                     default:
                         Util.Write(string.Format("You selected an invalid number: {0}\r\n", iSel));
                         continue;

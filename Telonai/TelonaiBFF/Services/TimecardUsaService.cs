@@ -37,11 +37,10 @@ public class TimecardUsaService : ITimecardUsaService
     private readonly IMapper _mapper;
     private readonly PayrollScheduleService _payrollScheduleService;
 
-    public TimecardUsaService(DataContext context, IMapper mapper, PayrollScheduleService payrollScheduleService)
+    public TimecardUsaService(DataContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
-        _payrollScheduleService = payrollScheduleService;
     }
 
     public IEnumerable<TimecardUsaModel> GetReport(string email, DateTime from, DateTime to)

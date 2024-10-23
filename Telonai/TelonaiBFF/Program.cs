@@ -13,6 +13,8 @@ using Newtonsoft.Json;
 using Amazon.S3;
 using Amazon.SQS;
 using TelonaiWebApi.Models.FileScan;
+using TelonaiWebApi.Helpers.FileScan;
+using TelonaiWebApi.Helpers.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +83,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IZipcodeService, ZipcodeService>();
     services.AddScoped<IDocumentService, DocumentService>();
     services.AddScoped<IDocumentManager, DocumentManager>();
+    services.AddScoped<IFileScanRequest, FileScanRequest>();
     services.AddScoped<IEmployeeWithholdingService<EmployeeWithholdingModel, EmployeeWithholding>, EmployeeWithholdingService>();
     services.AddScoped<IScopedAuthorization, ScopedAuthorization>();
 
@@ -169,5 +172,5 @@ var app = builder.Build();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
 
-app.Run();
-//app.Run("http://localhost:5000");
+//app.Run();
+app.Run("http://localhost:5000");
