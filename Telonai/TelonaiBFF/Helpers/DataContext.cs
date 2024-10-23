@@ -6,7 +6,7 @@ using TelonaiWebApi.Entities;
 using Newtonsoft.Json;
 using Amazon.SecretsManager.Extensions.Caching;
 using TelonaiWebApi.Helpers.Interface;
-public class DataContext : DbContext, IDataContext
+public class DataContext : DbContext
 {
     private readonly IHttpContextAccessor _context;
     private readonly SecretsManagerCache _cache;

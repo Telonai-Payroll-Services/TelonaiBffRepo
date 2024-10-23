@@ -52,15 +52,31 @@ public class DocumentsController : ControllerBase
     public async Task<IActionResult> GetOwnByDocumentType(DocumentTypeModel documentType)
     {
         var document = await _documentService.GetOwnDocumentByDocumentTypeAsync(documentType);
-        return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+        if(document != null)
+        {
+            return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+        }
+        else
+        {
+            return NotFound();
+        }
     }
+
 
     [HttpGet("documentType/{documentType}")]
     public async Task<IActionResult> GetByDocumentType(DocumentTypeModel documentType)
     {
         var document = await _documentService.GetDocumentByDocumentTypeAsync(documentType);
-        return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+        if (document != null)
+        {
+            return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+        }
+        else
+        {
+            return NotFound();
+        }
     }
+
 
     [HttpGet("documentType/{documentType}/unsigned")]
     public async Task<IActionResult> GetGovernmentDocumentByDocumentType(DocumentTypeModel documentType)
@@ -79,6 +95,7 @@ public class DocumentsController : ControllerBase
         return Ok(201);
     }
 
+
     [HttpPost()]
     public async Task<IActionResult> AddDocument([FromForm] IFormFile file, [FromBody] DocumentModel model)
     {
@@ -89,25 +106,33 @@ public class DocumentsController : ControllerBase
         }
         return Ok(201);
     }
+
+
     [HttpPut("{id}")]
     [Authorize(Policy = "SystemAdmin")]
     public async Task<IActionResult> Update(Guid id, DocumentModel model)
     {
-        var doc = await _documentService.GetDocumentDetailsByDocumentIdAsync(id);
         _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
-
-        _documentService.Update(id, model);
-        return Ok(new { message = "Documents updated." });
+        var doc = await _documentService.GetDocumentDetailsByDocumentIdAsync(id);
+        if (doc != null)
+        {
+            _documentService.Update(id, model);
+            return Ok(new { message = "Documents updated." });
+        }
+        else
+        {
+            return NotFound();
+        }
     }
 
 
     [HttpDelete("{id}")]
     [Authorize(Policy = "SystemAdmin")]
-    public IActionResult Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
 
-        _documentService.Delete(id);
+        await _documentService.Delete(id);
         return Ok(new { message = "Document deleted." });
     }
 

@@ -21,11 +21,12 @@ public interface IDocumentService
     Task<Tuple<Stream, string>> GetDocumentByDocumentIdAsync(Guid documentId);
     Task<DocumentModel> GetOwnDocumentDetailsByDocumentIdAsync(Guid documentId);
     Task<DocumentModel> GetDocumentDetailsByDocumentIdAsync(Guid documentId);
+    Task<Document> GetDocument(Guid id);
     Task UploadInternalDocumentAsync(DocumentTypeModel documentType);
     Task CreateAsync(DocumentModel model, Stream file);
     Task AddGovernmentDocumentAsync(Stream file, DocumentTypeModel documentType);
-    void Update(Guid id, DocumentModel model);
-    void Delete(Guid id);
+    Task Update(Guid id, DocumentModel model);
+    Task Delete(Guid id);
 }
 
 public class DocumentService : IDocumentService
@@ -51,10 +52,7 @@ public class DocumentService : IDocumentService
     {
         var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
-        var dto =  _context.Document.OrderByDescending(e => e.CreatedDate);
-
-       // var dto = await _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefaultAsync(e => e.PersonId == person.Id
-       //&& e.DocumentTypeId == (int)documentType);
+        var dto =  _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => e.PersonId == person.Id && e.DocumentTypeId == (int)documentType);
 
         if (dto == null)
             return null;
@@ -69,7 +67,7 @@ public class DocumentService : IDocumentService
         var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
-        var dto = await _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefaultAsync(e => e.PersonId == person.Id
+        var dto =  _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => e.PersonId == person.Id
         && e.DocumentTypeId == (int)documentType);
 
         if (dto == null)
@@ -195,23 +193,38 @@ public class DocumentService : IDocumentService
 
     }
 
-    public void Update(Guid id, DocumentModel model)
+    public async Task Update(Guid id, DocumentModel model)
     {
-        var dto = GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
-        _context.Document.Update(dto);
-        _context.SaveChanges();
+        var document = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
+        var updatedDocument =  _mapper.Map<Document>(model);
+        if ((int)updatedDocument.DocumentTypeId != document.DocumentTypeId)
+        {
+            document.DocumentTypeId = (int)updatedDocument.DocumentTypeId;
+        }
+
+        if (updatedDocument.FileName != document.FileName)
+        {
+            document.FileName = updatedDocument.FileName;
+        }
+
+        if (updatedDocument.PersonId != document.PersonId)
+        {
+            document.PersonId = updatedDocument.PersonId;
+        }
+        _context.Document.Update(document);
+        await _context.SaveChangesAsync();
     }
 
-    public void Delete(Guid id)
+    public async Task Delete(Guid id)
     {
-        var dto = GetDocument(id);
+        var dto = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found"); ;
         _context.Document.Remove(dto);
         _context.SaveChanges();
     }
 
-    private Entities.Document GetDocument(Guid id)
+    public async Task<Document> GetDocument(Guid id)
     {
-        var dto = _context.Document.Find(id);
+        var dto = await _context.Document.FindAsync(id);
         return dto;
     }
 

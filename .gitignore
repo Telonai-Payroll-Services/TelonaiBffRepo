@@ -1,4 +1,5 @@
 *.swp
+DocumentLayout.json
 *.*~
 project.lock.json
 .DS_Store
