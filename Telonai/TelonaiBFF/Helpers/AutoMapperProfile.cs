@@ -73,6 +73,10 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Company.Name))
             .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId))
             .ForMember(dest => dest.Zipcode, opt => opt.MapFrom(src => src.Zipcode.Code))
+            .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
+             .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (INineVerificationStatusModel)src.INineVerificationStatusId ?? 0))
+            .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.MapFrom(src => (StateWithholdingDocumentStatusModel)src.StateWithholdingDocumentStatusId))
+            .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId));
 
         CreateMap<PersonModel, Person>()
@@ -80,7 +84,11 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.Zipcode, opt => opt.Ignore())
              .ForMember(dest => dest.Company, opt => opt.Ignore())
              .ForMember(dest => dest.INineVerificationStatus, opt => opt.Ignore())
-             .ForMember(dest => dest.INineVerificationStatusId, opt => opt.MapFrom(src => (int)src.INineVerificationStatus));
+             .ForMember(dest => dest.WfourWithholdingDocumentStatus, opt => opt.Ignore())
+             .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.Ignore())
+             .ForMember(dest => dest.INineVerificationStatusId, opt => opt.MapFrom(src => (int)src.INineVerificationStatus))
+             .ForMember(dest => dest.StateWithholdingDocumentStatusId, opt => opt.MapFrom(src => (int)src.StateWithholdingDocumentStatus))
+             .ForMember(dest => dest.WfourWithholdingDocumentStatusId, opt => opt.MapFrom(src => (int)src.WFourWithholdingDocumentStatus));
 
         CreateMap<Job, JobModel>()
             .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Company.Name))

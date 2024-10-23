@@ -18,5 +18,6 @@ public class PayRateBasis : IdValuePair { }
 public class FilingStatus : IdValuePair { }
 public class DocumentType : IdValuePair { }
 public class SignUpStatusType : IdValuePair { }
-
 public class INineVerificationStatus : IdValuePair { }
+public class StateWithholdingDocumentStatus : IdValuePair { }
+public class WfourWithholdingDocumentStatus : IdValuePair { }

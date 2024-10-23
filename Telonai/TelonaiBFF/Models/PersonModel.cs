@@ -40,5 +40,7 @@ public class PersonModel
     public int ZipcodeId { get; set; }
     public string Zipcode { get; set; }
     public INineVerificationStatusModel INineVerificationStatus { get; set; }
+    public StateWithholdingDocumentStatusModel StateWithholdingDocumentStatus { get; set; }
+    public WFourWithholdingDocumentStatusModel WFourWithholdingDocumentStatus { get; set; }
 
 }

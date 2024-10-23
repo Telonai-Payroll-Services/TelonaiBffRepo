@@ -22,5 +22,9 @@ public class Person : BaseTracker
     public virtual Zipcode Zipcode { get; set; }
     public virtual int INineVerificationStatusId { get; set; }
     public virtual INineVerificationStatus INineVerificationStatus { get; set; }
+    public virtual int StateWithholdingDocumentStatusId { get; set; }
+    public virtual StateWithholdingDocumentStatus StateWithholdingDocumentStatus { get; set; }
+    public virtual int WfourWithholdingDocumentStatusId { get; set; }
+    public virtual WfourWithholdingDocumentStatus WfourWithholdingDocumentStatus { get; set; }
 
 }
