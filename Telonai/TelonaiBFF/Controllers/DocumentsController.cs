@@ -1,10 +1,13 @@
 ﻿namespace TelonaiWebApi.Controllers;
 
+using Amazon.Runtime.Documents;
 using iTextSharp.text.pdf;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Net.Http.Headers;
+using System.Xml.Linq;
+using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
@@ -16,10 +19,14 @@ public class DocumentsController : ControllerBase
 {
     private readonly IDocumentService _documentService;
     private readonly IScopedAuthorization _scopedAuthorization;
-    public DocumentsController(IDocumentService documentService, IScopedAuthorization scopedAuthorization)
+    private Guid id;
+    private readonly IEmploymentService<EmploymentModel, Employment> _employmentService;
+
+    public DocumentsController(IDocumentService documentService, IScopedAuthorization scopedAuthorization, IEmploymentService<EmploymentModel, Employment> employmentService)
     {
         _documentService = documentService;
         _scopedAuthorization = scopedAuthorization;
+        _employmentService = employmentService;
     }
 
     [HttpGet("{id}")]
@@ -129,77 +136,100 @@ public class DocumentsController : ControllerBase
         }
     }
     [HttpPost("edit")]
-    public IActionResult EditPdf([FromBody] W4Form model)
+    public async Task<IActionResult> EditPdf([FromBody] W4Form model)
     {
-        string binPath = Path.Combine(Directory.GetCurrentDirectory(), "bin");
-        string pdfPath = Path.Combine(binPath, "fw4.pdf");
-        string outputPath = Path.Combine(binPath, "edited_fw4.pdf");
+        var documentType = DocumentTypeModel.WFourUnsigned;
+        Guid.TryParse("8712e3e1-e380-4bc5-8cfc-96ef92a53b41", out id);
+        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id);
+        if (document == null)
+        {
+            return NotFound();
+        };
 
-        string filingStatus = GetSelectedFilingStatus(model.FilingStatus);
-        if (string.IsNullOrEmpty(filingStatus))
+        var filingStatus = _documentService.GetSelectedFilingStatus(model.FilingStatus);
+        if (string.IsNullOrEmpty(filingStatus.Item1))
         {
             throw new InvalidOperationException("No filing status selected or more than one status selected.");
         }
 
+        var fileBytes = _documentService.SetPdfFormFilds(model, document.Item1, filingStatus.Item1);
 
-        using (PdfReader pdfReader = new PdfReader(pdfPath))
-        using (PdfStamper pdfStamper = new PdfStamper(pdfReader, new FileStream(outputPath, FileMode.Create)))
+        var person = await _documentService.GetPersonAsync();
+
+        var doumentId = await _documentService.SaveGeneratedUnsignedW4Pdf(document.Item2, fileBytes);
+        var doumentModel = CreateDocumentModel(doumentId, document.Item2, person.Id, document.Item3);
+      
+        string prefix = "Step1c_";
+        string result = filingStatus.Item2.Substring(prefix.Length);
+        var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(person,doumentId,1, result, doumentModel);   
+        var employeeWithHodingModel2C = CreateEmployeeWithholdingModel(person, doumentId, 4, model.MultipleJobsOrSpouseWorks.ToString(), doumentModel); 
+        var employeeWithHodingModel3 = CreateEmployeeWithholdingModel(person, doumentId, 5, model.Dependents.TotalClaimedAmount.ToString(), doumentModel); 
+        var employeeWithHodingModel4A = CreateEmployeeWithholdingModel(person, doumentId, 7, model.OtherIncome.ToString(), doumentModel);  
+        var employeeWithHodingModel4B = CreateEmployeeWithholdingModel(person, doumentId, 8, model.Deductions.ToString(), doumentModel); 
+        var employeeWithHodingModel4C = CreateEmployeeWithholdingModel(person, doumentId, 9, model.ExtraWithholding.ToString(), doumentModel);
+      
+        var employeeWithHodingModelList = new List<EmployeeWithholdingModel>
         {
-            AcroFields formFields = pdfStamper.AcroFields;
-            
-            formFields.SetField(PdfFields.Step1a_FirstName_MiddleInitial, $"{model.Employee.FirstName} {model.Employee.MiddleInitial}");
-            formFields.SetField(PdfFields.Step1a_LastName, model.Employee.LastName);
-            formFields.SetField(PdfFields.Step1a_Address, model.Employee.Address);
-            formFields.SetField(PdfFields.Step1a_City_Or_Town_State_ZIPCode, $"{model.Employee.CityOrTown} {model.Employee.State} {model.Employee.ZipCode}");
-            formFields.SetField(PdfFields.Step1b_SocialSecurityNumber, model.Employee.SocialSecurityNumber);
-            formFields.SetField(filingStatus,"1");
-            //formFields.SetField(PdfFields.Step1c_FilingStatus_HeadOfHousehold, "1");
-            //formFields.SetField(PdfFields.Step1c_FilingStatus_MarriedFilingJointly, "1");
-
-            formFields.SetField(PdfFields.Step2_MultipleJobsOrSpouseWorks, model.MultipleJobsOrSpouseWorks?"1":"");
-
-            formFields.SetField(PdfFields.Step3_Dependents_NumberOfChildrenUnder17, model.Dependents.NumberOfChildrenUnder17.ToString());
-            formFields.SetField(PdfFields.Step3_Dependents_OtherDependents, model.Dependents.OtherDependents.ToString());
-            formFields.SetField(PdfFields.Step3_TotalClaimedAmount, model.Dependents.TotalClaimedAmount.ToString());
-
-            formFields.SetField(PdfFields.Step4a_OtherIncome, model.OtherIncome.ToString());
-            formFields.SetField(PdfFields.Step4b_Deductions, model.Deductions.ToString());
-            formFields.SetField(PdfFields.Step4c_ExtraWithholding, model.ExtraWithholding.ToString());
-            
-            pdfStamper.FormFlattening = true;
-            
+        // employeeWithHodingModel1C,
+        // employeeWithHodingModel2C,
+         employeeWithHodingModel3,
+         employeeWithHodingModel4A,
+         employeeWithHodingModel4B,
+         employeeWithHodingModel4C,
+        };
+        foreach (EmployeeWithholdingModel employee in employeeWithHodingModelList)
+        {
+            _documentService.CreateEmployeeWithholdingAsync(employee, person);
         }
 
-        byte[] fileBytes = System.IO.File.ReadAllBytes(outputPath);
+
+
         return File(fileBytes, "application/pdf", "edited_fw4.pdf");
+
     }
 
-    private string GetSelectedFilingStatus(FilingStatus filingStatus)
+
+
+
+    [HttpGet("{id}/WFourUnsigned")]
+    public async Task<IActionResult> GetPdf(Guid id)
     {
-        int selectedCount = 0;
-        string selectedFilingStatus = null;
-
-        if (filingStatus.SingleOrMarriedFilingSeparately)
+        var documentType = DocumentTypeModel.WFourUnsigned;
+        // Guid.TryParse(id1, out id);
+        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id);
+        if (document == null)
         {
-            selectedCount++;
-            selectedFilingStatus = PdfFields.Step1c_FilingStatus_SingleOrMarriedFilingSeparately;
-        }
-        if (filingStatus.MarriedFilingJointly)
-        {
-            selectedCount++;
-            selectedFilingStatus = PdfFields.Step1c_FilingStatus_MarriedFilingJointly;
-        }
-        if (filingStatus.HeadOfHousehold)
-        {
-            selectedCount++;
-            selectedFilingStatus = PdfFields.Step1c_FilingStatus_HeadOfHousehold;
-        }
-        if (selectedCount != 1)
-        {
-            return null;
-        }
-
-        return selectedFilingStatus;
+            return NotFound();
+        };
+        return File(document.Item1, "application/pdf", "edited_fw4.pdf");
     }
-   
+    private EmployeeWithholdingModel CreateEmployeeWithholdingModel(Person person, Guid documentId, int fieldId, string fieldValue, DocumentModel documentModel)
+    {
+
+        var employments = _employmentService.GetByPersonId(person.Id).ToList();
+        var employeeAtCompany = employments.FirstOrDefault(e => e.CompanyId == person.CompanyId);
+        var effectiveDate = _documentService.GetInvitationDateForEmployee(employeeAtCompany.PersonId);
+        return new EmployeeWithholdingModel
+        {
+            DocumentId = documentId,
+            EmploymentId = employeeAtCompany.Id,
+            WithholdingYear = DateTime.Now.Year,
+            EffectiveDate = DateOnly.FromDateTime(effectiveDate),
+            Document = documentModel,
+            FieldId = fieldId,
+            FieldValue = fieldValue
+        };
+    }
+    public DocumentModel CreateDocumentModel(Guid doumentId, string fielename,int id,DateOnly effectiveDate)
+    {
+        return new DocumentModel
+        {
+            Id = doumentId,
+            FileName = fielename,
+            DocumentType = DocumentTypeModel.WFourUnsigned,
+            PersonId = id,
+            EffectiveDate = effectiveDate,
+        };
+
+    }
 }

@@ -170,5 +170,14 @@ public class AutoMapperProfile : Profile
         
         CreateMap<Zipcode, ZipcodeModel>()
            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City));
+        CreateMap<EmployeeWithholding, EmployeeWithholdingModel>()
+            .ForMember(dest => dest.Document, opt => opt.MapFrom(src => src.Document));
+
+        CreateMap<EmployeeWithholdingModel, EmployeeWithholding>()
+             .ForMember(des=>des.Id, opt => opt.Ignore())
+             .ForMember(dest => dest.Field, opt => opt.Ignore())
+             .ForMember(dest => dest.Employment, opt => opt.Ignore())
+             .ForMember(dest => dest.Document, opt => opt.Ignore());
+
     }
 }

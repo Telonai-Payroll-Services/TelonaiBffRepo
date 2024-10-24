@@ -17,4 +17,5 @@ public class InvitationModel
     public int CountryId { get; set; }
     public string PhoneCountryCode { get; set; }
     public EmploymentModel Employment { get; set; }
+    public DateTime CreatedDate { get; set; }
 }

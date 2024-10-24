@@ -101,7 +101,16 @@ public class DataContext : DbContext, IDataContext
                 track.UpdatedBy = _context.HttpContext.User?.Identity?.Name; ;
             }
         }
-        return await base.SaveChangesAsync();
+        // return await base.SaveChangesAsync();
+        try
+        {
+            return await base.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            // Log or handle the exception as needed
+            throw new InvalidOperationException("An error occurred while saving changes", ex);
+        }
     }
 
     public virtual DbSet<Employment> Employment { get; set; }
