@@ -46,3 +46,4 @@ msbuild.wrn
 Debug/
 Release/
 obj/
+/Telonai/.vs

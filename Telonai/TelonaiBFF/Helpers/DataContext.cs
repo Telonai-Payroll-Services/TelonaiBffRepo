@@ -127,6 +127,11 @@ public class DataContext : DbContext
     public DbSet<WorkScheduleNote> WorkScheduleNote { get; set; }
     public DbSet<IncomeTaxRate> IncomeTaxRate { get; set; }
     public DbSet<IncomeTaxType> IncomeTaxType { get; set; }
+    public DbSet<QuarterType> QuarterType { get; set; }
+    public DbSet<INineVerificationStatus> INineVerificationStatus { get; set; }
+    public DbSet<WfourWithholdingDocumentStatus> WfourWithholdingDocumentStatus { get; set; }
+    public DbSet<StateWithholdingDocumentStatus> StateWithholdingDocumentStatus { get; set; }
+    public DbSet<DepositScheduleType> DepositScheduleType { get; set; }
     public DbSet<EmployeeWithholding> EmployeeWithholding { get; set; }
     public DbSet<EmployeeWithholdingField> EmployeeWithholdingField { get; set; }
     public virtual DbSet<PayStub> PayStub { get; set; }
@@ -135,5 +140,6 @@ public class DataContext : DbContext
     public DbSet<IncomeTax> IncomeTax { get; set; }
     public virtual DbSet<Document> Document { get; set; }
     public DbSet<StateStandardDeduction> StateStandardDeduction { get; set; }
+    public DbSet<FormNineFortyOne> FormNineFortyOne { get; set; }
 
 }
