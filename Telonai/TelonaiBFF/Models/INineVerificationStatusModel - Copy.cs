@@ -1,4 +1,4 @@
-//namespace TelonaiWebApi.Models;
+namespace TelonaiWebApi.Models;
 
 
 public enum INineVerificationStatusModel

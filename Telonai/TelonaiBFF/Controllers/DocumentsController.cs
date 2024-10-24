@@ -59,15 +59,31 @@ public class DocumentsController : ControllerBase
     public async Task<IActionResult> GetOwnByDocumentType(DocumentTypeModel documentType)
     {
         var document = await _documentService.GetOwnDocumentByDocumentTypeAsync(documentType);
-        return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+        if(document != null)
+        {
+            return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+        }
+        else
+        {
+            return NotFound();
+        }
     }
+
 
     [HttpGet("documentType/{documentType}")]
     public async Task<IActionResult> GetByDocumentType(DocumentTypeModel documentType)
     {
         var document = await _documentService.GetDocumentByDocumentTypeAsync(documentType);
-        return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+        if (document != null)
+        {
+            return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+        }
+        else
+        {
+            return NotFound();
+        }
     }
+
 
     [HttpGet("documentType/{documentType}/unsigned")]
     public async Task<IActionResult> GetGovernmentDocumentByDocumentType(DocumentTypeModel documentType)
@@ -86,6 +102,7 @@ public class DocumentsController : ControllerBase
         return Ok(201);
     }
 
+
     [HttpPost()]
     public async Task<IActionResult> AddDocument([FromForm] IFormFile file, [FromBody] DocumentModel model)
     {
@@ -96,25 +113,33 @@ public class DocumentsController : ControllerBase
         }
         return Ok(201);
     }
+
+
     [HttpPut("{id}")]
     [Authorize(Policy = "SystemAdmin")]
     public async Task<IActionResult> Update(Guid id, DocumentModel model)
     {
-        var doc = await _documentService.GetDocumentDetailsByDocumentIdAsync(id);
         _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
-
-        _documentService.Update(id, model);
-        return Ok(new { message = "Documents updated." });
+        var doc = await _documentService.GetDocumentDetailsByDocumentIdAsync(id);
+        if (doc != null)
+        {
+            _documentService.Update(id, model);
+            return Ok(new { message = "Documents updated." });
+        }
+        else
+        {
+            return NotFound();
+        }
     }
 
 
     [HttpDelete("{id}")]
     [Authorize(Policy = "SystemAdmin")]
-    public IActionResult Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
 
-        _documentService.Delete(id);
+        await _documentService.Delete(id);
         return Ok(new { message = "Document deleted." });
     }
 
@@ -159,7 +184,7 @@ public class DocumentsController : ControllerBase
         var doumentId = await _documentService.SaveGeneratedUnsignedW4Pdf(document.Item2, fileBytes);
         var doumentModel = CreateDocumentModel(doumentId, document.Item2, person.Id, document.Item3);
       
-        string prefix = "Step1c_";
+        string prefix = "Step1c_FilingStatus_";
         string result = filingStatus.Item2.Substring(prefix.Length);
         var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(person,doumentId,1, result, doumentModel);   
         var employeeWithHodingModel2C = CreateEmployeeWithholdingModel(person, doumentId, 4, model.MultipleJobsOrSpouseWorks.ToString(), doumentModel); 
@@ -170,8 +195,8 @@ public class DocumentsController : ControllerBase
       
         var employeeWithHodingModelList = new List<EmployeeWithholdingModel>
         {
-        // employeeWithHodingModel1C,
-        // employeeWithHodingModel2C,
+         employeeWithHodingModel1C,
+         employeeWithHodingModel2C,
          employeeWithHodingModel3,
          employeeWithHodingModel4A,
          employeeWithHodingModel4B,
@@ -195,7 +220,6 @@ public class DocumentsController : ControllerBase
     public async Task<IActionResult> GetPdf(Guid id)
     {
         var documentType = DocumentTypeModel.WFourUnsigned;
-        // Guid.TryParse(id1, out id);
         var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id);
         if (document == null)
         {
@@ -220,7 +244,7 @@ public class DocumentsController : ControllerBase
             FieldValue = fieldValue
         };
     }
-    public DocumentModel CreateDocumentModel(Guid doumentId, string fielename,int id,DateOnly effectiveDate)
+    private DocumentModel CreateDocumentModel(Guid doumentId, string fielename,int id,DateOnly effectiveDate)
     {
         return new DocumentModel
         {

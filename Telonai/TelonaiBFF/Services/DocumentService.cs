@@ -10,6 +10,8 @@ using iTextSharp.text.pdf.parser;
 using iTextSharp.text.pdf;
 using System.Text;
 using Microsoft.OpenApi.Extensions;
+using Amazon.SimpleEmail.Model;
+
 //using Amazon.Runtime.Documents;
 
 public interface IDocumentService
@@ -23,11 +25,12 @@ public interface IDocumentService
     Task<Tuple<Stream, string>> GetDocumentByDocumentIdAsync(Guid documentId);
     Task<DocumentModel> GetOwnDocumentDetailsByDocumentIdAsync(Guid documentId);
     Task<DocumentModel> GetDocumentDetailsByDocumentIdAsync(Guid documentId);
+    Task<Document> GetDocument(Guid id);
     Task UploadInternalDocumentAsync(DocumentTypeModel documentType);
     Task CreateAsync(DocumentModel model, Stream file);
     Task AddGovernmentDocumentAsync(Stream file, DocumentTypeModel documentType);
-    void Update(Guid id, DocumentModel model);
-    void Delete(Guid id);
+    Task Update(Guid id, DocumentModel model);
+    Task Delete(Guid id);
     Task<Tuple<Stream, string, DateOnly>> GetDocumentByDocumentTypeAndIdAsync(DocumentTypeModel documentType, Guid id);
     Task<Person> GetPersonAsync();
     Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[]file);
@@ -45,7 +48,7 @@ public class DocumentService : IDocumentService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPersonService<PersonModel, Person> _personService;
     private readonly IScopedAuthorization _scopedAuthorization;
-    IInvitationService<InvitationModel, Invitation> _invitationService;
+    private readonly IInvitationService<InvitationModel, Invitation> _invitationService;
     public DocumentService(DataContext context, IMapper mapper, IDocumentManager documentManager, 
                            IHttpContextAccessor httpContextAccessor, IPersonService<PersonModel, Person> personService, 
                            IScopedAuthorization scopedAuthorization, IInvitationService<InvitationModel, Invitation> invitationService)
@@ -63,10 +66,7 @@ public class DocumentService : IDocumentService
     {
         var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
-        var dto =  _context.Document.OrderByDescending(e => e.CreatedDate);
-
-       // var dto = await _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefaultAsync(e => e.PersonId == person.Id
-       //&& e.DocumentTypeId == (int)documentType);
+        var dto =  _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => e.PersonId == person.Id && e.DocumentTypeId == (int)documentType);
 
         if (dto == null)
             return null;
@@ -81,7 +81,7 @@ public class DocumentService : IDocumentService
         var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
-        var dto = await _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefaultAsync(e => e.PersonId == person.Id
+        var dto =  _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => e.PersonId == person.Id
         && e.DocumentTypeId == (int)documentType);
 
         if (dto == null)
@@ -207,23 +207,38 @@ public class DocumentService : IDocumentService
 
     }
 
-    public void Update(Guid id, DocumentModel model)
+    public async Task Update(Guid id, DocumentModel model)
     {
-        var dto = GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
-        _context.Document.Update(dto);
-        _context.SaveChanges();
+        var document = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
+        var updatedDocument =  _mapper.Map<Document>(model);
+        if ((int)updatedDocument.DocumentTypeId != document.DocumentTypeId)
+        {
+            document.DocumentTypeId = (int)updatedDocument.DocumentTypeId;
+        }
+
+        if (updatedDocument.FileName != document.FileName)
+        {
+            document.FileName = updatedDocument.FileName;
+        }
+
+        if (updatedDocument.PersonId != document.PersonId)
+        {
+            document.PersonId = updatedDocument.PersonId;
+        }
+        _context.Document.Update(document);
+        await _context.SaveChangesAsync();
     }
 
-    public void Delete(Guid id)
+    public async Task Delete(Guid id)
     {
-        var dto = GetDocument(id);
+        var dto = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found"); ;
         _context.Document.Remove(dto);
         _context.SaveChanges();
     }
 
-    private Entities.Document GetDocument(Guid id)
+    public async Task<Document> GetDocument(Guid id)
     {
-        var dto = _context.Document.Find(id);
+        var dto = await _context.Document.FindAsync(id);
         return dto;
     }
 
@@ -294,15 +309,19 @@ public class DocumentService : IDocumentService
         var fileBytes = file;
         var documentModel = new DocumentModel
         {
-            Id = Guid.NewGuid(),
             FileName = fileName,
             DocumentType = DocumentTypeModel.WFourUnsigned,
             PersonId = person.Id
         };
         using Stream stream = new MemoryStream(fileBytes);
-        await CreateAsync(documentModel, stream);
+        var dto = _mapper.Map<Document>(documentModel);
+        dto.Id = Guid.NewGuid();
 
-        return documentModel.Id;
+        await _context.Document.AddAsync(dto);
+        await _documentManager.UploadDocumentAsync(dto.Id, stream, documentModel.DocumentType);
+        await _context.SaveChangesAsync();
+    
+        return dto.Id;
     }
     public  byte[] SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus)
     {
@@ -320,8 +339,6 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.Step1a_City_Or_Town_State_ZIPCode, $"{model.Employee.CityOrTown} {model.Employee.State} {model.Employee.ZipCode}");
                 formFields.SetField(PdfFields.Step1b_SocialSecurityNumber, model.Employee.SocialSecurityNumber);
                 formFields.SetField(filingStatus, "1");
-                //formFields.SetField(PdfFields.Step1c_FilingStatus_HeadOfHousehold, "1");
-                //formFields.SetField(PdfFields.Step1c_FilingStatus_MarriedFilingJointly, "1");
 
                 formFields.SetField(PdfFields.Step2_MultipleJobsOrSpouseWorks, model.MultipleJobsOrSpouseWorks ? "1" : "");
 
@@ -348,7 +365,7 @@ public class DocumentService : IDocumentService
 
                 pdfStamper.FormFlattening = true;
                 pdfStamper.Close();
-                 pdfReader.Close();
+                pdfReader.Close();
             }
 
 
@@ -390,10 +407,7 @@ public class DocumentService : IDocumentService
     }
     public async Task CreateEmployeeWithholdingAsync(EmployeeWithholdingModel employee, Person person)
     {
-        //var person = await GetPersonAsync();
-        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
-        //foreach (EmployeeWithholdingModel employee in model)
-        //{
+            _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
             var emp = await _context.Employment.FindAsync(employee.EmploymentId) ?? throw new InvalidDataException("User not found");
 
 
@@ -401,14 +415,38 @@ public class DocumentService : IDocumentService
             var withholding = _context.EmployeeWithholding.OrderByDescending(e => e.EffectiveDate).FirstOrDefault(e => e.FieldId == employee.FieldId &&
             e.EmploymentId == employee.EmploymentId && !e.Deactivated && e.WithholdingYear == employee.WithholdingYear);
 
-            if (withholding == null || (dto.EffectiveDate > DateOnly.FromDateTime(DateTime.UtcNow) && withholding.EffectiveDate > DateOnly.FromDateTime(DateTime.UtcNow)))
-            {
-                _context.EmployeeWithholding.Add(dto);
-                // await _documentManager.UploadDocumentAsync(dto.DocumentId, file, (DocumentTypeModel)dto.Field.DocumentTypeId);
+        if (withholding == null || (dto.EffectiveDate > DateOnly.FromDateTime(DateTime.UtcNow) && withholding.EffectiveDate > DateOnly.FromDateTime(DateTime.UtcNow)))
+        {
+            _context.EmployeeWithholding.Add(dto);
 
-               await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+        }
+        else if (withholding != null)
+        {
+            var employeeWithholding = await _context.EmployeeWithholding.FindAsync(withholding.Id) ?? throw new KeyNotFoundException("EmployeeWithholding not found");         
+
+            if (employeeWithholding.FieldValue != dto.FieldValue)
+             { 
+            employeeWithholding.FieldValue = dto.FieldValue;
+             }
+
+            if (employeeWithholding.DocumentId != dto.DocumentId)
+            { 
+                employeeWithholding.DocumentId = dto.DocumentId;
             }
-       // }
+            if (employeeWithholding.WithholdingYear != dto.WithholdingYear)
+            {
+                employeeWithholding.WithholdingYear = dto.WithholdingYear;
+            }
+            if (employeeWithholding.EffectiveDate != dto.EffectiveDate)
+            {
+                employeeWithholding.EffectiveDate = dto.EffectiveDate;
+            }
+
+            _context.EmployeeWithholding.Update(employeeWithholding);
+            await _context.SaveChangesAsync(); 
+        }
+       
     }
     public DateTime GetInvitationDateForEmployee(int id)
     {

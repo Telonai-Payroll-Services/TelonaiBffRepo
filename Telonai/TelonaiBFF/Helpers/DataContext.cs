@@ -6,7 +6,7 @@ using TelonaiWebApi.Entities;
 using Newtonsoft.Json;
 using Amazon.SecretsManager.Extensions.Caching;
 using TelonaiWebApi.Helpers.Interface;
-public class DataContext : DbContext, IDataContext
+public class DataContext : DbContext
 {
     private readonly IHttpContextAccessor _context;
     private readonly SecretsManagerCache _cache;
@@ -108,7 +108,7 @@ public class DataContext : DbContext, IDataContext
         }
         catch (Exception ex)
         {
-            // Log or handle the exception as needed
+          
             throw new InvalidOperationException("An error occurred while saving changes", ex);
         }
     }

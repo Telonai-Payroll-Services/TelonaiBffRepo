@@ -26,6 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TelonaiBFF\TelonaiWebApi.csproj" />
   </ItemGroup>
 
