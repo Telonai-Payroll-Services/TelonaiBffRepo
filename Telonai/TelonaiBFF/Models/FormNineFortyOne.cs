@@ -1,4 +1,4 @@
-namespace TelonaiWebApi.Entities;
+namespace TelonaiWebApi.Models;
 
 using System.Text.Json.Serialization;
 
@@ -6,7 +6,7 @@ public class FormNineFortyOneModel:BaseTracker
 {
     public int Id { get; set; }
     public int NumberOfEmployees { get; set; }
-    public int WagesTipsCompensation { get; set; }
+    public double WagesTipsCompensation { get; set; }
     public double FederalIncomeTaxWithheld { get; set; }
     public bool NotSubjectToSocialSecAndMediTax { get; set; }
     public double TaxableSocialSecurityWages { get; set; }
@@ -44,8 +44,8 @@ public class FormNineFortyOneModel:BaseTracker
     public int CompanyId { get; set; }
     public int QuarterTypeId { get; set; }
     public int Year { get; set; }
-    public QuarterType QuarterType { get; set; }
-    public DepositScheduleType DepositScheduleType { get; set; }
+    public QuarterTypeModel QuarterType { get; set; }
+    public DepositScheduleTypeModel DepositScheduleType { get; set; }
     
 
 }

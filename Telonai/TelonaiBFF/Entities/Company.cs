@@ -2,7 +2,7 @@ namespace TelonaiWebApi.Entities;
 
 using System.Text.Json.Serialization;
 
-public class Company
+public class Company:BaseTracker
 {
     public int Id { get; set; }
     public string Name { get; set; }

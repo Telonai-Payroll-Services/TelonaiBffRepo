@@ -82,6 +82,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IDocumentManager, DocumentManager>();
     services.AddScoped<IEmployeeWithholdingService<EmployeeWithholdingModel, EmployeeWithholding>, EmployeeWithholdingService>();
     services.AddScoped<IScopedAuthorization, ScopedAuthorization>();
+    services.AddScoped<IFormNineFortyOneService, FormNineFortyOneService>();
 
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());
     services.AddAWSService<IAmazonS3>();
@@ -162,5 +163,5 @@ var app = builder.Build();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
 
-app.Run();
-//app.Run("http://localhost:5000");
+//app.Run();
+app.Run("http://localhost:5000");

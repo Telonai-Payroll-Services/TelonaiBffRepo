@@ -141,5 +141,7 @@ public class DataContext : DbContext
     public virtual DbSet<Document> Document { get; set; }
     public DbSet<StateStandardDeduction> StateStandardDeduction { get; set; }
     public DbSet<FormNineFortyOne> FormNineFortyOne { get; set; }
-
+    public DbSet<DepositSchedule> DepositSchedule { get; set; }
+    public DbSet<CompanySpecificField> CompanySpecificField { get; set; }
+    public DbSet<CompanySpecificFieldValue> CompanySpecificFieldValue { get; set; }
 }

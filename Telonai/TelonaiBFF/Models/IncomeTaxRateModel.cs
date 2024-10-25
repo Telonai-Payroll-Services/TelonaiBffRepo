@@ -1,4 +1,4 @@
-namespace TelonaiWebApi.Entities;
+namespace TelonaiWebApi.Models;
 
 
 public class IncomeTaxRateModel
