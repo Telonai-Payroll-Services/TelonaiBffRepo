@@ -1,8 +1,7 @@
-using TelonaiWebApi.Entities;
 
 namespace TelonaiWebApi.Models;
 
-public class EmploymentModel
+public class EmploymentModel:BaseTracker
 {
     public int Id { get; set; }
     public int PersonId { get; set; }
@@ -13,7 +12,7 @@ public class EmploymentModel
     public double PayRate { get; set; }
 
     public bool IsPayrollAdmin { get; set; }
-    //Employee is payed salary, and is exempt from overtime pay
+    //Employee receives salary, and is exempt from overtime pay
     public bool IsSalariedOvertimeExempt { get; set; }
     public DateOnly? StartDate { get; set; }
     public DateOnly? EndDate { get; set; }   

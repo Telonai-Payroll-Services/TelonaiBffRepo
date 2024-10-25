@@ -1,6 +1,7 @@
 ﻿using TelonaiWebApi.Helpers.Cache;
 using TelonaiWebApi.Entities;
 using static TelonaiWebApi.Services.StaticDataService;
+using TelonaiWebApi.Models;
 
 namespace TelonaiWebApi.Services
 {

@@ -82,6 +82,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IDocumentManager, DocumentManager>();
     services.AddScoped<IEmployeeWithholdingService<EmployeeWithholdingModel, EmployeeWithholding>, EmployeeWithholdingService>();
     services.AddScoped<IScopedAuthorization, ScopedAuthorization>();
+    services.AddScoped<IFormNineFortyOneService, FormNineFortyOneService>();
 
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());
     services.AddAWSService<IAmazonS3>();

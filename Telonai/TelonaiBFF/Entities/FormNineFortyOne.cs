@@ -6,7 +6,7 @@ public class FormNineFortyOne:BaseTracker
 {
     public int Id { get; set; }
     public int NumberOfEmployees { get; set; }
-    public int WagesTipsCompensation { get; set; }
+    public double WagesTipsCompensation { get; set; }
     public double FederalIncomeTaxWithheld { get; set; }
     public bool NotSubjectToSocialSecAndMediTax { get; set; }
     public double TaxableSocialSecurityWages { get; set; }
@@ -44,5 +44,6 @@ public class FormNineFortyOne:BaseTracker
     public int CompanyId { get; set; }
     public int QuarterTypeId { get; set; }
     public int Year { get; set; }
+    public Company Company { get; set; }
 
 }
