@@ -17,9 +17,9 @@
         public const string Step4a_OtherIncome = "topmostSubform[0].Page1[0].f1_10[0]";
         public const string Step4b_Deductions = "topmostSubform[0].Page1[0].f1_11[0]";
         public const string Step4c_ExtraWithholding = "topmostSubform[0].Page1[0].f1_12[0]";
-        /*  public const string Signature = "topmostSubform[0].Page1[0].f1_13[0]";
-          public const string Date = "topmostSubform[0].Page1[0].f1_14[0]";
-          public const string EmployerIdentificationNumber = "topmostSubform[0].Page1[0].f1_15[0]";*/
+        public const string Signature = "topmostSubform[0].Page1[0].f1_13[0]";
+        public const string Date = "topmostSubform[0].Page1[0].f1_14[0]";
+        public const string EmployerIdentificationNumber = "topmostSubform[0].Page1[0].f1_15[0]";
         public const string MultipleJobsWorksheet_Step2b_1 = "topmostSubform[0].Page3[0].f3_01[0]";
         public const string MultipleJobsWorksheet_Step2b_2a = "topmostSubform[0].Page3[0].f3_02[0]";
         public const string MultipleJobsWorksheet_Step2b_2b = "topmostSubform[0].Page3[0].f3_03[0]";

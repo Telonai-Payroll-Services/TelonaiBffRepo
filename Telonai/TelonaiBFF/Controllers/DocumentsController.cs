@@ -176,10 +176,9 @@ public class DocumentsController : ControllerBase
         {
             throw new InvalidOperationException("No filing status selected or more than one status selected.");
         }
-
-        var fileBytes = _documentService.SetPdfFormFilds(model, document.Item1, filingStatus.Item1);
-
         var person = await _documentService.GetPersonAsync();
+
+        var fileBytes = _documentService.SetPdfFormFilds(model, document.Item1, filingStatus.Item1,person);
 
         var doumentId = await _documentService.SaveGeneratedUnsignedW4Pdf(document.Item2, fileBytes);
         var doumentModel = EmployeeWithholdingHelper.CreateDocumentModel(doumentId, document.Item2, person.Id, document.Item3);
@@ -222,5 +221,41 @@ public class DocumentsController : ControllerBase
         };
         return File(document.Item1, "application/pdf", "edited_fw4.pdf");
     }
-   
+
+    [HttpPost("{id}/signW4pdf")]
+    public async Task<IActionResult> SignW4Doument(Guid id, SignatureModel signature)
+    {
+        var documentType = DocumentTypeModel.WFourUnsigned;
+        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id);
+        if (document == null)
+        {
+            return NotFound();
+        };
+
+        using (var workStream = new MemoryStream())
+        {
+
+            using (PdfReader pdfReader = new PdfReader(document.Item1))
+            using (PdfStamper pdfStamper = new PdfStamper(pdfReader, workStream))
+            {
+                AcroFields formFields = pdfStamper.AcroFields;
+              //Todo
+             //Replace the Signature and Date fields from with Editable W4 PDF Fields
+                formFields.SetField(PdfFields.Signature, signature.Signature);
+                formFields.SetField(PdfFields.Date, signature.SignatureDate.ToString());
+
+                pdfStamper.FormFlattening = true;
+                pdfStamper.Close();
+                pdfReader.Close();
+            }
+
+
+            var fileBytes = workStream.ToArray();
+
+            var doumentId = await _documentService.UpdateW4PdfWithSignature(id, fileBytes);
+
+            return File(fileBytes, "application/pdf", "signed_fw4.pdf");
+        }
+    }
+
 }

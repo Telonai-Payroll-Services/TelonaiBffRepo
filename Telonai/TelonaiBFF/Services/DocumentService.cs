@@ -34,10 +34,11 @@ public interface IDocumentService
     Task<Tuple<Stream, string, DateOnly>> GetDocumentByDocumentTypeAndIdAsync(DocumentTypeModel documentType, Guid id);
     Task<Person> GetPersonAsync();
     Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[]file);
-    public byte[] SetPdfFormFilds(W4Form model, Stream documentStream, string filingStatus);
+    public byte[] SetPdfFormFilds(W4Form model, Stream documentStream, string filingStatus, Person person);
     Tuple<string, string> GetSelectedFilingStatus(Models.FilingStatus filingStatus);
     Task CreateEmployeeWithholdingAsync(EmployeeWithholdingModel model,Person person);
     DateTime GetInvitationDateForEmployee(int id);
+    Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file);
 }
 
 public class DocumentService : IDocumentService
@@ -309,7 +310,7 @@ public class DocumentService : IDocumentService
         var fileBytes = file;
         var documentModel = new DocumentModel
         {
-            FileName = fileName,
+            FileName = person.FirstName+ person.MiddleName+ person.LastName+fileName,
             DocumentType = DocumentTypeModel.WFourUnsigned,
             PersonId = person.Id
         };
@@ -323,8 +324,20 @@ public class DocumentService : IDocumentService
     
         return dto.Id;
     }
-    public  byte[] SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus)
+    public  byte[] SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus,Person person)
     {
+        var firstName = person?.FirstName ?? model.Employee.FirstName;
+        var middeName= person?.LastName ?? model.Employee.LastName;
+        var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
+        var lastName= person?.LastName ?? model.Employee.LastName;
+        var ssn = person?.Ssn ?? model.Employee.SocialSecurityNumber;
+        var address= person?.AddressLine1??model.Employee.Address;
+        var zipCode = person?.Zipcode?.Code?? model.Employee.ZipCode;
+        var cityOrTown = person?.Zipcode?.City?.Name ?? model.Employee.CityOrTown;
+        var state=person?.Zipcode?.City?.State.Name ?? model.Employee.State;
+
+
+
         using (var workStream = new MemoryStream())
         {
 
@@ -333,11 +346,11 @@ public class DocumentService : IDocumentService
             {
                 AcroFields formFields = pdfStamper.AcroFields;
 
-                formFields.SetField(PdfFields.Step1a_FirstName_MiddleInitial, $"{model.Employee.FirstName} {model.Employee.MiddleInitial}");
-                formFields.SetField(PdfFields.Step1a_LastName, model.Employee.LastName);
-                formFields.SetField(PdfFields.Step1a_Address, model.Employee.Address);
-                formFields.SetField(PdfFields.Step1a_City_Or_Town_State_ZIPCode, $"{model.Employee.CityOrTown} {model.Employee.State} {model.Employee.ZipCode}");
-                formFields.SetField(PdfFields.Step1b_SocialSecurityNumber, model.Employee.SocialSecurityNumber);
+                formFields.SetField(PdfFields.Step1a_FirstName_MiddleInitial, $"{firstName} {middeNameInitial}");
+                formFields.SetField(PdfFields.Step1a_LastName, lastName);
+                formFields.SetField(PdfFields.Step1a_Address, address);
+                formFields.SetField(PdfFields.Step1a_City_Or_Town_State_ZIPCode, $"{cityOrTown} {state} {zipCode}");
+                formFields.SetField(PdfFields.Step1b_SocialSecurityNumber, ssn);
                 formFields.SetField(filingStatus, "1");
 
                 formFields.SetField(PdfFields.Step2_MultipleJobsOrSpouseWorks, model.MultipleJobsOrSpouseWorks ? "1" : "");
@@ -455,6 +468,35 @@ public class DocumentService : IDocumentService
        var effectiveDate = invitation.CreatedDate;
        return effectiveDate;
 
+    }
+    public async Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file)
+    {
+        var person = await GetPersonAsync();
+
+        var documentModel = new DocumentModel
+        {
+            FileName = person.FirstName + person.MiddleName + person.LastName + DocumentTypeModel.WFour.GetDisplayName(),
+            DocumentType = DocumentTypeModel.WFour,
+            PersonId = person.Id
+        };
+        using Stream stream = new MemoryStream(file);
+
+        var document = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
+        var updatedDocument = _mapper.Map<Document>(documentModel);
+        if ((int)updatedDocument.DocumentTypeId != document.DocumentTypeId)
+        {
+            document.DocumentTypeId = (int)updatedDocument.DocumentTypeId;
+        }
+
+        if (updatedDocument.FileName != document.FileName)
+        {
+            document.FileName = updatedDocument.FileName;
+        }
+        _context.Document.Update(document);
+        await _documentManager.UploadDocumentAsync(document.Id, stream, documentModel.DocumentType);
+        await _context.SaveChangesAsync();
+
+        return document.Id;
     }
 }
 
