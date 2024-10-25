@@ -3,6 +3,7 @@ namespace TelonaiWebApi.Services;
 using AutoMapper;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
+using TelonaiWebApi.Models;
 
 public interface IIncomeTaxService<IncomeTaxRateModel, IncomeTaxRate> : IDataService<IncomeTaxRateModel, IncomeTaxRate>
 {

@@ -1,9 +1,7 @@
 namespace TelonaiWebApi.Models;
 
-using System.Text.Json.Serialization;
-using TelonaiWebApi.Entities;
 
-public class InvitationModel
+public class InvitationModel:BaseTracker
 {
     public int? JobId { get; set; }
     public string Email { get; set; }

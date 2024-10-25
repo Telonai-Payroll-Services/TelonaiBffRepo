@@ -160,7 +160,7 @@ public class DocumentsController : ControllerBase
             }
         }
     }
-    [HttpPost("edit")]
+    [HttpPost("generateW4pdf")]
     public async Task<IActionResult> EditPdf([FromBody] W4Form model)
     {
         var documentType = DocumentTypeModel.WFourUnsigned;
@@ -182,16 +182,17 @@ public class DocumentsController : ControllerBase
         var person = await _documentService.GetPersonAsync();
 
         var doumentId = await _documentService.SaveGeneratedUnsignedW4Pdf(document.Item2, fileBytes);
-        var doumentModel = CreateDocumentModel(doumentId, document.Item2, person.Id, document.Item3);
+        var doumentModel = EmployeeWithholdingHelper.CreateDocumentModel(doumentId, document.Item2, person.Id, document.Item3);
       
         string prefix = "Step1c_FilingStatus_";
         string result = filingStatus.Item2.Substring(prefix.Length);
-        var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(person,doumentId,1, result, doumentModel);   
-        var employeeWithHodingModel2C = CreateEmployeeWithholdingModel(person, doumentId, 4, model.MultipleJobsOrSpouseWorks.ToString(), doumentModel); 
-        var employeeWithHodingModel3 = CreateEmployeeWithholdingModel(person, doumentId, 5, model.Dependents.TotalClaimedAmount.ToString(), doumentModel); 
-        var employeeWithHodingModel4A = CreateEmployeeWithholdingModel(person, doumentId, 7, model.OtherIncome.ToString(), doumentModel);  
-        var employeeWithHodingModel4B = CreateEmployeeWithholdingModel(person, doumentId, 8, model.Deductions.ToString(), doumentModel); 
-        var employeeWithHodingModel4C = CreateEmployeeWithholdingModel(person, doumentId, 9, model.ExtraWithholding.ToString(), doumentModel);
+
+        var employeeWithHodingModel1C = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService,person, doumentId,1, result, doumentModel);   
+        var employeeWithHodingModel2C = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService, person, doumentId, 4, model.MultipleJobsOrSpouseWorks.ToString(), doumentModel); 
+        var employeeWithHodingModel3 = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService, person, doumentId, 5, model.Dependents.TotalClaimedAmount.ToString(), doumentModel); 
+        var employeeWithHodingModel4A = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService, person, doumentId, 7, model.OtherIncome.ToString(), doumentModel);  
+        var employeeWithHodingModel4B = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService, person, doumentId, 8, model.Deductions.ToString(), doumentModel); 
+        var employeeWithHodingModel4C = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService, person, doumentId, 9, model.ExtraWithholding.ToString(), doumentModel);
       
         var employeeWithHodingModelList = new List<EmployeeWithholdingModel>
         {
@@ -206,20 +207,14 @@ public class DocumentsController : ControllerBase
         {
             _documentService.CreateEmployeeWithholdingAsync(employee, person);
         }
-
-
-
         return File(fileBytes, "application/pdf", "edited_fw4.pdf");
 
     }
 
 
-
-
-    [HttpGet("{id}/WFourUnsigned")]
-    public async Task<IActionResult> GetPdf(Guid id)
+    [HttpGet("{id}/documentType/{documentType}")]
+    public async Task<IActionResult> GetDocumentByIdAndDocumentType(Guid id, DocumentTypeModel documentType)
     {
-        var documentType = DocumentTypeModel.WFourUnsigned;
         var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id);
         if (document == null)
         {
@@ -227,33 +222,5 @@ public class DocumentsController : ControllerBase
         };
         return File(document.Item1, "application/pdf", "edited_fw4.pdf");
     }
-    private EmployeeWithholdingModel CreateEmployeeWithholdingModel(Person person, Guid documentId, int fieldId, string fieldValue, DocumentModel documentModel)
-    {
-
-        var employments = _employmentService.GetByPersonId(person.Id).ToList();
-        var employeeAtCompany = employments.FirstOrDefault(e => e.CompanyId == person.CompanyId);
-        var effectiveDate = _documentService.GetInvitationDateForEmployee(employeeAtCompany.PersonId);
-        return new EmployeeWithholdingModel
-        {
-            DocumentId = documentId,
-            EmploymentId = employeeAtCompany.Id,
-            WithholdingYear = DateTime.Now.Year,
-            EffectiveDate = DateOnly.FromDateTime(effectiveDate),
-            Document = documentModel,
-            FieldId = fieldId,
-            FieldValue = fieldValue
-        };
-    }
-    private DocumentModel CreateDocumentModel(Guid doumentId, string fielename,int id,DateOnly effectiveDate)
-    {
-        return new DocumentModel
-        {
-            Id = doumentId,
-            FileName = fielename,
-            DocumentType = DocumentTypeModel.WFourUnsigned,
-            PersonId = id,
-            EffectiveDate = effectiveDate,
-        };
-
-    }
+   
 }
