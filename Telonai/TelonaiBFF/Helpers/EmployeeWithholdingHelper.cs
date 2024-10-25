@@ -6,16 +6,13 @@ namespace TelonaiWebApi.Helpers
 {
     public static class EmployeeWithholdingHelper
     {
-        public static EmployeeWithholdingModel CreateEmployeeWithholdingModel(IEmploymentService<EmploymentModel, Employment> employmentService, IDocumentService documentService, Person person, Guid documentId, int fieldId, string fieldValue, DocumentModel documentModel)
-        {
-            var employments = employmentService.GetByPersonId(person.Id).ToList();
-            var employeeAtCompany = employments.FirstOrDefault(e => e.CompanyId == person.CompanyId);
-            var effectiveDate = documentService.GetInvitationDateForEmployee(employeeAtCompany.PersonId);
+        public static EmployeeWithholdingModel CreateEmployeeWithholdingModel(Person person, Guid documentId, int fieldId, string fieldValue, DocumentModel documentModel,EmploymentModel employment,DateTime effectiveDate)
+        {          
 
             return new EmployeeWithholdingModel
             {
                 DocumentId = documentId,
-                EmploymentId = employeeAtCompany.Id,
+                EmploymentId = employment.Id,
                 WithholdingYear = DateTime.Now.Year,
                 EffectiveDate = DateOnly.FromDateTime(effectiveDate),
                 Document = documentModel,

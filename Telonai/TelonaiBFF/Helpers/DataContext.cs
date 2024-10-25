@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using TelonaiWebApi.Entities;
 using Newtonsoft.Json;
 using Amazon.SecretsManager.Extensions.Caching;
-using TelonaiWebApi.Helpers.Interface;
+
 public class DataContext : DbContext
 {
     private readonly IHttpContextAccessor _context;
@@ -101,7 +101,6 @@ public class DataContext : DbContext
                 track.UpdatedBy = _context.HttpContext.User?.Identity?.Name; ;
             }
         }
-        // return await base.SaveChangesAsync();
         try
         {
             return await base.SaveChangesAsync();
@@ -111,6 +110,22 @@ public class DataContext : DbContext
           
             throw new InvalidOperationException("An error occurred while saving changes", ex);
         }
+    }
+
+   
+    public async Task<Person> GetCurrentUserAsync()
+    {
+        try
+        {
+            var currentUserEmail = _context.HttpContext.User.Claims.FirstOrDefault(e => e.Type == "email").Value.ToLower();
+            var person = await Person.FirstOrDefaultAsync(e => e.Email.ToLower() == currentUserEmail) ?? throw new InvalidDataException("User not found");
+            return person;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("An error occurred while retrieving prson", ex);
+        }
+
     }
 
     public virtual DbSet<Employment> Employment { get; set; }

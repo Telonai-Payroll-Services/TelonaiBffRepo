@@ -1,13 +1,9 @@
 ﻿namespace TelonaiWebApi.Controllers;
-
-using Amazon.Runtime.Documents;
 using iTextSharp.text.pdf;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Net.Http.Headers;
-using System.Xml.Linq;
-using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
@@ -20,13 +16,11 @@ public class DocumentsController : ControllerBase
     private readonly IDocumentService _documentService;
     private readonly IScopedAuthorization _scopedAuthorization;
     private Guid id;
-    private readonly IEmploymentService<EmploymentModel, Employment> _employmentService;
 
-    public DocumentsController(IDocumentService documentService, IScopedAuthorization scopedAuthorization, IEmploymentService<EmploymentModel, Employment> employmentService)
+    public DocumentsController(IDocumentService documentService, IScopedAuthorization scopedAuthorization)
     {
         _documentService = documentService;
-        _scopedAuthorization = scopedAuthorization;
-        _employmentService = employmentService;
+        _scopedAuthorization = scopedAuthorization;        
     }
 
     [HttpGet("{id}")]
@@ -176,35 +170,19 @@ public class DocumentsController : ControllerBase
         {
             throw new InvalidOperationException("No filing status selected or more than one status selected.");
         }
-        var person = await _documentService.GetPersonAsync();
 
-        var fileBytes = _documentService.SetPdfFormFilds(model, document.Item1, filingStatus.Item1,person);
+        var fileBytes = await _documentService.SetPdfFormFilds(model, document.Item1, filingStatus.Item1);
 
         var doumentId = await _documentService.SaveGeneratedUnsignedW4Pdf(document.Item2, fileBytes);
-        var doumentModel = EmployeeWithholdingHelper.CreateDocumentModel(doumentId, document.Item2, person.Id, document.Item3);
+        var doumentModel = await _documentService.CreateDocumentModel(doumentId, document.Item2, document.Item3);
       
         string prefix = "Step1c_FilingStatus_";
         string result = filingStatus.Item2.Substring(prefix.Length);
 
-        var employeeWithHodingModel1C = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService,person, doumentId,1, result, doumentModel);   
-        var employeeWithHodingModel2C = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService, person, doumentId, 4, model.MultipleJobsOrSpouseWorks.ToString(), doumentModel); 
-        var employeeWithHodingModel3 = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService, person, doumentId, 5, model.Dependents.TotalClaimedAmount.ToString(), doumentModel); 
-        var employeeWithHodingModel4A = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService, person, doumentId, 7, model.OtherIncome.ToString(), doumentModel);  
-        var employeeWithHodingModel4B = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService, person, doumentId, 8, model.Deductions.ToString(), doumentModel); 
-        var employeeWithHodingModel4C = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_employmentService, _documentService, person, doumentId, 9, model.ExtraWithholding.ToString(), doumentModel);
-      
-        var employeeWithHodingModelList = new List<EmployeeWithholdingModel>
-        {
-         employeeWithHodingModel1C,
-         employeeWithHodingModel2C,
-         employeeWithHodingModel3,
-         employeeWithHodingModel4A,
-         employeeWithHodingModel4B,
-         employeeWithHodingModel4C,
-        };
+        var employeeWithHodingModelList= await _documentService.CreatemployeeWithholdingModels(doumentId,result,model, doumentModel);
         foreach (EmployeeWithholdingModel employee in employeeWithHodingModelList)
         {
-            _documentService.CreateEmployeeWithholdingAsync(employee, person);
+            await _documentService.CreateEmployeeWithholdingAsync(employee);
         }
         return File(fileBytes, "application/pdf", "edited_fw4.pdf");
 
