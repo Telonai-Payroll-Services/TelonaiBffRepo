@@ -32,15 +32,15 @@ BEGIN
             LOOP
                 IF EXTRACT(DOW FROM day) = 3 THEN -- Wednesday
                     -- Populate timecardusa table for Wednesday with two shifts
-                    INSERT INTO timecardusa (personid, createdby,jobid, clockin, clockout)
+                    INSERT INTO timecardusa (personid, createdby,jobid, clockin, clockout,hoursworked)
                     VALUES
-                    (employment.personid,'System', employment.jobid, (day + TIME '09:00:00')::TIMESTAMP WITHOUT TIME ZONE, (day + TIME '13:00:00')::TIMESTAMP WITHOUT TIME ZONE),
-                    (employment.personid,'System', employment.jobid, (day + TIME '14:00:00')::TIMESTAMP WITHOUT TIME ZONE, (day + TIME '18:00:00')::TIMESTAMP WITHOUT TIME ZONE);
+                    (employment.personid,'System', employment.jobid, (day + TIME '09:00:00')::TIMESTAMP WITHOUT TIME ZONE, (day + TIME '13:00:00')::TIMESTAMP WITHOUT TIME ZONE,5),
+                    (employment.personid,'System', employment.jobid, (day + TIME '14:00:00')::TIMESTAMP WITHOUT TIME ZONE, (day + TIME '18:00:00')::TIMESTAMP WITHOUT TIME ZONE,5);
                 ELSIF EXTRACT(DOW FROM day) BETWEEN 1 AND 5 THEN -- Monday to Friday
                     -- Populate timecardusa table for other weekdays with one shift
-                    INSERT INTO timecardusa (personid,createdby, jobid, clockin, clockout)
+                    INSERT INTO timecardusa (personid,createdby, jobid, clockin, clockout,hoursworked)
                     VALUES
-                    (employment.personid,'System', employment.jobid, (day + TIME '09:00:00')::TIMESTAMP WITHOUT TIME ZONE, (day + TIME '17:00:00')::TIMESTAMP WITHOUT TIME ZONE);
+                    (employment.personid,'System', employment.jobid, (day + TIME '09:00:00')::TIMESTAMP WITHOUT TIME ZONE, (day + TIME '17:00:00')::TIMESTAMP WITHOUT TIME ZONE,8);
                 END IF;
             END LOOP;
         END LOOP;
