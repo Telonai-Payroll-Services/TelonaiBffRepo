@@ -129,13 +129,13 @@ public class PayStubService : IPayStubService
         else if (schedule == PayrollScheduleTypeModel.Biweekly) { _numberOfPaymentsInYear = 26; }
 
 
-        var payStubs = _context.PayStub.Include(e => e.Employment).ThenInclude(e => e.Person).ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
-             .Where(e => e.PayrollId == payrollId) ?? throw new AppException("Pay stubs not found");
+        var payStubs = _context.PayStub.Include(e=>e.OtherMoneyReceived).Include(e => e.Employment).ThenInclude(e => e.Person)
+                .ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
+                .Where(e => e.PayrollId == payrollId) ?? throw new AppException("Pay stubs not found");
 
         foreach (var payStub in payStubs.ToList())
         {
             //Calculate Federal and State Taxes
-            var otherMoneyReceived = _context.OtherMoneyReceived.FirstOrDefault(e => e.PaystubId == payStub.Id);
 
             if (!payStub.Employment.IsTenNinetyNine)
             {
@@ -145,7 +145,7 @@ public class PayStubService : IPayStubService
             }
 
             //Create PDFs
-            var docId = await pdfManager.CreatePayStubPdfAsync(payStub, otherMoneyReceived, _newIncomeTaxesToHold.ToList());
+            var docId = await pdfManager.CreatePayStubPdfAsync(payStub, payStub.OtherMoneyReceived, _newIncomeTaxesToHold.ToList());
             var doc = new Document { Id = docId, FileName = string.Format("PayStub-" + payStub.Id + "-" + dTime.ToString("yyyyMMddmmss") + ".pdf") };
             _context.Document.Add(doc);
 
