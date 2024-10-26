@@ -5,6 +5,7 @@ public class PayStubModel: BaseTracker
     public int Id { get; set; }
     public int PayrollId { get; set; }
     public int EmploymentId { get; set; }
+    public int OtherMoneyReceivedId{ get; set; }
 
     public double RegularHoursWorked { get; set; }
     public double OverTimeHoursWorked { get; set; }
@@ -15,4 +16,5 @@ public class PayStubModel: BaseTracker
     
     public EmploymentModel Employment { get; set; }
     public PayrollModel Payroll { get; set; }
+    public OtherMoneyReceivedModel OtherMoneyReceived { get; set; }
 }

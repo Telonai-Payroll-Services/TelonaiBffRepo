@@ -1,7 +1,5 @@
 namespace TelonaiWebApi.Entities;
 
-using System.Text.Json.Serialization;
-
 public class FormNineFortyOne:BaseTracker
 {
     public int Id { get; set; }
@@ -15,10 +13,13 @@ public class FormNineFortyOne:BaseTracker
     public double WagesAndTipsSubjectToAdditionalTax { get; set; }
     public double TotalSocialAndMediTax { get; set; }
     public double UnreportedTipsTaxDue { get; set; }
+    public double TotalTaxBeforeAdjustment { get; set; }
     public double AdjustForFractionsOfCents { get; set; }
     public double AdjustForSickPay { get; set; }
     public double AdjustForTipsAndLifeInsurance { get; set; }
     public double TotalTaxAfterAdjustment { get; set; }
+    public double TotalTaxAfterAdjustmentsCredits { get; set; }
+
     public double TotalDeposit { get; set; }
     public double BalanceDue { get; set; }
     public double Overpayment { get; set; }
@@ -30,9 +31,10 @@ public class FormNineFortyOne:BaseTracker
     public int DepositScheduleTypeId { get; set; }
     public bool BusinessIsClosed { get; set; }
     public bool BusinessStoppedPayingWages { get; set; }
-    public DateOnly FinalDateWagesPaid { get; set; }
+    public string FinalDateWagesPaid { get; set; }
     public bool IsSeasonalBusiness { get; set; }
     public bool HasThirdPartyDesignee { get; set; }
+    public int CheckedBoxSixteenTypeId { get; set; }
     public string ThirdPartyDesigneeName { get; set; }
     public string ThirdPartyDesigneePhone { get; set; }
     public int ThirdPartyFiveDigitPin { get; set; }
@@ -44,6 +46,8 @@ public class FormNineFortyOne:BaseTracker
     public int CompanyId { get; set; }
     public int QuarterTypeId { get; set; }
     public int Year { get; set; }
+    public double TaxCreditForResearchActivities { get; set; }
     public Company Company { get; set; }
+
 
 }

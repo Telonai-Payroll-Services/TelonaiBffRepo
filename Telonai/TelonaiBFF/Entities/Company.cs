@@ -1,6 +1,5 @@
 namespace TelonaiWebApi.Entities;
 
-using System.Text.Json.Serialization;
 
 public class Company:BaseTracker
 {

@@ -144,4 +144,8 @@ public class DataContext : DbContext
     public DbSet<DepositSchedule> DepositSchedule { get; set; }
     public DbSet<CompanySpecificField> CompanySpecificField { get; set; }
     public DbSet<CompanySpecificFieldValue> CompanySpecificFieldValue { get; set; }
+    public DbSet<PayStubSpecificField> PayStubSpecificFiel { get; set; }
+    public DbSet<PayStubSpecificFieldValue> PayStubSpecificFieldValue { get; set; }
+    public DbSet<TelonaiSpecificField> TelonaiSpecificField { get; set; }
+    public DbSet<TelonaiSpecificFieldValue> TelonaiSpecificFieldValue { get; set; }
 }

@@ -36,7 +36,7 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
 
     public OtherMoneyReceivedModel GetById(int id)
     {
-        var obj = _context.OtherMoneyReceived.Include(e => e.PayStub).ThenInclude(e => e.Payroll).Where(e => e.Id==id);
+        var obj = _context.OtherMoneyReceived.Where(e => e.Id==id);
         
         if (obj == null)
             return null;
@@ -45,10 +45,11 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
     }
     public List<OtherMoneyReceivedModel> GetByPayrollId(int payrollId,  out int companyId )
     {
-        var payroll = _context.Payroll.Find(payrollId);
-        companyId = payroll.CompanyId;
+        var payStub = _context.PayStub.Include(e=>e.OtherMoneyReceived).Include(e=>e.Payroll)
+                                      .Where(e=>e.PayrollId==payrollId);
+        companyId = payStub.Select(e=>e.Payroll.CompanyId).First();
 
-        var obj = _context.OtherMoneyReceived.Where(e=>e.PayStub.PayrollId==payrollId);
+        var obj = payStub.Select(e => e.OtherMoneyReceived)?.ToList();
         if (obj == null)
             return null;
         return  _mapper.Map<List<OtherMoneyReceivedModel>>(obj.ToList());
@@ -69,21 +70,20 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
     public void Create(List<OtherMoneyReceivedModel> models)
     {
         List<OtherMoneyReceived> list = new();
-        List<PayStub> stubs = new();
 
         foreach (var model in models)
         {
-            stubs.Add(GetPayStub(model.PayStubId) ?? throw new KeyNotFoundException("PayStub not found"));
-            stubs.Last().GrossPay += model.CreditCardTips + model.CashTips + model.OtherPay;
-            list.Add(_mapper.Map<OtherMoneyReceived>(model));
-        }
-        if (list.Count > 0)
-        {
-            _context.OtherMoneyReceived.AddRange(list);
-            stubs.ForEach(e => _context.PayStub.Update(e));
+            var stub = GetPayStub(model.PayStubId) ?? throw new KeyNotFoundException("PayStub not found");
 
-            _context.SaveChanges();
+            var dto = _mapper.Map<OtherMoneyReceived>(model);
+            _context.OtherMoneyReceived.Add(dto);
+
+            stub.OtherMoneyReceivedId = dto.Id;
+            stub.GrossPay += dto.CreditCardTips + dto.CashTips + dto.OtherPay;
+            _context.PayStub.Update(stub);
         }
+
+        _context.SaveChanges();
     }
 
     public void Update(OtherMoneyReceivedModel model)
@@ -153,7 +153,7 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
     }
     private PayStub GetPayStub(int id)
     {
-        var dto = _context.PayStub.Find(id);
+        var dto = _context.PayStub.Include(e=>e.OtherMoneyReceived).FirstOrDefault(e=>e.Id==id);
         return dto;
     }
 }

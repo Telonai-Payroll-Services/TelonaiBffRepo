@@ -37,7 +37,7 @@ public class OtherIncomeController : ControllerBase
     {
         var item = _otherIncomeService.GetById(id);
 
-        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, item.PayStub.Payroll.CompanyId);
+        //_scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, item.PayStub.Payroll.CompanyId);
         return Ok(item);
     }
 
@@ -48,11 +48,11 @@ public class OtherIncomeController : ControllerBase
         return Ok();
     }
 
-    [HttpPut()]
-    public IActionResult Update([FromBody]OtherMoneyReceivedModel model)
+    [HttpPut("{id}")]
+    public IActionResult Update(int id, [FromBody]OtherMoneyReceivedModel model)
     {
-        var stub = _otherIncomeService.GetById(model.Id);
-        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, stub.PayStub.Payroll.CompanyId);
+        var stub = _otherIncomeService.GetById(id);
+        //_scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, stub.PayStub.Payroll.CompanyId);
 
         _otherIncomeService.Update(model);
         return Ok(new { message = "OtherIncome updated." });
