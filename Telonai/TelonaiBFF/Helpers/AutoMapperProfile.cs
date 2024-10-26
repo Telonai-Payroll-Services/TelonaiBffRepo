@@ -19,10 +19,11 @@ public class AutoMapperProfile : Profile
         CreateMap<PayStub, PayStubModel>().ForMember(dest => dest.Employment, opt => opt.Ignore());
         CreateMap<PayStubModel, PayStub>().ForMember(dest => dest.Id, opt => opt.Ignore());
 
-        CreateMap<OtherMoneyReceived, OtherMoneyReceivedModel>()
-             .ForMember(dest => dest.PayrollId, opt => opt.MapFrom(src => (DocumentTypeModel)src.PayStub.PayrollId));
+        CreateMap<OtherMoneyReceived, OtherMoneyReceivedModel>();
+
         CreateMap<OtherMoneyReceivedModel, OtherMoneyReceived>()
             .ForMember(dest => dest.Id, opt => opt.Ignore());
+
         CreateMap<Document, DocumentModel>()
              .ForMember(dest => dest.DocumentType, opt => opt.MapFrom(src => (DocumentTypeModel)src.DocumentTypeId))
              .ForMember(dest => dest.PersonId, opt => opt.MapFrom(src => src.PersonId))

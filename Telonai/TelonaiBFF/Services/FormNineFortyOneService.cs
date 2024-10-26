@@ -3,10 +3,12 @@ namespace TelonaiWebApi.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
+using static System.Net.Mime.MediaTypeNames;
 
 public interface IFormNineFortyOneService 
 {
@@ -56,9 +58,22 @@ public class FormNineFortyOneService : IFormNineFortyOneService
 
     public async Task CreateAsync()
     {
+        var telonaiFields = _context.TelonaiSpecificFieldValue.OrderByDescending(e => e.EffectiveDate).Include(e => e.TelonaiSpecificField)
+            .ToList();
+
         var previousQuarter = GetPreviousQuarter();
         var startDate = previousQuarter.Item2;
         var endDate = previousQuarter.Item3;
+        var twoPreviousQuarter = previousQuarter.Item1 == 4 ? Tuple.Create(1, previousQuarter.Item2.Year - 1) :
+             Tuple.Create(previousQuarter.Item1 - 1, previousQuarter.Item2.Year);
+
+        //Check if 941 already exists for the quarter
+        var current941 = _context.FormNineFortyOne.Where(e => e.Year == previousQuarter.Item2.Year && e.QuarterTypeId == previousQuarter.Item1);
+        if (current941 != null)
+            throw new InvalidOperationException($"Form 941 already exists for year {previousQuarter.Item2.Year} and quarter {previousQuarter.Item1}");
+
+        var previous941s = _context.FormNineFortyOne.Where(e => e.Year == twoPreviousQuarter.Item2 &&
+            e.QuarterTypeId == twoPreviousQuarter.Item1);
 
         var groupedPayrolls = _context.IncomeTax.Include(e => e.PayStub).ThenInclude(e => e.Payroll).ThenInclude(e => e.Company)
             .Where(e => e.PayStub.Payroll.ScheduledRunDate >= startDate && e.PayStub.Payroll.ScheduledRunDate <= endDate)
@@ -66,11 +81,48 @@ public class FormNineFortyOneService : IFormNineFortyOneService
 
         var Form941s = groupedPayrolls.Select(e => {
             var companyId = e.Key;
-            var depositSchedule = _context.DepositSchedule.OrderByDescending(e => e.EffectiveDate).FirstOrDefault();
-            var companyFields = _context.CompanySpecificFieldValue.OrderByDescending(e => e.EffectiveDate).Include(e => e.CompanySpecificField)
-            .GroupBy(e => e.CompanySpecificField).Select(group => new KeyValuePair<string, string>(group.Key.FieldName, group.First().FieldValue)).ToList();
+            var previous941 = previous941s.FirstOrDefault(e => e.CompanyId == companyId);
 
-            var distinctPayrolls = e.Select(e => e.PayStub.Payroll).Distinct();
+            var depositSchedule = _context.DepositSchedule.OrderByDescending(e => e.EffectiveDate).FirstOrDefault(e => e.CompanyId == companyId);
+            var depositScheduleType = (DepositScheduleTypeModel)depositSchedule.DepositScheduleTypeId;
+            var previousDepositScheduleType = previous941.DepositScheduleTypeId;
+            var previousQuarterTax = previous941.TotalTaxAfterAdjustmentsCredits;
+
+            var companyFields = _context.CompanySpecificFieldValue.OrderByDescending(e => e.EffectiveDate).Include(e => e.CompanySpecificField)
+            .Where(e => e.CompanyId==companyId).ToList();
+
+            var incomeTaxRates = _context.IncomeTaxRate.ToList();
+            var incomeTaxes = e.Where(e => !e.PayStub.IsCancelled).ToList();
+            var allPayStubsThisQuarter = incomeTaxes.Select(e => e.PayStub).ToList();
+            var allPayrollsThisQuarter = allPayStubsThisQuarter.Select(e => e.Payroll).Distinct().ToList();
+            var grossPayThisQuarter = allPayStubsThisQuarter.Sum(e => e.GrossPay);
+
+            var calculatedSocialAndMedicareTax = e.Where(e => e.IncomeTaxType.ForEmployee &&
+                (e.IncomeTaxType.Name == "Social Security" || 
+                e.IncomeTaxType.Name == "Medicare" || 
+                e.IncomeTaxType.Name == "Additional Medicare"))
+                .Sum(e => e.Amount);
+
+            var federalIncomeTaxWithheld = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Federal Tax").Sum(e => e.Amount);
+            var taxableSocialSecurityWages = allPayStubsThisQuarter.Sum(e => e.RegularPay + e.OverTimePay);
+            var taxableSocialSecurityTips = allPayStubsThisQuarter.Select(e=>e.OtherMoneyReceived).Sum(e => e.OtherPay + e.CashTips+ e.CreditCardTips);
+            var taxableMedicareWagesAndTips = taxableSocialSecurityWages + taxableSocialSecurityTips;
+            var wagesAndTipsSubjectToAdditionalTax = allPayStubsThisQuarter.Sum(e => e.AmountSubjectToAdditionalMedicareTax);
+            var unreportedTipsTaxDue = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Unreported Tips Tax Due").Sum(e => e.Amount);
+            var totalSocialAndMediTax = 0.0;
+            var totalTaxBeforeAdjustment = 0.0;
+            var totalTaxAfterAdjustment = 0.0;
+            var totalTaxAfterAdjustmentsAndCredits = 0.0;
+            var creditsForResearch = 0.0;
+            var totalDeposit = 0.0;
+            var overPayment = 0.0;
+
+            var adjust1 = 0.0;
+            var adjust2 = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Sick Pay Amount Paid By Third Party").Sum(e => e.Amount);
+            var adjust3 = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Adjustment for Tips and Life Insurance").Sum(e => e.Amount);
+
+            var hasOneHundredThousandNextDayObligation = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName
+            == "HasOneHundredThousandUsdNextDayObligation").FieldValue?? "false");
 
             return new FormNineFortyOne
             {
@@ -78,19 +130,62 @@ public class FormNineFortyOneService : IFormNineFortyOneService
                 DepositScheduleTypeId = depositSchedule.DepositScheduleTypeId,
                 QuarterTypeId = previousQuarter.Item1,
                 Year = previousQuarter.Item2.Year,
-                BusinessIsClosed = bool.Parse(companyFields.FirstOrDefault(e => e.Key == "BusinessIsClosed").Value ?? "false"),
-                BusinessStoppedPayingWages = bool.Parse(companyFields.FirstOrDefault(e => e.Key == "BusinessStoppedPayingWages").Value ?? "false"),
-                HasThirdPartyDesignee = bool.Parse(companyFields.FirstOrDefault(e => e.Key == "HasThirdPartyDesignee").Value ?? "false"),
-                IsSeasonalBusiness = bool.Parse(companyFields.FirstOrDefault(e => e.Key == "IsSeasonalBusiness").Value ?? "false"),
-                NotSubjectToSocialSecAndMediTax = bool.Parse(companyFields.FirstOrDefault(e => e.Key == "NotSubjectToSocialSecAndMediTax").Value ?? "false"),
-                FederalIncomeTaxWithheld = e.Where(e => e.IncomeTaxType.Name == "Federal Tax").Sum(e => e.Amount),
-                NumberOfEmployees = e.Select(e => e.PayStub.EmploymentId).Distinct().Count(),
-                BalanceDue = distinctPayrolls.Sum(e => e.FederalOwed).Value - distinctPayrolls.Sum(e => e.FederalPaid).Value,
-                Overpayment = distinctPayrolls.Sum(e => e.FederalPaid).Value - distinctPayrolls.Sum(e => e.FederalOwed).Value,
-                WagesTipsCompensation = e.Sum(e => e.PayStub.GrossPay),
-                WagesAndTipsSubjectToAdditionalTax = e.Where(e => e.IncomeTaxType.Name == "Additional Medicare").Sum(e => e.Amount)
 
-                //TO DO: Populate more fields here tomorrow
+                //1 to 4
+                NumberOfEmployees = incomeTaxes.Select(e => e.PayStub.EmploymentId).Distinct().Count(),
+                WagesTipsCompensation = grossPayThisQuarter,
+                FederalIncomeTaxWithheld = federalIncomeTaxWithheld,
+                NotSubjectToSocialSecAndMediTax = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName ==
+                "NotSubjectToSocialSecAndMediTax").FieldValue ?? "false"),
+
+                //5a to 5e
+                TaxableSocialSecurityWages = taxableSocialSecurityWages,
+                TaxableSocialSecurityTips = taxableSocialSecurityTips,
+                TaxableMedicareWagesAndTips = taxableMedicareWagesAndTips,
+                WagesAndTipsSubjectToAdditionalTax = wagesAndTipsSubjectToAdditionalTax,
+
+                TotalSocialAndMediTax = totalSocialAndMediTax = (taxableSocialSecurityWages + taxableSocialSecurityTips) *
+                    incomeTaxRates.First(e => e.IncomeTaxType.Name == "Social Security").Rate
+                    + taxableMedicareWagesAndTips * incomeTaxRates.First(e => e.IncomeTaxType.Name == "Medicare").Rate
+                    + wagesAndTipsSubjectToAdditionalTax * incomeTaxRates.First(e => e.IncomeTaxType.Name == "Additional Medicare").Rate,
+
+                //5f to 6
+                UnreportedTipsTaxDue = unreportedTipsTaxDue,
+                TotalTaxBeforeAdjustment = totalTaxBeforeAdjustment = federalIncomeTaxWithheld + totalSocialAndMediTax + unreportedTipsTaxDue,
+
+                //7 to 10
+                AdjustForFractionsOfCents = adjust1 = calculatedSocialAndMedicareTax - totalSocialAndMediTax,
+                AdjustForSickPay = adjust2,
+                AdjustForTipsAndLifeInsurance = adjust3,
+                TotalTaxAfterAdjustment = totalTaxAfterAdjustment = totalTaxBeforeAdjustment + adjust1 + adjust2 + adjust3,
+
+                //11 to 12
+                TaxCreditForResearchActivities = creditsForResearch = incomeTaxes.Where(e => e.IncomeTaxType.Name == "TaxCreditForIncreasingResearchActivities").Sum(e => e.Amount),
+                TotalTaxAfterAdjustmentsCredits = totalTaxAfterAdjustmentsAndCredits = totalTaxAfterAdjustment - creditsForResearch,
+
+                //13 to 15
+                TotalDeposit = totalDeposit = allPayrollsThisQuarter.Sum(e => e.FederalPaid.Value),
+                BalanceDue = Math.Max(totalTaxAfterAdjustmentsAndCredits - totalDeposit, 0.0),
+                Overpayment = overPayment = Math.Max(totalDeposit - totalTaxAfterAdjustmentsAndCredits, 0.0),
+                ApplyOverpaymentToNextReturn = overPayment > 0 ? true : false,
+
+                //16 to 18
+                CheckedBoxSixteenTypeId = totalTaxAfterAdjustmentsAndCredits < 2500 ||
+                    (previousQuarterTax < 2500 && totalTaxAfterAdjustmentsAndCredits < 100000 && !hasOneHundredThousandNextDayObligation) ?
+                    (int)CheckedBoxSixteenTypeModel.TaxDueLessThan2500 :
+                    depositScheduleType == DepositScheduleTypeModel.SemiWeekly ? (int)CheckedBoxSixteenTypeModel.IsSemiWeeklyDepositor :
+                    (int)CheckedBoxSixteenTypeModel.IsMonthlyDepositor,
+
+                BusinessIsClosed = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "BusinessIsClosed").FieldValue ?? "false"),
+                BusinessStoppedPayingWages = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "BusinessStoppedPayingWages").FieldValue ?? "false"),
+                FinalDateWagesPaid = companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "FinalDateWagesPaid").FieldValue,
+                IsSeasonalBusiness = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "IsSeasonalBusiness").FieldValue ?? "false"),
+
+                //Signature
+                //Note: We will take form 8879-EMP from our customers and sign the submission ourselves using self generated pin
+                HasThirdPartyDesignee = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "HasThirdPartyDesignee").FieldValue ?? "false"),
+                ThirdPartyFiveDigitPin = int.Parse(telonaiFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == "SelfGeneratedFiveDigitPin").FieldValue)
+
             };
         }).ToList();
 
