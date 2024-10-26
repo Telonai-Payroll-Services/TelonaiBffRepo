@@ -1,5 +1,8 @@
 namespace TelonaiWebApi.Entities;
 
+/// <summary>
+/// Form 941: Employer’s QUARTERLY Federal Tax Return
+/// </summary>
 public class FormNineFortyOne:BaseTracker
 {
     public int Id { get; set; }
