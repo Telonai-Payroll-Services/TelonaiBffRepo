@@ -158,16 +158,9 @@ public class PersonService : IPersonService<PersonModel,Person>
 
     public async Task<Person> GetCurrentUserAsync()
     {
-        try
-        {
             var currentUserEmail = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(e => e.Type == "email").Value.ToLower();
             var person = await _context.Person.FirstOrDefaultAsync(e => e.Email.ToLower() == currentUserEmail) ?? throw new InvalidDataException("User not found");
-            return person;
-        }
-        catch (Exception ex) 
-        {
-            throw new InvalidOperationException("An error occurred while retrieving prson", ex);
-        }
+            return person;       
         
     }
 }

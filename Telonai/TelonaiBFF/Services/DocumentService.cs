@@ -69,7 +69,7 @@ public class DocumentService : IDocumentService
     }
     public  async Task<DocumentModel> GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType)
     {
-        var person = await _context.GetCurrentUserAsync(); ;
+        var person = await _personService.GetCurrentUserAsync(); ;
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
         var dto =  _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => e.PersonId == person.Id && e.DocumentTypeId == (int)documentType);
 
@@ -83,7 +83,7 @@ public class DocumentService : IDocumentService
 
     public async Task<Tuple<Stream, string>> GetOwnDocumentByDocumentTypeAsync(DocumentTypeModel documentType)
     {
-        var person = await _context.GetCurrentUserAsync(); 
+        var person = await _personService.GetCurrentUserAsync(); 
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
         var dto =  _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => e.PersonId == person.Id
@@ -99,7 +99,7 @@ public class DocumentService : IDocumentService
 
     public async Task<Tuple<Stream, string>> GetOwnDocumentByDocumentIdAsync(Guid documentId)
     {
-        var person = await _context.GetCurrentUserAsync(); 
+        var person = await _personService.GetCurrentUserAsync(); 
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
         var dto = await _context.Document.FindAsync(documentId);
@@ -114,7 +114,7 @@ public class DocumentService : IDocumentService
 
     public async Task<DocumentModel> GetOwnDocumentDetailsByDocumentIdAsync(Guid documentId)
     {
-        var person = await _context.GetCurrentUserAsync(); 
+        var person = await _personService.GetCurrentUserAsync(); 
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
         var dto = await _context.Document.FindAsync(documentId);
@@ -127,7 +127,7 @@ public class DocumentService : IDocumentService
 
     public async Task<Tuple<Stream, string>> GetDocumentByDocumentIdAsync(Guid documentId)
     {
-        var person = await _context.GetCurrentUserAsync();
+        var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, person.CompanyId);
 
         var dto = await _context.Document.FindAsync(documentId);
@@ -141,7 +141,7 @@ public class DocumentService : IDocumentService
 
     public async Task<DocumentModel> GetDocumentDetailsByDocumentIdAsync(Guid documentId)
     {
-        var person = await _context.GetCurrentUserAsync();
+        var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, person.CompanyId);
 
         var dto = await _context.Document.FindAsync(documentId);
@@ -154,7 +154,7 @@ public class DocumentService : IDocumentService
 
     public async Task<DocumentModel> GetDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType)
     {
-        var person = await _context.GetCurrentUserAsync();
+        var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, person.CompanyId);
 
         var dto = await _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefaultAsync(e => e.DocumentTypeId == (int)documentType);
@@ -168,7 +168,7 @@ public class DocumentService : IDocumentService
     }
     public async Task<Tuple<Stream, string>> GetDocumentByDocumentTypeAsync(DocumentTypeModel documentType)
     {
-        var person = await _context.GetCurrentUserAsync();
+        var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, person.CompanyId);
 
         var dto = await _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefaultAsync(e => e.DocumentTypeId == (int)documentType);
@@ -291,7 +291,7 @@ public class DocumentService : IDocumentService
     }
     public async Task<Tuple<Stream, string,DateOnly>> GetDocumentByDocumentTypeAndIdAsync(DocumentTypeModel documentType,Guid id)
     {
-        var person = await _context.GetCurrentUserAsync();
+        var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
         var dto = await _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefaultAsync(e => e.Id == id);
@@ -304,7 +304,7 @@ public class DocumentService : IDocumentService
     }
     public async Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[] file) 
     {
-        var person =  await _context.GetCurrentUserAsync();
+        var person =  await _personService.GetCurrentUserAsync();
 
         var fileBytes = file;
         var documentModel = new DocumentModel
@@ -325,7 +325,7 @@ public class DocumentService : IDocumentService
     }
     public async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus)
     {
-        var person = await _context.GetCurrentUserAsync();
+        var person = await _personService.GetCurrentUserAsync();
         var firstName = person?.FirstName ?? model.Employee.FirstName;
         var middeName= person?.LastName ?? model.Employee.LastName;
         var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
@@ -420,7 +420,7 @@ public class DocumentService : IDocumentService
     }
     public async Task CreateEmployeeWithholdingAsync(EmployeeWithholdingModel employee)
     {
-        var person = await _context.GetCurrentUserAsync();
+        var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
             var emp = await _context.Employment.FindAsync(employee.EmploymentId) ?? throw new InvalidDataException("User not found");
 
@@ -472,7 +472,7 @@ public class DocumentService : IDocumentService
     }
     public async Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file)
     {
-        var person = await _context.GetCurrentUserAsync(); ;
+        var person = await _personService.GetCurrentUserAsync(); ;
 
         var documentModel = new DocumentModel
         {
@@ -511,7 +511,7 @@ public class DocumentService : IDocumentService
     }
      public async Task<List<EmployeeWithholdingModel>> CreatemployeeWithholdingModels( Guid documentId,string filingStatus, W4Form model, DocumentModel documentModel)
     {
-        var person = await _context.GetCurrentUserAsync();
+        var person = await _personService.GetCurrentUserAsync();
         var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(person, documentId, 1, filingStatus, documentModel);
         var employeeWithHodingModel2C = CreateEmployeeWithholdingModel(person, documentId, 4, model.MultipleJobsOrSpouseWorks.ToString(), documentModel);
         var employeeWithHodingModel3 = CreateEmployeeWithholdingModel(person, documentId, 5, model.Dependents.TotalClaimedAmount.ToString(), documentModel);
@@ -533,7 +533,7 @@ public class DocumentService : IDocumentService
 
     public async Task<DocumentModel> CreateDocumentModel(Guid documentId, string filename, DateOnly effectiveDate)
     {
-        var person = await _context.GetCurrentUserAsync();
+        var person = await _personService.GetCurrentUserAsync();
         var documentModel=EmployeeWithholdingHelper.CreateDocumentModel(documentId, filename, person.Id, effectiveDate);
         return documentModel;
     }
