@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using TelonaiWebApi.Entities;
 using Newtonsoft.Json;
 using Amazon.SecretsManager.Extensions.Caching;
-using TelonaiWebApi.Helpers.Interface;
+
 public class DataContext : DbContext
 {
     private readonly IHttpContextAccessor _context;
@@ -101,8 +101,19 @@ public class DataContext : DbContext
                 track.UpdatedBy = _context.HttpContext.User?.Identity?.Name; ;
             }
         }
-        return await base.SaveChangesAsync();
+        try
+        {
+            return await base.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+          
+            throw new InvalidOperationException("An error occurred while saving changes", ex);
+        }
     }
+
+   
+   
 
     public virtual DbSet<Employment> Employment { get; set; }
     public virtual DbSet<Person> Person { get; set; }

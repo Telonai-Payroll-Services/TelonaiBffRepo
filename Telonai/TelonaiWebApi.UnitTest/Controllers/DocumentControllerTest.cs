@@ -28,6 +28,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
         private readonly Mock<HttpContext> _mockHttpContext;
         private readonly Mock<IMapper> _mockMapper;
         private Mock<IPersonService<PersonModel, Person>> _mockPersonService;
+        private readonly Mock<IEmploymentService<EmploymentModel, Employment>> _mockEmploymentService;
         public DocumentControllerTest()
         {
             _mockDocumentService = new  Mock<IDocumentService>();
@@ -36,7 +37,8 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             _mockHttpContext = new Mock<HttpContext>();
             _mockPersonService = new Mock<IPersonService<PersonModel, Person>>();
             _mockMapper = new Mock<IMapper>();
-            _documentController = new DocumentsController(_mockDocumentService.Object, _mockScopedAuthorization.Object)
+            _mockEmploymentService = new Mock<IEmploymentService<EmploymentModel, Employment>>();
+            _documentController = new DocumentsController(_mockDocumentService.Object, _mockScopedAuthorization.Object, _mockEmploymentService.Object)
             {
                 ControllerContext = new ControllerContext
                 {

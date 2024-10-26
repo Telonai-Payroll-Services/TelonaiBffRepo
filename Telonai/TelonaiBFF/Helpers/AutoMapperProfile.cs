@@ -32,7 +32,9 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.PersonId, opt => opt.MapFrom(src => src.PersonId))
             .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.FileName))
             .ForMember(dest => dest.DocumentTypeId, opt => opt.MapFrom(src => (int)src.DocumentType))
-            .ForMember(dest => dest.Id, opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.DocumentType, opt => opt.Ignore());
+
         CreateMap<Payroll, PayrollModel>()
            .ForMember(dest => dest.ScheduledRunDate, opt => opt.MapFrom(src => src.ScheduledRunDate.ToDateTime(TimeOnly.MinValue)))
            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)));
@@ -209,5 +211,14 @@ public class AutoMapperProfile : Profile
 
         CreateMap<FormNineFortyOneModel, FormNineFortyOne>()
            .ForMember(dest => dest.Id, opt => opt.Ignore());
+        CreateMap<EmployeeWithholding, EmployeeWithholdingModel>()
+            .ForMember(dest => dest.Document, opt => opt.MapFrom(src => src.Document));
+
+        CreateMap<EmployeeWithholdingModel, EmployeeWithholding>()
+             .ForMember(des=>des.Id, opt => opt.Ignore())
+             .ForMember(dest => dest.Field, opt => opt.Ignore())
+             .ForMember(dest => dest.Employment, opt => opt.Ignore())
+             .ForMember(dest => dest.Document, opt => opt.Ignore());
+
     }
 }
