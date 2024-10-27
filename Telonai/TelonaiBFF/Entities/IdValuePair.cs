@@ -23,5 +23,6 @@ public class StateWithholdingDocumentStatus : IdValuePair { }
 public class WfourWithholdingDocumentStatus : IdValuePair { }
 public class DepositScheduleType : IdValuePair { }
 public class CheckedBoxSixteenType : IdValuePair { }
-
 public class QuarterType : IdValuePair { }
+public class ExemptFromFutaTaxType : IdValuePair { }
+

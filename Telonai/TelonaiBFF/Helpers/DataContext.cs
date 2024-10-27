@@ -159,4 +159,8 @@ public class DataContext : DbContext
     public DbSet<PayStubSpecificFieldValue> PayStubSpecificFieldValue { get; set; }
     public DbSet<TelonaiSpecificField> TelonaiSpecificField { get; set; }
     public DbSet<TelonaiSpecificFieldValue> TelonaiSpecificFieldValue { get; set; }
+    public DbSet<FormNineForty> FormNineForty { get; set; }
+    public DbSet<StateSpecificField> StateSpecificField { get; set; }
+    public DbSet<StateSpecificFieldValue> StateSpecificFieldValue { get; set; }
+
 }
