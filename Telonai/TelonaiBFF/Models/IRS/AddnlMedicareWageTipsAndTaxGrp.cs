@@ -1,9 +1,10 @@
-﻿namespace TelonaiWebApi.Models.IRS
+﻿using System.Xml.Serialization;
+
+namespace TelonaiWebApi.Models.IRS
 {
     public class AddnlMedicareWageTipsAndTaxGrp
     {
-        private decimal txblWageTipsSubjAddnlMedcrAmt { get; set; }
-
-        private decimal taxOnWageTipsSubjAddnlMedcrAmt { get; set; }
+        public decimal txblWageTipsSubjAddnlMedcrAmt { get; set; }
+        public decimal taxOnWageTipsSubjAddnlMedcrAmt { get; set; }
     }
 }

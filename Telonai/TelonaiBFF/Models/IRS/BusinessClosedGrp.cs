@@ -1,10 +1,11 @@
 ﻿
+using System.Xml.Serialization;
+
 namespace TelonaiWebApi.Models.IRS
 {
     public class BusinessClosedGrp
     {
-        //private CheckboxType futureFilingNotRequiredInd { get; set; }
-
-        private DateTime finalWagesPaidDt { get; set; }
+        public string futureFilingNotRequiredInd { get; set; }
+        public DateTime finalWagesPaidDt { get; set; }
     }
 }

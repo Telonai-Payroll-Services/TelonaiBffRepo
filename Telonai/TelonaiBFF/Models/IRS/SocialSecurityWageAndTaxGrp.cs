@@ -1,9 +1,10 @@
-﻿namespace TelonaiWebApi.Models.IRS
+﻿using System.Xml.Serialization;
+
+namespace TelonaiWebApi.Models.IRS
 {
     public class SocialSecurityWageAndTaxGrp
     {
-        private decimal socialSecurityTaxCashWagesAmt { get; set; }
-
-        private decimal socialSecurityTaxAmt { get; set; }
+        public decimal socialSecurityTaxCashWagesAmt { get; set; }
+        public decimal socialSecurityTaxAmt { get; set; }
     }
 }

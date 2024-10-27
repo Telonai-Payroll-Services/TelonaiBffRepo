@@ -86,7 +86,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IFileScanRequest, FileScanRequest>();
     services.AddScoped<IEmployeeWithholdingService<EmployeeWithholdingModel, EmployeeWithholding>, EmployeeWithholdingService>();
     services.AddScoped<IScopedAuthorization, ScopedAuthorization>();
-
+    services.AddScoped<IIRSService, IRSService>();
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());
     services.AddAWSService<IAmazonS3>();
     services.AddAWSService<IAmazonSQS>();

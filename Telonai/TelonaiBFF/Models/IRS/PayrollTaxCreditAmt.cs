@@ -1,11 +1,11 @@
-﻿namespace TelonaiWebApi.Models.IRS
+﻿using System.Xml.Serialization;
+
+namespace TelonaiWebApi.Models.IRS
 {
     public class PayrollTaxCreditAmt
     {
-        private string[] referenceDocumentId { get; set; }
-
-        private string referenceDocumentName { get; set; }
-
-        private decimal value { get; set; }
+        public string[] referenceDocumentId { get; set; }
+        public string referenceDocumentName { get; set; }
+        public decimal value { get; set; }
     }
 }

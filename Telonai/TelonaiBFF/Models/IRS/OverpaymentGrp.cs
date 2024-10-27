@@ -1,8 +1,9 @@
-﻿namespace TelonaiWebApi.Models.IRS
+﻿using System.Xml.Serialization;
+namespace TelonaiWebApi.Models.IRS
 {
     public class OverpaymentGrp
-    {
-        public CheckboxType ApplyOverpaymentNextReturnInd { get; set; }
-        public CheckboxType RefundOverpaymentInd { get; set; }
+    { 
+        public string applyOverpaymentNextReturnInd { get; set; }
+        public string refundOverpaymentInd { get; set; }
     }
 }
