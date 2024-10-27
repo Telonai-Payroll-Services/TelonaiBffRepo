@@ -9,6 +9,7 @@
         public double OtherPay { get; set; }
         public string Note { get; set; }
         public double Reimbursement { get; set; }
-        
+        public PaymentExemptFromFutaTaxTypeModel PaymentExemptFromFutaTaxType { get; set; }
+
     }
 }

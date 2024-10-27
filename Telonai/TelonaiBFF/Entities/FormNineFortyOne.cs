@@ -22,7 +22,6 @@ public class FormNineFortyOne:BaseTracker
     public double AdjustForTipsAndLifeInsurance { get; set; }
     public double TotalTaxAfterAdjustment { get; set; }
     public double TotalTaxAfterAdjustmentsCredits { get; set; }
-
     public double TotalDeposit { get; set; }
     public double BalanceDue { get; set; }
     public double Overpayment { get; set; }

@@ -2,8 +2,7 @@ namespace TelonaiWebApi.Services;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Newtonsoft.Json.Linq;
+
 using System.Collections.Generic;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
@@ -14,6 +13,7 @@ public interface IFormNineFortyOneService
 {
     Task CreateAsync();
     IList<FormNineFortyOneModel> GetCurrent941FormsAsync();
+    IList<FormNineFortyOneModel> GetPrevious941FormsAsync(int year, int quarter);
     IList<FormNineFortyOneModel> Get();
     FormNineFortyOneModel GetById(int id);
 }
@@ -35,7 +35,7 @@ public class FormNineFortyOneService : IFormNineFortyOneService
     {
         var obj = _context.FormNineFortyOne
             .Include(e => e.Company).ToList();
-        var result=_mapper.Map<IList<FormNineFortyOneModel>>(obj);
+        var result = _mapper.Map<IList<FormNineFortyOneModel>>(obj);
         return result;
     }
 
@@ -43,6 +43,14 @@ public class FormNineFortyOneService : IFormNineFortyOneService
     {
         var quarter = GetPreviousQuarter();
         var obj = _context.FormNineFortyOne.Where(e => e.Year == quarter.Item2.Year && e.QuarterTypeId == quarter.Item1)
+            .Include(e => e.Company).ToList();
+        var result = _mapper.Map<IList<FormNineFortyOneModel>>(obj);
+        return result;
+    }
+
+    public IList<FormNineFortyOneModel> GetPrevious941FormsAsync(int year, int quarter)
+    {
+        var obj = _context.FormNineFortyOne.Where(e => e.Year == year && e.QuarterTypeId == quarter)
             .Include(e => e.Company).ToList();
         var result = _mapper.Map<IList<FormNineFortyOneModel>>(obj);
         return result;
@@ -67,11 +75,6 @@ public class FormNineFortyOneService : IFormNineFortyOneService
         var twoPreviousQuarter = previousQuarter.Item1 == 4 ? Tuple.Create(1, previousQuarter.Item2.Year - 1) :
              Tuple.Create(previousQuarter.Item1 - 1, previousQuarter.Item2.Year);
 
-        //Check if 941 already exists for the quarter
-        var current941 = _context.FormNineFortyOne.Where(e => e.Year == previousQuarter.Item2.Year && e.QuarterTypeId == previousQuarter.Item1);
-        if (current941 != null)
-            throw new InvalidOperationException($"Form 941 already exists for year {previousQuarter.Item2.Year} and quarter {previousQuarter.Item1}");
-
         var previous941s = _context.FormNineFortyOne.Where(e => e.Year == twoPreviousQuarter.Item2 &&
             e.QuarterTypeId == twoPreviousQuarter.Item1);
 
@@ -79,8 +82,17 @@ public class FormNineFortyOneService : IFormNineFortyOneService
             .Where(e => e.PayStub.Payroll.ScheduledRunDate >= startDate && e.PayStub.Payroll.ScheduledRunDate <= endDate)
             .GroupBy(e => e.PayStub.Payroll.CompanyId).ToList();
 
-        var Form941s = groupedPayrolls.Select(e => {
+        groupedPayrolls.ForEach(async e =>
+        {
             var companyId = e.Key;
+
+            //only generate 941 if it doesn't already exist for the quarter
+            var current941 = _context.FormNineFortyOne.Where(e => e.CompanyId == companyId &&
+                e.Year == previousQuarter.Item2.Year && e.QuarterTypeId == previousQuarter.Item1);
+
+            if (current941 != null)
+                return;
+
             var previous941 = previous941s.FirstOrDefault(e => e.CompanyId == companyId);
 
             var depositSchedule = _context.DepositSchedule.OrderByDescending(e => e.EffectiveDate).FirstOrDefault(e => e.CompanyId == companyId);
@@ -89,7 +101,7 @@ public class FormNineFortyOneService : IFormNineFortyOneService
             var previousQuarterTax = previous941.TotalTaxAfterAdjustmentsCredits;
 
             var companyFields = _context.CompanySpecificFieldValue.OrderByDescending(e => e.EffectiveDate).Include(e => e.CompanySpecificField)
-            .Where(e => e.CompanyId==companyId).ToList();
+            .Where(e => e.CompanyId == companyId).ToList();
 
             var incomeTaxRates = _context.IncomeTaxRate.ToList();
             var incomeTaxes = e.Where(e => !e.PayStub.IsCancelled).ToList();
@@ -98,14 +110,14 @@ public class FormNineFortyOneService : IFormNineFortyOneService
             var grossPayThisQuarter = allPayStubsThisQuarter.Sum(e => e.GrossPay);
 
             var calculatedSocialAndMedicareTax = e.Where(e => e.IncomeTaxType.ForEmployee &&
-                (e.IncomeTaxType.Name == "Social Security" || 
-                e.IncomeTaxType.Name == "Medicare" || 
+                (e.IncomeTaxType.Name == "Social Security" ||
+                e.IncomeTaxType.Name == "Medicare" ||
                 e.IncomeTaxType.Name == "Additional Medicare"))
                 .Sum(e => e.Amount);
 
             var federalIncomeTaxWithheld = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Federal Tax").Sum(e => e.Amount);
             var taxableSocialSecurityWages = allPayStubsThisQuarter.Sum(e => e.RegularPay + e.OverTimePay);
-            var taxableSocialSecurityTips = allPayStubsThisQuarter.Select(e=>e.OtherMoneyReceived).Sum(e => e.OtherPay + e.CashTips+ e.CreditCardTips);
+            var taxableSocialSecurityTips = allPayStubsThisQuarter.Select(e => e.OtherMoneyReceived).Sum(e => e.OtherPay + e.CashTips + e.CreditCardTips);
             var taxableMedicareWagesAndTips = taxableSocialSecurityWages + taxableSocialSecurityTips;
             var wagesAndTipsSubjectToAdditionalTax = allPayStubsThisQuarter.Sum(e => e.AmountSubjectToAdditionalMedicareTax);
             var unreportedTipsTaxDue = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Unreported Tips Tax Due").Sum(e => e.Amount);
@@ -122,9 +134,9 @@ public class FormNineFortyOneService : IFormNineFortyOneService
             var adjust3 = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Adjustment for Tips and Life Insurance").Sum(e => e.Amount);
 
             var hasOneHundredThousandNextDayObligation = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName
-            == "HasOneHundredThousandUsdNextDayObligation").FieldValue?? "false");
+            == "HasOneHundredThousandUsdNextDayObligation").FieldValue ?? "false");
 
-            return new FormNineFortyOne
+            var f941 = new FormNineFortyOne
             {
                 CompanyId = e.Key,
                 DepositScheduleTypeId = depositSchedule.DepositScheduleTypeId,
@@ -187,7 +199,9 @@ public class FormNineFortyOneService : IFormNineFortyOneService
                 ThirdPartyFiveDigitPin = int.Parse(telonaiFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == "SelfGeneratedFiveDigitPin").FieldValue)
 
             };
-        }).ToList();
+            _context.FormNineFortyOne.Add(f941);
+            await _context.SaveChangesAsync();
+        });
 
     }
 
@@ -196,7 +210,7 @@ public class FormNineFortyOneService : IFormNineFortyOneService
         return _context.FormNineFortyOne.Find(id);
     }
 
-    private static Tuple<int,DateOnly,DateOnly> GetPreviousQuarter()
+    private static Tuple<int, DateOnly, DateOnly> GetPreviousQuarter()
     {
         int currentMonth = DateTime.Now.Month;
         int currentYear = DateTime.Now.Year;

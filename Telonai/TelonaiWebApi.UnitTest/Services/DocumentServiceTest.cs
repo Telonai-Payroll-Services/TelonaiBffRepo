@@ -27,6 +27,7 @@ namespace TelonaiWebAPITest.Services
         private Mock<IPersonService<PersonModel, Person>> _mockPersonService;
         private Mock<IDocumentService> _mockDocumentService;
         private readonly Mock<IInvitationService<InvitationModel, Invitation>> _mockInvitationService;
+        private readonly Mock<IEmploymentService<EmploymentModel, Employment>> _mockEmploymentService;
         public DocumentServiceTest()
         {
             // Initialize the DocumentService with mocked dependencies
@@ -40,7 +41,9 @@ namespace TelonaiWebAPITest.Services
             _mockPersonSet = new Mock<Microsoft.EntityFrameworkCore.DbSet<Person>>();
             _mockDocumentService = new Mock<IDocumentService>();
             _mockInvitationService = new Mock<IInvitationService<InvitationModel, Invitation>>();
-            _documentService = new DocumentService(_mockDataContext.Object, _mockMapper.Object, _mockDocumentManager.Object, _mockHttpContextAccessor.Object, _mockPersonService.Object, _mockScopedAuthorization.Object, _mockInvitationService.Object);
+            _mockEmploymentService = new Mock<IEmploymentService<EmploymentModel, Employment>>();
+            _documentService = new DocumentService(_mockDataContext.Object, _mockMapper.Object, _mockDocumentManager.Object, _mockHttpContextAccessor.Object, 
+                _mockPersonService.Object, _mockScopedAuthorization.Object, _mockInvitationService.Object,_mockEmploymentService.Object);
         }
 
         #region GetOwnDocumentDetailsByDocumentTypeAsync

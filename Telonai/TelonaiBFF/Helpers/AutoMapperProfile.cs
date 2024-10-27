@@ -210,7 +210,9 @@ public class AutoMapperProfile : Profile
                         .ForMember(dest => dest.QuarterType, opt => opt.MapFrom(src => (QuarterTypeModel)src.QuarterTypeId));
 
         CreateMap<FormNineFortyOneModel, FormNineFortyOne>()
-           .ForMember(dest => dest.Id, opt => opt.Ignore());
+           .ForMember(dest => dest.Id, opt => opt.Ignore())
+           .ForMember(dest => dest.Company, opt => opt.Ignore());
+
         CreateMap<EmployeeWithholding, EmployeeWithholdingModel>()
             .ForMember(dest => dest.Document, opt => opt.MapFrom(src => src.Document));
 
@@ -220,5 +222,10 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.Employment, opt => opt.Ignore())
              .ForMember(dest => dest.Document, opt => opt.Ignore());
 
+        CreateMap<FormNineForty, FormNineFortyModel>();
+
+        CreateMap<FormNineFortyModel, FormNineForty>()
+           .ForMember(dest => dest.Id, opt => opt.Ignore())
+           .ForMember(dest => dest.Company, opt => opt.Ignore());
     }
 }
