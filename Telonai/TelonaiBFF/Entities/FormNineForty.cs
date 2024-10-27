@@ -33,7 +33,7 @@ public class FormNineForty : BaseTracker
     public double TaxLiabilityFirstQuarter { get; set; }
     public double TaxLiabilitySecondQuarter { get; set; }
     public double TaxLiabilityThirdQuarter { get; set; }
-    public double TotalLiabilityFourthQuarter { get; set; }
+    public double TaxLiabilityFourthQuarter { get; set; }
     public double TotalLiabilityForTheYear { get; set; }
     public bool HasThirdPartyDesignee { get; set; }
     public string ThirdPartyDesigneeName { get; set; }
