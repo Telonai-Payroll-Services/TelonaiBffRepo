@@ -2,15 +2,15 @@ namespace TelonaiWebApi.Services;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using TelonaiWebApi.Controllers;
+using System.Globalization;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
-using static System.Net.Mime.MediaTypeNames;
 
+/// <summary>
+/// Generates Employer’s Annual Federal Unemployment (FUTA) Tax Return
+/// </summary>
 public interface IFormNineFortyService 
 {
     Task CreateAsync();
@@ -89,8 +89,10 @@ public class FormNineFortyService : IFormNineFortyService
             {
                 var companyId = e.Key;
 
-                var depositSchedule = _context.DepositSchedule.OrderByDescending(e => e.EffectiveDate).FirstOrDefault(e => e.CompanyId == companyId);
-                var depositScheduleType = (DepositScheduleTypeModel)depositSchedule.DepositScheduleTypeId;
+                var current940 = _context.FormNineFortyOne.Where(e => e.CompanyId == companyId && e.Year == year);
+
+                if (current940 != null)
+                    return;
 
                 var companySpecificFields = _context.CompanySpecificFieldValue.OrderByDescending(e => e.EffectiveDate).Include(e => e.CompanySpecificField)
                 .Where(e => e.CompanyId == companyId).ToList();
@@ -111,13 +113,7 @@ public class FormNineFortyService : IFormNineFortyService
                 var stateTaxCreditReductionApplies = statesTax.Where(e => creditReductionStates.Contains(e.State)).ToList();
 
                 var futaTax = incomeTaxes.Where(e => e.IncomeTaxType.Name == "FUTA");
-                var federalIncomeTaxWithheld = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Federal Tax").Sum(e => e.Amount);
-                var taxableSocialSecurityWages = allPayStubsThisYear.Sum(e => e.RegularPay + e.OverTimePay);
-                var taxableSocialSecurityTips = allPayStubsThisYear.Select(e => e.OtherMoneyReceived).Sum(e => e.OtherPay + e.CashTips + e.CreditCardTips);
-                var taxableMedicareWagesAndTips = taxableSocialSecurityWages + taxableSocialSecurityTips;
-                var wagesAndTipsSubjectToAdditionalTax = allPayStubsThisYear.Sum(e => e.AmountSubjectToAdditionalMedicareTax);
-                var unreportedTipsTaxDue = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Unreported Tips Tax Due").Sum(e => e.Amount);
-
+                
                 var totalPaymentsAbove7K = allPayStubsThisYear.Where(e => e.GrossPay > 7000).Sum(e => e.GrossPay - 7000);
                 var paymentsExemptFromFutaTaxAmount = paymentExemptFromFutaTax.Sum(e => e.OtherPay);
                 var subTotal = paymentsExemptFromFutaTaxAmount + totalPaymentsAbove7K;
@@ -148,6 +144,7 @@ public class FormNineFortyService : IFormNineFortyService
                     InvolvedStates = (companySpecificFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "InvolvedStates").FieldValue ?? "NC").Split(",").ToList(),
                     PaysMultiStateUnemploymentTax = bool.Parse(companySpecificFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "PaysMultiStateUnemploymentTax").FieldValue ?? "false"),
                     PaidWagesInCreditReductionState = stateTaxCreditReductionApplies != null && stateTaxCreditReductionApplies.Count > 0,
+                    //TO DO: In the above case, where multi state and credit reduction apply, we need to create Schedule A (Form 940)
 
                     //3 to 4e
                     TotalPaymentsToAllEmployees = grossPayThisYear,
@@ -164,6 +161,7 @@ public class FormNineFortyService : IFormNineFortyService
                     TotalTaxableFutaWages = totalTaxableFutaWages,
                     FutaTaxBeforeAdjust = futaTaxBeforeAdjust = totalTaxableFutaWages * double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == year.ToString() + "FUTATaxRate").FieldValue),
 
+                    
                     //9 to 11
                     AdjustIfAllExcludedFromStateUnemploymentTax = adjustIfAllExcludedFromStateUnemploymentTax =
                         allFutaWagesWereExcludedFromStateUnemploymentTax ? totalTaxableFutaWages * futaTaxIfAllExcludedFromStateUnemploymentTax : 0,
@@ -203,7 +201,7 @@ public class FormNineFortyService : IFormNineFortyService
             }
             catch (Exception ex)
             {
-                _logger.LogError("Generating Form 941 Failed. " + ex.ToString());
+                _logger.LogError("Generating Form 940 Failed. " + ex.ToString());
                 return;
             }
         });

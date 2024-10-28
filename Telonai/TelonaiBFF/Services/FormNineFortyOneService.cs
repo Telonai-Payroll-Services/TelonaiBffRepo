@@ -9,6 +9,9 @@ using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 using static System.Net.Mime.MediaTypeNames;
 
+/// <summary>
+/// Generates Employer’s QUARTERLY Federal Tax Return
+/// </summary>
 public interface IFormNineFortyOneService 
 {
     Task CreateAsync();
@@ -125,7 +128,12 @@ public class FormNineFortyOneService : IFormNineFortyOneService
                 var taxableMedicareWagesAndTips = taxableSocialSecurityWages + taxableSocialSecurityTips;
                 var wagesAndTipsSubjectToAdditionalTax = allPayStubsThisQuarter.Sum(e => e.AmountSubjectToAdditionalMedicareTax);
                 var unreportedTipsTaxDue = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Unreported Tips Tax Due").Sum(e => e.Amount);
-                var totalSocialAndMediTax = 0.0;
+                var taxableSocialSecurityWagesTax = taxableSocialSecurityWages * incomeTaxRates.First(e => e.IncomeTaxType.Name == "Social Security").Rate;
+                var taxableSocialSecurityTipsTax = taxableSocialSecurityTips * incomeTaxRates.First(e => e.IncomeTaxType.Name == "Social Security").Rate;
+                var taxableMedicareWagesAndTipsTax = taxableMedicareWagesAndTips * incomeTaxRates.First(e => e.IncomeTaxType.Name == "Medicare").Rate;
+                var wagesAndTipsSubjectToAdditionalTaxTax = wagesAndTipsSubjectToAdditionalTax * incomeTaxRates.First(e => e.IncomeTaxType.Name == "Additional Medicare").Rate;
+                var totalSocialAndMediTax = taxableSocialSecurityWagesTax+ taxableSocialSecurityTipsTax + taxableMedicareWagesAndTipsTax + wagesAndTipsSubjectToAdditionalTaxTax;
+
                 var totalTaxBeforeAdjustment = 0.0;
                 var totalTaxAfterAdjustment = 0.0;
                 var totalTaxAfterAdjustmentsAndCredits = 0.0;
@@ -160,11 +168,12 @@ public class FormNineFortyOneService : IFormNineFortyOneService
                     TaxableMedicareWagesAndTips = taxableMedicareWagesAndTips,
                     WagesAndTipsSubjectToAdditionalTax = wagesAndTipsSubjectToAdditionalTax,
 
-                    TotalSocialAndMediTax = totalSocialAndMediTax = (taxableSocialSecurityWages + taxableSocialSecurityTips) *
-                        incomeTaxRates.First(e => e.IncomeTaxType.Name == "Social Security").Rate
-                        + taxableMedicareWagesAndTips * incomeTaxRates.First(e => e.IncomeTaxType.Name == "Medicare").Rate
-                        + wagesAndTipsSubjectToAdditionalTax * incomeTaxRates.First(e => e.IncomeTaxType.Name == "Additional Medicare").Rate,
+                    TaxableSocialSecurityWagesTax = taxableSocialSecurityWagesTax,
+                    TaxableSocialSecurityTipsTax =  taxableSocialSecurityTipsTax,
+                    TaxableMedicareWagesAndTipsTax = taxableMedicareWagesAndTipsTax,
+                    WagesAndTipsSubjectToAdditionalTaxTax = wagesAndTipsSubjectToAdditionalTaxTax,
 
+                    TotalSocialAndMediTax = totalSocialAndMediTax,
                     //5f to 6
                     UnreportedTipsTaxDue = unreportedTipsTaxDue,
                     TotalTaxBeforeAdjustment = totalTaxBeforeAdjustment = federalIncomeTaxWithheld + totalSocialAndMediTax + unreportedTipsTaxDue,

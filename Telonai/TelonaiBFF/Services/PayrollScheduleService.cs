@@ -32,14 +32,16 @@ public class PayrollScheduleService : IPayrollScheduleService
     }
     public PayrollScheduleModel GetLatestByCompanyId(int id)
     {
-        var obj = _context.PayrollSchedule.OrderByDescending(e=>e.StartDate).FirstOrDefault(e=>e.CompanyId == id &&
-        (e.EndDate!=null || e.EndDate>  DateOnly.FromDateTime(DateTime.Now)));
+        var obj = _context.PayrollSchedule.Include(e => e.Company).Include(e => e.PayrollScheduleType)
+            .OrderByDescending(e=>e.StartDate).FirstOrDefault(e=>e.CompanyId == id &&
+        (e.EndDate==null || e.EndDate >  DateOnly.FromDateTime(DateTime.Now)));
         var result = _mapper.Map<PayrollScheduleModel>(obj);
         return result;
     }
     public List<PayrollScheduleModel> GetByCompanyId(int id)
     {
-        var obj = _context.PayrollSchedule.OrderByDescending(e => e.StartDate).Where(e => e.CompanyId == id );
+        var obj = _context.PayrollSchedule.Include(e=>e.Company).Include(e=>e.PayrollScheduleType)
+            .OrderByDescending(e => e.StartDate).Where(e => e.CompanyId == id ).ToList();
         var result = _mapper.Map<List<PayrollScheduleModel>>(obj);
         return result;
     }
