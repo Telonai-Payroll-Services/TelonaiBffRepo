@@ -3,24 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\helpers\\automapperprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\helpers\\automapperprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\services\\payrollscheduleservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\services\\payrollscheduleservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\models\\payrollscheduletypemodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\models\\payrollscheduletypemodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\models\\companycontactmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\models\\companycontactmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\services\\paystubservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -34,7 +26,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -47,71 +39,45 @@
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "PayrollScheduleTypeModel.cs",
-              "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Models\\PayrollScheduleTypeModel.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Models\\PayrollScheduleTypeModel.cs",
-              "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Models\\PayrollScheduleTypeModel.cs",
-              "RelativeToolTip": "TelonaiBFF\\Models\\PayrollScheduleTypeModel.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-28T02:35:20.044Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "CompanyContactModel.cs",
-              "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Models\\CompanyContactModel.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Models\\CompanyContactModel.cs",
-              "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Models\\CompanyContactModel.cs",
-              "RelativeToolTip": "TelonaiBFF\\Models\\CompanyContactModel.cs",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-28T02:34:35.003Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
               "Title": "PayrollScheduleService.cs",
               "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\PayrollScheduleService.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Services\\PayrollScheduleService.cs",
               "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\PayrollScheduleService.cs",
               "RelativeToolTip": "TelonaiBFF\\Services\\PayrollScheduleService.cs",
-              "ViewState": "AgIAABkAAAAAAAAAAAAgwBwAAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAABkAAAAAAAAAAAAgwCAAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-28T02:07:51.12Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "AutoMapperProfile.cs",
               "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
-              "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Helpers\\AutoMapperProfile.cs*",
-              "RelativeToolTip": "TelonaiBFF\\Helpers\\AutoMapperProfile.cs*",
-              "ViewState": "AgIAACUAAAAAAACEsEEewDQAAAAOAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
+              "RelativeToolTip": "TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
+              "ViewState": "AgIAACUAAAAAAACEsEEewDAAAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-28T02:01:59.967Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Program.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Program.cs",
               "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Program.cs",
               "RelativeToolTip": "TelonaiBFF\\Program.cs",
-              "ViewState": "AgIAAEIAAAAAAAAAAAAlwFYAAAA7AAAAAAAAAA==",
+              "ViewState": "AgIAAJYAAAAAAAA5Af4BwKgAAAACAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-24T16:35:38.7Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 3,
               "Title": "PayStubService.cs",
               "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\PayStubService.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Services\\PayStubService.cs",
