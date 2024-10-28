@@ -11,9 +11,13 @@ public class FormNineFortyOne:BaseTracker
     public double FederalIncomeTaxWithheld { get; set; }
     public bool NotSubjectToSocialSecAndMediTax { get; set; }
     public double TaxableSocialSecurityWages { get; set; }
+    public double TaxableSocialSecurityWagesTax { get; set; }
     public double TaxableSocialSecurityTips { get; set; }
+    public double TaxableSocialSecurityTipsTax { get; set; }
     public double TaxableMedicareWagesAndTips { get; set; }
+    public double TaxableMedicareWagesAndTipsTax { get; set; }
     public double WagesAndTipsSubjectToAdditionalTax { get; set; }
+    public double WagesAndTipsSubjectToAdditionalTaxTax { get; set; }
     public double TotalSocialAndMediTax { get; set; }
     public double UnreportedTipsTaxDue { get; set; }
     public double TotalTaxBeforeAdjustment { get; set; }
