@@ -45,14 +45,18 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.ScheduledRunDate, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.ScheduledRunDate)))
             .ForMember(dest => dest.Company, opt => opt.Ignore());
 
+
         CreateMap<PayrollSchedule, PayrollScheduleModel>()
             .ForMember(dest => dest.Compnay, opt => opt.MapFrom(src => src.Company.Name))
-            .ForMember(dest => dest.PayrollScheduleType, opt => opt.MapFrom(src => (PayrollScheduleTypeModel)src.PayrollScheduleTypeId));
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)))
+            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate.Value.ToDateTime(TimeOnly.MinValue))); ;
+            //.ForMember(dest => dest.PayrollScheduleType, opt => opt.MapFrom(src => (PayrollScheduleTypeModel)src.PayrollScheduleTypeId));
+
         CreateMap<PayrollScheduleModel, PayrollSchedule>()
              .ForMember(dest => dest.Id, opt => opt.Ignore())
              .ForMember(dest => dest.Company, opt => opt.Ignore())
-             .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
-             .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate))
+             .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.StartDate)))
+             .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.EndDate.Value)))
              .ForMember(dest => dest.PayrollScheduleType, opt => opt.Ignore())
              .ForMember(dest => dest.PayrollScheduleTypeId, opt => opt.MapFrom(src => (PayrollScheduleTypeModel)Enum.Parse(typeof(PayrollScheduleTypeModel), src.PayrollScheduleType)));
 
@@ -225,6 +229,12 @@ public class AutoMapperProfile : Profile
         CreateMap<FormNineForty, FormNineFortyModel>();
 
         CreateMap<FormNineFortyModel, FormNineForty>()
+           .ForMember(dest => dest.Id, opt => opt.Ignore())
+           .ForMember(dest => dest.Company, opt => opt.Ignore());
+
+        CreateMap<FormNineFortyFour, FormNineFortyFourModel>();
+
+        CreateMap<FormNineFortyFourModel, FormNineFortyFour>()
            .ForMember(dest => dest.Id, opt => opt.Ignore())
            .ForMember(dest => dest.Company, opt => opt.Ignore());
 

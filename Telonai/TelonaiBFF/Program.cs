@@ -89,6 +89,8 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IScopedAuthorization, ScopedAuthorization>();
     services.AddScoped<IIRSService, IRSService>();
     services.AddScoped<IFormNineFortyOneService, FormNineFortyOneService>();
+    services.AddScoped<IFormNineFortyFourService, FormNineFortyFourService>();
+    services.AddScoped<IFormNineFortyService, FormNineFortyService>();
 
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());
     services.AddAWSService<IAmazonS3>();
