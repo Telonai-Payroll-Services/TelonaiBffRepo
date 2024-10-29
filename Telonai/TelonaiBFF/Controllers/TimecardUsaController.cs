@@ -47,10 +47,10 @@ public class TimecardUsaController : ControllerBase
     }
 
     [HttpGet("companies/{companyId}/self/current")]
-    public IActionResult GetCurrentByTimeForUser(int companyId)
+    public async Task<IActionResult> GetCurrentByTimeForUser(int companyId)
     {
         var email = Request.HttpContext.User?.Claims.First(e => e.Type == "email").Value;
-        var timecard = _timecardService.GetTimeCardsByPayrollSequenceAndEmail(email, 0, companyId);
+        var timecard = await _timecardService.GetTimeCardsByPayrollSequenceAndEmail(email, 0, companyId);
         return Ok(timecard);
     }
 
