@@ -10,9 +10,12 @@ public class FormNineFortyOneModel:BaseTracker
     public double FederalIncomeTaxWithheld { get; set; }
     public bool NotSubjectToSocialSecAndMediTax { get; set; }
     public double TaxableSocialSecurityWages { get; set; }
+    public double TaxableSocialSecurityWagesTax { get; set; }
     public double TaxableSocialSecurityTips { get; set; }
     public double TaxableMedicareWagesAndTips { get; set; }
+    public double TaxableMedicareWagesAndTipsTax { get; set; }
     public double WagesAndTipsSubjectToAdditionalTax { get; set; }
+    public double WagesAndTipsSubjectToAdditionalTaxTax { get; set; }
     public double TotalSocialAndMediTax { get; set; }
     public double UnreportedTipsTaxDue { get; set; }
     public double AdjustForFractionsOfCents { get; set; }
@@ -24,6 +27,8 @@ public class FormNineFortyOneModel:BaseTracker
     public double BalanceDue { get; set; }
     public double Overpayment { get; set; }
     public bool ApplyOverpaymentToNextReturn { get; set; }
+
+    public string Form8974DocumentId { get; set; }
     public double TaxLiabilityMonthOne { get; set; }
     public double TaxLiabilityMonthTwo { get; set; }
     public double TaxLiabilityMonthThree { get; set; }
@@ -32,6 +37,7 @@ public class FormNineFortyOneModel:BaseTracker
     public bool BusinessIsClosed { get; set; }
     public bool BusinessStoppedPayingWages { get; set; }
     public DateOnly FinalDateWagesPaid { get; set; }
+    public bool FutureFilingRequired { get; set; }
     public bool IsSeasonalBusiness { get; set; }
     public bool HasThirdPartyDesignee { get; set; }
     public string ThirdPartyDesigneeName { get; set; }
