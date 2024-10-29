@@ -1,0 +1,861 @@
+{
+    "info": {
+        "_postman_id": "94c148d9-8f24-45d9-a78e-6cc6c828d4a9",
+        "name": "CloudStorageSecConsole",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_exporter_id": "20265334"
+    },
+    "item": [
+        {
+            "name": "ScanAPIs",
+            "item": [
+                {
+                    "name": "API Scan",
+                    "protocolProfileBehavior": {
+                        "disabledSystemHeaders": {}
+                    },
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "https://{{API_AGENT_URL}}/api/Scan",
+                            "protocol": "https",
+                            "host": [
+                                "{{API_AGENT_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Scan"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "API Scan Upload",
+                    "protocolProfileBehavior": {
+                        "disabledSystemHeaders": {}
+                    },
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "fileName",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "uploadTo",
+                                    "value": "<bucket-path/file.ext>",
+                                    "type": "text",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "https://{{API_AGENT_URL}}/api/scan",
+                            "protocol": "https",
+                            "host": [
+                                "{{API_AGENT_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "scan"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "API Scan Existing",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"container\": \"<bucket-name>\",\n    \"objectPath\": \"<file-path-with-extension>\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "https://{{API_AGENT_URL}}/api/Scan/Existing",
+                            "protocol": "https",
+                            "host": [
+                                "{{API_AGENT_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Scan",
+                                "Existing"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "API Scan Url",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "url",
+                                    "value": "<https://url.com>",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "https://{{API_AGENT_URL}}/api/scan/url",
+                            "protocol": "https",
+                            "host": [
+                                "{{API_AGENT_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "scan",
+                                "url"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "API Classify Url",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "url",
+                                    "value": "<https://urlexample.com>",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "https://{{API_AGENT_URL}}/api/classify/url",
+                            "protocol": "https",
+                            "host": [
+                                "{{API_AGENT_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "classify",
+                                "url"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "API Classify",
+                    "protocolProfileBehavior": {
+                        "disabledSystemHeaders": {}
+                    },
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "https://{{API_AGENT_URL}}/api/classify",
+                            "protocol": "https",
+                            "host": [
+                                "{{API_AGENT_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "classify"
+                            ],
+                            "query": [
+                                {
+                                    "key": "file",
+                                    "value": null,
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "API Classify Upload",
+                    "protocolProfileBehavior": {
+                        "disabledSystemHeaders": {}
+                    },
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "uploadTo",
+                                    "value": "<bucket-path/file.ext>",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "https://{{API_AGENT_URL}}/api/classify",
+                            "protocol": "https",
+                            "host": [
+                                "{{API_AGENT_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "classify"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "API Classify Existing",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"container\": \"<bucket-name>\",\n    \"objectPath\": \"<path/file.ext>\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "https://{{API_AGENT_URL}}/api/classify/Existing",
+                            "protocol": "https",
+                            "host": [
+                                "{{API_AGENT_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "classify",
+                                "Existing"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "ManagementAPIs",
+            "item": [
+                {
+                    "name": "ProtectBucket",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [],
+                        "url": {
+                            "raw": "https://{{CONSOLE_URL}}/api/Buckets/{{bucketName}}/Protect",
+                            "protocol": "https",
+                            "host": [
+                                "{{CONSOLE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Buckets",
+                                "{{bucketName}}",
+                                "Protect"
+                            ],
+                            "query": [
+                                {
+                                    "key": "useEventBridge",
+                                    "value": "false",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "bucketName",
+                                    "value": "testing-bucket-crossregion",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GetBuckets",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "https://{{CONSOLE_URL}}/api/Buckets/",
+                            "protocol": "https",
+                            "host": [
+                                "{{CONSOLE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Buckets",
+                                ""
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "UnprotectBucket",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [],
+                        "url": {
+                            "raw": "https://{{CONSOLE_URL}}/api/Buckets/Unprotect/{{bucketName}}",
+                            "protocol": "https",
+                            "host": [
+                                "{{CONSOLE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Buckets",
+                                "Unprotect",
+                                "{{bucketName}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "SetSubnets",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"region\": \"us-east-1\",\n    \"vpcId\": \"vpc-33b9b949\",\n    \"subnets\": [\n        {\n            \"subnetId\": \"subnet-997b89b8\",\n            \"availabilityZone\": \"us-east-1d\",\n            \"cidrBlock\": \"172.31.80.0/20\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "https://{{CONSOLE_URL}}/api/ConfiguredSubnets",
+                            "protocol": "https",
+                            "host": [
+                                "{{CONSOLE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "ConfiguredSubnets"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "LargeFileScan Check",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": ""
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GetVpcs",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "https://{{CONSOLE_URL}}/api/Vpcs/us-east-1",
+                            "protocol": "https",
+                            "host": [
+                                "{{CONSOLE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Vpcs",
+                                "us-east-1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GetSubnetsInVpc",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "https://{{CONSOLE_URL}}/api/Subnets/us-east-1/vpc-id",
+                            "protocol": "https",
+                            "host": [
+                                "{{CONSOLE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Subnets",
+                                "us-east-1",
+                                "vpc-id"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Agent",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": ""
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Updates/Versions",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "https://{{CONSOLE_URL}}/api/Updates/Versions",
+                            "protocol": "https",
+                            "host": [
+                                "{{CONSOLE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Updates",
+                                "Versions"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Jobs/ScanExisting",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"bucketNames\": [\n        \"<bucket-name>\"\n    ],\n    \"fileDateStart\": \"2024-10-01T18:02:16.884Z\",\n    \"fileDateEnd\": \"2024-10-01T18:02:16.884Z\",\n    \"name\": \"Release Guard Scan For v6.01.000/000 ALL files\",\n    \"allFiles\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "https://{{CONSOLE_URL}}/api/Jobs/ScanExisting",
+                            "protocol": "https",
+                            "host": [
+                                "{{CONSOLE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Jobs",
+                                "ScanExisting"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Jobs/Status",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "https://{{CONSOLE_URL}}/api/Jobs/ScanExisting?referenceId=<ref_id>",
+                            "protocol": "https",
+                            "host": [
+                                "{{CONSOLE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Jobs",
+                                "ScanExisting"
+                            ],
+                            "query": [
+                                {
+                                    "key": "referenceId",
+                                    "value": "<ref_id>"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{TOKEN}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "https://{{CONSOLE_URL}}/Account/SignIn",
+                            "protocol": "https",
+                            "host": [
+                                "{{CONSOLE_URL}}"
+                            ],
+                            "path": [
+                                "Account",
+                                "SignIn"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "API Token",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "// get the response",
+                            "let response = pm.response.json();",
+                            "",
+                            "// get the token",
+                            "let accessToken = response.accessToken;",
+                            "",
+                            "// set the environment variable",
+                            "pm.environment.set(\"TOKEN\", accessToken);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"password\": \"{{API_PASSWORD}}\",\n\t\"username\": \"{{API_USERNAME}}\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "https://{{API_AGENT_URL}}/api/Token",
+                    "protocol": "https",
+                    "host": [
+                        "{{API_AGENT_URL}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Token"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "API Token Console",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "// get the response",
+                            "let response = pm.response.json();",
+                            "",
+                            "// get the token",
+                            "let accessToken = response.accessToken;",
+                            "",
+                            "// set the environment variable",
+                            "pm.environment.set(\"TOKEN\", accessToken);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n\t\"username\": \"{{USERNAME}}\",\n\t\"password\": \"{{PASSWORD}}\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "https://{{CONSOLE_URL}}/api/Token",
+                    "protocol": "https",
+                    "host": [
+                        "{{CONSOLE_URL}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Token"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "API_DNS",
+            "value": "dave-api.cloudstoragesecapp.com"
+        }
+    ]
+}

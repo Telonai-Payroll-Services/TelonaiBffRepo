@@ -13,7 +13,7 @@
         public double OtherPay { get; set; }
         public double YtdOtherPay { get; set; }
         public string Note { get; set; }
-        public int PaystubId { get; set; }
-        public PayStub PayStub { get; set; }
+        public int PaymentExemptFromFutaTaxTypeId { get; set; }
+
     }
 }

@@ -17,5 +17,11 @@ public enum DocumentTypeModel
     [Display(Name = "W-4")]
     WFour,
     [Display(Name = "NC-4")]
-    NCFour
+    NCFour,
+    [Display(Name = "8879-EMP")]
+    EightyEightSeventyNineEMP,
+    [Display(Name = "940")]
+    NineForty,
+    [Display(Name = "941")]
+    NineFortyOne
 }

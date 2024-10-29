@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using TelonaiWebApi.Helpers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-
+using Xunit;
 
 namespace TelonaiWebApi.UnitTest.Controllers
 {

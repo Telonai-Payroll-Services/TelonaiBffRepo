@@ -18,5 +18,11 @@ public class PayRateBasis : IdValuePair { }
 public class FilingStatus : IdValuePair { }
 public class DocumentType : IdValuePair { }
 public class SignUpStatusType : IdValuePair { }
-
 public class INineVerificationStatus : IdValuePair { }
+public class StateWithholdingDocumentStatus : IdValuePair { }
+public class WfourWithholdingDocumentStatus : IdValuePair { }
+public class DepositScheduleType : IdValuePair { }
+public class CheckedBoxSixteenType : IdValuePair { }
+public class QuarterType : IdValuePair { }
+public class ExemptFromFutaTaxType : IdValuePair { }
+

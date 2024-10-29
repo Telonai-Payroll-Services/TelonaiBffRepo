@@ -3,13 +3,13 @@
     public class OtherMoneyReceivedModel : BaseTracker
     {
         public int Id { get; set; }
+        public int PayStubId { get; set; }
         public double CreditCardTips { get; set; }
         public double CashTips { get; set; }
         public double OtherPay { get; set; }
         public string Note { get; set; }
-        public int PayStubId { get; set; }
-        public int PayrollId { get; set; }
-        public PayStubModel PayStub { get; set; }
+        public double Reimbursement { get; set; }
+        public PaymentExemptFromFutaTaxTypeModel PaymentExemptFromFutaTaxType { get; set; }
 
     }
 }

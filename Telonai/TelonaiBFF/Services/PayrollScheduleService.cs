@@ -119,6 +119,7 @@ public class PayrollScheduleService : IPayrollScheduleService
              ScheduledRunDate = newSchedule.FirstRunDate,
              CompanyId = newSchedule.CompanyId
         };
+        
         _context.Payroll.Add(payroll);
         _context.SaveChanges();
         return;

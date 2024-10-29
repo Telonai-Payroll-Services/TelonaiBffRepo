@@ -19,21 +19,21 @@ public class AutoMapperProfile : Profile
         CreateMap<PayStub, PayStubModel>().ForMember(dest => dest.Employment, opt => opt.Ignore());
         CreateMap<PayStubModel, PayStub>().ForMember(dest => dest.Id, opt => opt.Ignore());
 
-        CreateMap<OtherMoneyReceived, OtherMoneyReceivedModel>()
-             .ForMember(dest => dest.PayrollId, opt => opt.MapFrom(src => (DocumentTypeModel)src.PayStub.PayrollId));
+        CreateMap<OtherMoneyReceived, OtherMoneyReceivedModel>();
+
         CreateMap<OtherMoneyReceivedModel, OtherMoneyReceived>()
             .ForMember(dest => dest.Id, opt => opt.Ignore());
+
         CreateMap<Document, DocumentModel>()
              .ForMember(dest => dest.DocumentType, opt => opt.MapFrom(src => (DocumentTypeModel)src.DocumentTypeId))
-             //.ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
              .ForMember(dest => dest.PersonId, opt => opt.MapFrom(src => src.PersonId))
              .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.FileName));
-
         CreateMap<DocumentModel, Document>()
-            //.ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.PersonId, opt => opt.MapFrom(src => src.PersonId))
             .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.FileName))
-            .ForMember(dest => dest.DocumentTypeId, opt => opt.MapFrom(src => (int)src.DocumentType));
+            .ForMember(dest => dest.DocumentTypeId, opt => opt.MapFrom(src => (int)src.DocumentType))
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.DocumentType, opt => opt.Ignore());
 
         CreateMap<Payroll, PayrollModel>()
            .ForMember(dest => dest.ScheduledRunDate, opt => opt.MapFrom(src => src.ScheduledRunDate.ToDateTime(TimeOnly.MinValue)))
@@ -65,6 +65,10 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.SignUpStatusType, opt => opt.Ignore())
              .ForMember(dest => dest.SignUpStatusTypeId, opt => opt.MapFrom(src => (int)src.SignUpStatusType))
              .ForMember(dest => dest.Job, opt => opt.Ignore())
+             .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+             .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
+             .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
              .ForMember(dest => dest.Person, opt => opt.Ignore());
 
         CreateMap<Person, PersonModel>()
@@ -76,6 +80,10 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Company.Name))
             .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId))
             .ForMember(dest => dest.Zipcode, opt => opt.MapFrom(src => src.Zipcode.Code))
+            .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
+             .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (INineVerificationStatusModel)src.INineVerificationStatusId))
+            .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.MapFrom(src => (StateWithholdingDocumentStatusModel)src.StateWithholdingDocumentStatusId))
+            .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId));
 
         CreateMap<PersonModel, Person>()
@@ -83,7 +91,11 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.Zipcode, opt => opt.Ignore())
              .ForMember(dest => dest.Company, opt => opt.Ignore())
              .ForMember(dest => dest.INineVerificationStatus, opt => opt.Ignore())
-             .ForMember(dest => dest.INineVerificationStatusId, opt => opt.MapFrom(src => (int)src.INineVerificationStatus));
+             .ForMember(dest => dest.WfourWithholdingDocumentStatus, opt => opt.Ignore())
+             .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.Ignore())
+             .ForMember(dest => dest.INineVerificationStatusId, opt => opt.MapFrom(src => (int)src.INineVerificationStatus))
+             .ForMember(dest => dest.StateWithholdingDocumentStatusId, opt => opt.MapFrom(src => (int)src.StateWithholdingDocumentStatus))
+             .ForMember(dest => dest.WfourWithholdingDocumentStatusId, opt => opt.MapFrom(src => (int)src.WFourWithholdingDocumentStatus));
 
         CreateMap<Job, JobModel>()
             .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Company.Name))
@@ -103,6 +115,25 @@ public class AutoMapperProfile : Profile
            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Zipcode.City.Name))
            .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.Zipcode.City.State.Name))
            .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId));
+
+        CreateMap<CompanyModel, Company>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+             .ForMember(dest => dest.BusinessType, opt => opt.Ignore())
+             .ForMember(dest => dest.BusinessTypeId, opt => opt.MapFrom(src => (int)src.BusinessType))
+             .ForMember(dest => dest.ZipcodeId, opt => opt.MapFrom(src => (int)src.ZipcodeId))
+             .ForMember(dest => dest.Zipcode, opt => opt.Ignore());
+
+        CreateMap<CompanySpecificField, CompanySpecificFieldModel>();
+
+        CreateMap<CompanySpecificFieldModel, CompanySpecificField>()
+             .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+        CreateMap<CompanySpecificFieldValue, CompanySpecificFieldValueModel>();
+
+        CreateMap<CompanySpecificFieldValueModel, CompanySpecificFieldValue>()
+             .ForMember(dest => dest.Company, opt => opt.Ignore())
+             .ForMember(dest => dest.CompanySpecificField, opt => opt.Ignore())
+             .ForMember(dest => dest.Id, opt => opt.Ignore());
 
         CreateMap<CompanyModel, Company>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -173,5 +204,31 @@ public class AutoMapperProfile : Profile
         
         CreateMap<Zipcode, ZipcodeModel>()
            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City));
+
+        CreateMap<FormNineFortyOne, FormNineFortyOneModel>()
+                        .ForMember(dest => dest.DepositScheduleType, opt => opt.MapFrom(src => (BusinessTypeModel)src.DepositScheduleTypeId))
+                        .ForMember(dest => dest.QuarterType, opt => opt.MapFrom(src => (QuarterTypeModel)src.QuarterTypeId));
+
+        CreateMap<FormNineFortyOneModel, FormNineFortyOne>()
+           .ForMember(dest => dest.Id, opt => opt.Ignore())
+           .ForMember(dest => dest.Company, opt => opt.Ignore());
+
+        CreateMap<EmployeeWithholding, EmployeeWithholdingModel>()
+            .ForMember(dest => dest.Document, opt => opt.MapFrom(src => src.Document));
+
+        CreateMap<EmployeeWithholdingModel, EmployeeWithholding>()
+             .ForMember(des=>des.Id, opt => opt.Ignore())
+             .ForMember(dest => dest.Field, opt => opt.Ignore())
+             .ForMember(dest => dest.Employment, opt => opt.Ignore())
+             .ForMember(dest => dest.Document, opt => opt.Ignore());
+
+        CreateMap<FormNineForty, FormNineFortyModel>();
+
+        CreateMap<FormNineFortyModel, FormNineForty>()
+           .ForMember(dest => dest.Id, opt => opt.Ignore())
+           .ForMember(dest => dest.Company, opt => opt.Ignore());
+
+        CreateMap<FormNineFortyOne, FormNineFortyOneModel>()
+            .ForMember(dest => dest.CheckedBoxSixteenType, opt => opt.MapFrom(src => (CheckedBoxSixteenTypeModel)src.CheckedBoxSixteenTypeId));
     }
 }

@@ -29,7 +29,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TelonaiBFF\TelonaiWebApi.csproj" />
   </ItemGroup>
 
 </Project>

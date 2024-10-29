@@ -1,8 +1,5 @@
 namespace TelonaiWebApi.Models;
 
-using System.Text.Json.Serialization;
-using TelonaiWebApi.Entities;
-
 public class InvitationStatusModel
 {
     public string Email { get; set; }

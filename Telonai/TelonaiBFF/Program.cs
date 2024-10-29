@@ -15,6 +15,7 @@ using Amazon.SQS;
 using TelonaiWebApi.Models.FileScan;
 using TelonaiWebApi.Helpers.FileScan;
 using TelonaiWebApi.Helpers.Interface;
+using Microsoft.AspNetCore.Http.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,10 +88,11 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IEmployeeWithholdingService<EmployeeWithholdingModel, EmployeeWithholding>, EmployeeWithholdingService>();
     services.AddScoped<IScopedAuthorization, ScopedAuthorization>();
     services.AddScoped<IIRSService, IRSService>();
+    services.AddScoped<IFormNineFortyOneService, FormNineFortyOneService>();
+
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());
     services.AddAWSService<IAmazonS3>();
     services.AddAWSService<IAmazonSQS>();
-
     services.AddLogging(config =>
     {
         config.AddAWSProvider(configuration.GetAWSLoggingConfigSection());

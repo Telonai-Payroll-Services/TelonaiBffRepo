@@ -1,6 +1,6 @@
 namespace TelonaiWebApi.Models;
 
-public class CompanyContactModel
+public class CompanyContactModel:BaseTracker
 {
     public int Id { get; set; }
     public int PersonId { get; set; }
