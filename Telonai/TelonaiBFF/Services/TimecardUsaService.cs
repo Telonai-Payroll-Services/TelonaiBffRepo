@@ -122,12 +122,12 @@ public class TimecardUsaService : ITimecardUsaService
     }
     public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmail(string email, int payrollSequece,  int companyId)
     {
-        var personId = _context.Person.First(e => e.Email == email && e.CompanyId==companyId)?.Id;
+        var personId = _context.Person.FirstOrDefault(e => e.Email == email && e.CompanyId==companyId)?.Id;
 
         Payroll currentPayroll;
 
         if (payrollSequece == 0)
-            currentPayroll = await _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefaultAsync(e => e.CompanyId == companyId);
+            currentPayroll =  await _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefaultAsync(e => e.CompanyId == companyId);
         else
             currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).Skip(payrollSequece).FirstOrDefault(e => e.CompanyId == companyId);
 
