@@ -64,7 +64,7 @@ public class TimecardUsaNoteController : ControllerBase
         return Ok(new { message = "Timecard deleted." });
     }
     [HttpPost("jobs/{jobId}")]
-    public IActionResult CreateOrUpdate(int jobId, [FromBody] List<TimecardUsaNoteModel> models)
+    public IActionResult Create(int jobId, [FromBody] List<TimecardUsaNoteModel> models)
     {
         _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, jobId);
 
