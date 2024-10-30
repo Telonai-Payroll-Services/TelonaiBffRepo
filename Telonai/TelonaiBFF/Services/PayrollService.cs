@@ -284,8 +284,8 @@ public class PayrollService : IPayrollService
         timecards.ForEach(e => e.IsLocked = true);
         _context.UpdateRange(timecards);
 
-        var schedule = _context.PayrollSchedule.First(e=>e.CompanyId== companyId && (e.EndDate==null || e.EndDate< currentPayroll.ScheduledRunDate));
-        var frequency = (PayrollScheduleTypeModel)schedule.PayrollScheduleTypeId;
+        var schedule = _context.PayrollSchedule.FirstOrDefault(e=>e.CompanyId== companyId && (e.EndDate==null || e.EndDate< currentPayroll.ScheduledRunDate));
+        var frequency = (PayrollScheduleTypeModel)schedule?.PayrollScheduleTypeId;
 
         foreach (var  emp in employments) 
         {
