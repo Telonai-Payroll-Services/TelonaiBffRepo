@@ -63,4 +63,12 @@ public class TimecardUsaNoteController : ControllerBase
         _timecardNoteService.Delete(id);
         return Ok(new { message = "Timecard deleted." });
     }
+    [HttpPost("jobs/{jobId}")]
+    public IActionResult CreateOrUpdate(int jobId, [FromBody] List<TimecardUsaNoteModel> models)
+    {
+        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, jobId);
+
+        _timecardNoteService.Create(models);
+        return Ok(new { message = "Timecards created." });
+    }
 }

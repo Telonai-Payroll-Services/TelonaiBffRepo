@@ -16,6 +16,7 @@ public interface ITimecardUsaNoteService
     void Update(int id, TimecardUsaNoteModel model);
     void Update(List<TimecardUsaNoteModel> models);
     void Delete(int id);
+    void Create(List<TimecardUsaNoteModel> models);
 }
 
 public class TimecardUsaNoteService : ITimecardUsaNoteService
@@ -90,7 +91,16 @@ public class TimecardUsaNoteService : ITimecardUsaNoteService
         _context.TimecardUsaNote.Update(dto);
         _context.SaveChanges();
     }
-
+    public void Create(List<TimecardUsaNoteModel> models)
+    {
+        foreach (var model in models)
+        {
+           var result= _mapper.Map<TimecardUsaNote>(model);
+           _context.TimecardUsaNote.Add(result);
+            _context.SaveChanges();
+        }
+             
+    }
     public void Update(List<TimecardUsaNoteModel> models)
     {
         foreach (var model in models)
