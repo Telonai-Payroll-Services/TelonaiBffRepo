@@ -204,7 +204,7 @@ public class FormNineFortyOneService : IFormNineFortyOneService
 
                     BusinessIsClosed = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "BusinessIsClosed").FieldValue ?? "false"),
                     BusinessStoppedPayingWages = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "BusinessStoppedPayingWages").FieldValue ?? "false"),
-                    FinalDateWagesPaid = companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "FinalDateWagesPaid").FieldValue,
+                    FinalDateWagesPaid = DateOnly.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "FinalDateWagesPaid").FieldValue),
                     IsSeasonalBusiness = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "IsSeasonalBusiness").FieldValue ?? "false"),
 
                     //Signature
@@ -295,7 +295,7 @@ public class FormNineFortyOneService : IFormNineFortyOneService
             DepositScheduleTypeId = 4500,
             BusinessIsClosed = false,
             BusinessStoppedPayingWages = false,
-            FinalDateWagesPaid = "Test",
+            FinalDateWagesPaid = DateOnly.FromDateTime(DateTime.Now),
             IsSeasonalBusiness = false,
             HasThirdPartyDesignee = true,
             CheckedBoxSixteenTypeId = 1,

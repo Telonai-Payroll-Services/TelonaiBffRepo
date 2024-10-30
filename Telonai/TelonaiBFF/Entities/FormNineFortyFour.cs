@@ -13,15 +13,15 @@ public class FormNineFortyFour:BaseTracker
     public double TaxableSocialSecurityWages { get; set; }
     public double QualifiedSickLeaveWages { get; set; }
     public double QualifiedFamilyLeaveWages { get; set; }
+    public double TaxableSocialSecurityWagesTax { get; set; }
     public double TaxableSocialSecurityTips { get; set; }
+    public double TaxableSocialSecurityTipsTax { get; set; }
     public double TaxableMedicareWagesAndTips { get; set; }
     public double WagesAndTipsSubjectToAdditionalTax { get; set; }
-    public double TaxableSocialSecurityWagesTax { get; set; }
+    public double WagesAndTipsSubjectToAdditionalTaxTax { get; set; }
     public double QualifiedSickLeaveWagesTax { get; set; }
     public double QualifiedFamilyLeaveWagesTax { get; set; }
-    public double TaxableSocialSecurityTipsTax { get; set; }
     public double TaxableMedicareWagesAndTipsTax { get; set; }
-    public double WagesAndTipsSubjectToAdditionalTaxTax { get; set; }
     public double TotalSocialAndMediTax { get; set; }
     public double TotalTaxBeforeAdjustment { get; set; }
     public double CurrentYearAddjustments { get; set; }

@@ -37,7 +37,7 @@ public class FormNineFortyOne:BaseTracker
     public int DepositScheduleTypeId { get; set; }
     public bool BusinessIsClosed { get; set; }
     public bool BusinessStoppedPayingWages { get; set; }
-    public string FinalDateWagesPaid { get; set; }
+    public DateOnly? FinalDateWagesPaid { get; set; }
     public bool IsSeasonalBusiness { get; set; }
     public bool HasThirdPartyDesignee { get; set; }
     public int CheckedBoxSixteenTypeId { get; set; }
