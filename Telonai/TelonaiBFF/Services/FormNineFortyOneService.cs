@@ -306,7 +306,7 @@ public class FormNineFortyOneService : IFormNineFortyOneService
             SignatureDate = DateOnly.FromDateTime(DateTime.Now),
             SignerName = "Biruk Assefa",
             SignerTitle = "Cheif Accountant",
-            SignerBestDayTimePhone = TimeOnly.FromDateTime(DateTime.Now),
+            SignerBestDayTimePhone = "0921739313",
             CompanyId = 12,
             QuarterTypeId = 1,
             Year = 2024,
