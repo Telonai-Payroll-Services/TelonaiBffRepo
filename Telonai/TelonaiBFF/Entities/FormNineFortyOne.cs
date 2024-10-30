@@ -45,7 +45,7 @@ public class FormNineFortyOne:BaseTracker
     public string ThirdPartyDesigneePhone { get; set; }
     public int ThirdPartyFiveDigitPin { get; set; }
     public string Signature { get; set; }
-    public DateTime SignatureDate { get; set; }
+    public DateOnly SignatureDate { get; set; }
     public string SignerName { get; set; }
     public string SignerTitle { get; set; }
     public string SignerBestDayTimePhone { get; set; }
