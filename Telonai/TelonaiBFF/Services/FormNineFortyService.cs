@@ -18,6 +18,7 @@ public interface IFormNineFortyService
     IList<FormNineFortyModel> GetPrevious940FormsAsync(int year);
     IList<FormNineFortyModel> Get();
     FormNineFortyModel GetById(int id);
+    FormNineFortyModel GetTestScenario(int id);
 }
 
 public class FormNineFortyService : IFormNineFortyService
@@ -211,5 +212,154 @@ public class FormNineFortyService : IFormNineFortyService
     private FormNineForty GetFormNineForty(int id)
     {
         return _context.FormNineForty.Find(id);
+    }
+    public FormNineFortyModel GetTestScenario(int id)
+    {
+        return id switch
+        {
+            1 => GetTestScenarioOne(),
+            2 => GetTestScenarioTwo(),
+            3 => GetTestScenarioThree(),
+            _ => null
+        };
+    }
+    private FormNineFortyModel GetTestScenarioOne()
+    {
+        var testScinarioOneData = new FormNineFortyModel
+        {
+            Id = 003000011,
+            TypeOfReturn = null,
+            PaysMultiStateUnemploymentTax = false,
+            InvolvedStates = new List<string>() { "AZ" },
+            PaidWagesInCreditReductionState = false,
+            TotalPaymentsToAllEmployees = 200000.0,
+            PaymentsExemptFromFutaTax = 0.0,
+            ExemptFromFutaFringeBenefits = false,
+            ExemptFromFutaGroupTermLifeInsurance = false,
+            ExemptFromFutaRetirementOrPension = false,
+            ExemptFromFutaDependentCare = false,
+            ExemptFromFutaOther = false,
+            TotalPaymentsAbove7K = 4000.0,
+            SubTotal = 4000.0,
+            TotalTaxableFutaWages = 196000.0,
+            FutaTaxBeforeAdjust = 1176.0,
+            AdjustIfAllExcludedFromStateUnemploymentTax = 0.0,
+            AdjustIfSomeExcludedFromStateUnemploymentTax = 0.0,
+            PaidStateUnemploymentTaxLate = false,
+            CreditReductionAmount = 0.0,
+            TotalFutaTaxAfterAdjust = 1176.0,
+            FutaTaxDepositedForTheYear = 2886.0,
+            BalanceDue = 0.0,
+            OverPayment = 1710.0,
+            ApplyOverpaymentToNextReturn = false,
+            TaxLiabilityFirstQuarter = 300.0,
+            TaxLiabilitySecondQuarter = 300.0,
+            TaxLiabilityThirdQuarter = 300.0,
+            TaxLiabilityFourthQuarter = 276.0,
+            TotalLiabilityForTheYear = 1176.0,
+            HasThirdPartyDesignee = true,
+            ThirdPartyDesigneeName = null,
+            ThirdPartyDesigneePhone = "520-555-1212",
+            ThirdPartyFiveDigitPin = 12345,
+            Signature = null,
+            SignerName = null,
+            SignerTitle = "Owner",
+            SignerBestDayTimePhone = "520-555-0000",
+            Year = 2024
+        };
+        return testScinarioOneData;
+    }
+    private FormNineFortyModel GetTestScenarioTwo()
+    {
+         
+        var testScinarioOneData = new FormNineFortyModel
+        {
+            Id = 3000001,
+            TypeOfReturn = null,
+            PaysMultiStateUnemploymentTax = false,
+            InvolvedStates = new List<string>() { "CA"},
+            PaidWagesInCreditReductionState = true,
+            TotalPaymentsToAllEmployees = 350000.0,
+            PaymentsExemptFromFutaTax = 100000.0,
+            ExemptFromFutaFringeBenefits = false,
+            ExemptFromFutaGroupTermLifeInsurance = false,
+            ExemptFromFutaRetirementOrPension = true,
+            ExemptFromFutaDependentCare = false,
+            ExemptFromFutaOther = false,
+            TotalPaymentsAbove7K = 0.0,
+            SubTotal = 100000.0,
+            TotalTaxableFutaWages = 250000.0,
+            FutaTaxBeforeAdjust = 1500.0,
+            AdjustIfAllExcludedFromStateUnemploymentTax = 0.0,
+            AdjustIfSomeExcludedFromStateUnemploymentTax = 0.0,
+            PaidStateUnemploymentTaxLate = false,
+            CreditReductionAmount = 18.0,
+            TotalFutaTaxAfterAdjust = 1518.0,
+            FutaTaxDepositedForTheYear = 4000.0,
+            BalanceDue = 0.0,
+            OverPayment = 2482.0,
+            ApplyOverpaymentToNextReturn = true,
+            TaxLiabilityFirstQuarter = 500.0,
+            TaxLiabilitySecondQuarter = 500.0,
+            TaxLiabilityThirdQuarter = 500.0,
+            TaxLiabilityFourthQuarter = 18.0,
+            TotalLiabilityForTheYear = 1518.0,
+            HasThirdPartyDesignee = false,
+            ThirdPartyDesigneeName = null,
+            ThirdPartyDesigneePhone = null,
+            ThirdPartyFiveDigitPin = 0,
+            Signature = null,
+            SignerName = null,
+            SignerTitle = "Controller",
+            SignerBestDayTimePhone = "718-000-1212",
+            Year = 2024
+        };
+        return testScinarioOneData;
+    }
+    private FormNineFortyModel GetTestScenarioThree()
+    {
+
+        var testScinarioOneData = new FormNineFortyModel
+        {
+            Id = 3000002,
+            TypeOfReturn = null,
+            PaysMultiStateUnemploymentTax = false,
+            InvolvedStates = new List<string>() { "TX" },
+            PaidWagesInCreditReductionState = false,
+            TotalPaymentsToAllEmployees = 560000.0,
+            PaymentsExemptFromFutaTax = 0.0,
+            ExemptFromFutaFringeBenefits = false,
+            ExemptFromFutaGroupTermLifeInsurance = false,
+            ExemptFromFutaRetirementOrPension = false,
+            ExemptFromFutaDependentCare = false,
+            ExemptFromFutaOther = false,
+            TotalPaymentsAbove7K = 0.0,
+            SubTotal = 0.0,
+            TotalTaxableFutaWages = 560000.0,
+            FutaTaxBeforeAdjust = 3360.0,
+            AdjustIfAllExcludedFromStateUnemploymentTax = 0.0,
+            AdjustIfSomeExcludedFromStateUnemploymentTax = 0.0,
+            PaidStateUnemploymentTaxLate = false,
+            CreditReductionAmount = 0.0,
+            TotalFutaTaxAfterAdjust = 3360.0,
+            FutaTaxDepositedForTheYear = 1428.0,
+            BalanceDue = 1932.0,
+            OverPayment = 0.0,
+            ApplyOverpaymentToNextReturn = false,
+            TaxLiabilityFirstQuarter = 800.0,
+            TaxLiabilitySecondQuarter = 800.0,
+            TaxLiabilityThirdQuarter = 800.0,
+            TaxLiabilityFourthQuarter = 960.0,
+            TotalLiabilityForTheYear = 3360.0,
+            HasThirdPartyDesignee = false,
+            ThirdPartyDesigneeName = null,
+            ThirdPartyDesigneePhone = null,
+            ThirdPartyFiveDigitPin = 0,
+            Signature = null,
+            SignerName = null,
+            SignerTitle = null,
+            Year = 2024           
+        };
+        return testScinarioOneData;
     }
 }

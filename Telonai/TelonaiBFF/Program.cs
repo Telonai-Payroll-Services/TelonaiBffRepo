@@ -48,6 +48,7 @@ var builder = WebApplication.CreateBuilder(args);
         x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         // ignore omitted parameters on models to enable optional params (e.g. person update)
         x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        x.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
     });
 
     services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
