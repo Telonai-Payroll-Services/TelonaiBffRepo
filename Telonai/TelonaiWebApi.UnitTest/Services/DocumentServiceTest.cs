@@ -10,6 +10,7 @@ using Moq;
 using Document = TelonaiWebApi.Entities.Document;
 using DocumentType = TelonaiWebApi.Entities.DocumentType;
 using System.Net.Sockets;
+using Xunit;
 
 namespace TelonaiWebAPITest.Services
 {

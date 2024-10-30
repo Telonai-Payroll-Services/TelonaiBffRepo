@@ -12,6 +12,10 @@ using System.ComponentModel;
 using Newtonsoft.Json;
 using Amazon.S3;
 using Amazon.SQS;
+using TelonaiWebApi.Models.FileScan;
+using TelonaiWebApi.Helpers.FileScan;
+using TelonaiWebApi.Helpers.Interface;
+using Microsoft.AspNetCore.Http.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,8 +85,10 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IZipcodeService, ZipcodeService>();
     services.AddScoped<IDocumentService, DocumentService>();
     services.AddScoped<IDocumentManager, DocumentManager>();
+    services.AddScoped<IFileScanRequest, FileScanRequest>();
     services.AddScoped<IEmployeeWithholdingService<EmployeeWithholdingModel, EmployeeWithholding>, EmployeeWithholdingService>();
     services.AddScoped<IScopedAuthorization, ScopedAuthorization>();
+    services.AddScoped<IIRSService, IRSService>();
     services.AddScoped<IFormNineFortyOneService, FormNineFortyOneService>();
     services.AddScoped<IFormNineFortyFourService, FormNineFortyFourService>();
     services.AddScoped<IFormNineFortyService, FormNineFortyService>();
@@ -90,12 +96,17 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());
     services.AddAWSService<IAmazonS3>();
     services.AddAWSService<IAmazonSQS>();
-
     services.AddLogging(config =>
     {
         config.AddAWSProvider(configuration.GetAWSLoggingConfigSection());
         config.SetMinimumLevel(LogLevel.Debug);
     });
+
+    var fileScanSettings = builder.Configuration.GetSection("FileScan");
+    builder.Services.Configure<FileScanSettings>(fileScanSettings);
+
+    var fileScanLogin = builder.Configuration.GetSection("FileScanLogin");
+    builder.Services.Configure<FileScanLogin>(fileScanLogin);
 
     // Adds Amazon Cognito as Identity Provider
     services.AddCognitoIdentity();
@@ -166,5 +177,5 @@ var app = builder.Build();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
 
-app.Run();
-//app.Run("http://localhost:5000");
+//app.Run();
+app.Run("http://localhost:5000");

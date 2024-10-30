@@ -18,6 +18,7 @@ public class FormNineFortyOneModel:BaseTracker
     public double WagesAndTipsSubjectToAdditionalTaxTax { get; set; }
     public double TotalSocialAndMediTax { get; set; }
     public double UnreportedTipsTaxDue { get; set; }
+    public double TotalTaxBeforeAdjustment { get; set; }
     public double AdjustForFractionsOfCents { get; set; }
     public double AdjustForSickPay { get; set; }
     public double AdjustForTipsAndLifeInsurance { get; set; }
@@ -44,7 +45,7 @@ public class FormNineFortyOneModel:BaseTracker
     public string ThirdPartyDesigneePhone { get; set; }
     public int ThirdPartyFiveDigitPin { get; set; }
     public string Signature { get; set; }
-    public DateOnly SignatureDate { get; set; }
+    public DateTime SignatureDate { get; set; }
     public string SignerName { get; set; }
     public string SignerTitle { get; set; }
     public string SignerBestDayTimePhone { get; set; }
@@ -52,10 +53,10 @@ public class FormNineFortyOneModel:BaseTracker
     public int QuarterTypeId { get; set; }
     public int Year { get; set; }
     public double TaxCreditForResearchActivities { get; set; }
+    public double TaxableSocialSecurityTipsTax { get; set; }
 
     public QuarterTypeModel QuarterType { get; set; }
     public DepositScheduleTypeModel DepositScheduleType { get; set; }
-
     public CheckedBoxSixteenTypeModel CheckedBoxSixteenType { get; set; }
 
 }

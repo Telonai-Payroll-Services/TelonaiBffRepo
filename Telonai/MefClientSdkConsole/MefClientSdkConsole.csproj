@@ -14,6 +14,9 @@
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\..\MefSdk\lib\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
+    <Reference Include="MefClientSdkConsole">
+      <HintPath>..\..\..\Backup\TelonaiBffRepo\Telonai\MefClientSdkConsole\bin\Debug\net6.0\MefClientSdkConsole.dll</HintPath>
+    </Reference>
     <Reference Include="MeFWCFClient">
       <HintPath>..\..\..\..\..\..\Downloads\IRS_A2A_Toolkit20241010191904\IRS_A2A_Toolkit\Version_15\Version_15.0\MeF_Client_SDK\dotNET\source\src\obj\Release\MeFWCFClient.dll</HintPath>
     </Reference>

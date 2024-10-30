@@ -21,6 +21,9 @@ public interface ITimecardUsaService
     Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmail(string email, int payrollSequece, int companyId);
     Task<List<TimecardUsaModel>> GetTimeCardsByPayrollIdAndEmployee(int companyId, int payrollId, int employeeId);
     Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmployee(int companyId, int payrollSequece, int employeeId);
+
+    //Task<EmployeeTimeCardUsaDetail> GetEmployeeTimeCardList(int companyId, int employeeIdId);
+
     TimecardUsaModel GetById(int id);
     void Create(string emaild, int jobId);
     void Update(int id, TimecardUsaModel model);
@@ -32,6 +35,7 @@ public class TimecardUsaService : ITimecardUsaService
 {
     private readonly DataContext _context;
     private readonly IMapper _mapper;
+    private readonly PayrollScheduleService _payrollScheduleService;
 
     public TimecardUsaService(DataContext context, IMapper mapper)
     {
@@ -257,4 +261,20 @@ public class TimecardUsaService : ITimecardUsaService
         var dto = _context.TimecardUsa.Find(id);
         return dto;
     }
+
+    //public async Task<EmployeeTimeCardUsaDetail> GetEmployeeTimeCardList(int companyId, int employeeIdId)
+    //{
+    //    var employeeTimeCardHistory = new EmployeeTimeCardUsaDetail();
+    //    var companyPayrollSchedule = _payrollScheduleService.GetLatestByCompanyId(companyId);
+    //    if(companyPayrollSchedule != null)
+    //    {
+    //        employeeTimeCardHistory.EmployeePayrollScheduleName = companyPayrollSchedule.PayrollScheduleType;
+
+
+    //    }
+    //    else
+    //    {
+    //       return  employeeTimeCardHistory;
+    //    }
+    //}
 }

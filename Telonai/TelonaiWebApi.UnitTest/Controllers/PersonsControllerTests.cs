@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Xunit;
 using System.Security.Claims;
 using TelonaiWebApi.Controllers;
 using TelonaiWebApi.Entities;

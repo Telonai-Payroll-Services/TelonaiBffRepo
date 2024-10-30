@@ -237,5 +237,8 @@ public class AutoMapperProfile : Profile
         CreateMap<FormNineFortyFourModel, FormNineFortyFour>()
            .ForMember(dest => dest.Id, opt => opt.Ignore())
            .ForMember(dest => dest.Company, opt => opt.Ignore());
+
+        CreateMap<FormNineFortyOne, FormNineFortyOneModel>()
+            .ForMember(dest => dest.CheckedBoxSixteenType, opt => opt.MapFrom(src => (CheckedBoxSixteenTypeModel)src.CheckedBoxSixteenTypeId));
     }
 }

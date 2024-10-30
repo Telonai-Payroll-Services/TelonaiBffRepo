@@ -47,9 +47,10 @@ public class FormNineFortyOneService : IFormNineFortyOneService
     public IList<FormNineFortyOneModel> GetCurrent941FormsAsync()
     {
         var quarter = GetPreviousQuarter();
-        var obj = _context.FormNineFortyOne.Where(e => e.Year == quarter.Item2.Year && e.QuarterTypeId == quarter.Item1)
-            .Include(e => e.Company).ToList();
-        var result = _mapper.Map<IList<FormNineFortyOneModel>>(obj);
+        //var obj = _context.FormNineFortyOne.Where(e => e.Year == quarter.Item2.Year && e.QuarterTypeId == quarter.Item1)
+            //.Include(e => e.Company).ToList();
+        var irs941 = GenerateDummyData();
+        var result = _mapper.Map<IList<FormNineFortyOneModel>>(irs941);
         return result;
     }
 
@@ -203,7 +204,7 @@ public class FormNineFortyOneService : IFormNineFortyOneService
 
                     BusinessIsClosed = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "BusinessIsClosed").FieldValue ?? "false"),
                     BusinessStoppedPayingWages = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "BusinessStoppedPayingWages").FieldValue ?? "false"),
-                    FinalDateWagesPaid = companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "FinalDateWagesPaid").FieldValue,
+                    FinalDateWagesPaid = DateOnly.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "FinalDateWagesPaid").FieldValue),
                     IsSeasonalBusiness = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "IsSeasonalBusiness").FieldValue ?? "false"),
 
                     //Signature
@@ -260,5 +261,59 @@ public class FormNineFortyOneService : IFormNineFortyOneService
                 DateOnly.Parse($"{currentYear.ToString()}-07-01"),
                 DateOnly.Parse($"{currentYear.ToString()}-09-30")
                 );
+    }
+
+    private List<FormNineFortyOne> GenerateDummyData()
+    {
+        var irs941 = new FormNineFortyOne()
+        {
+            Id = 1,
+            NumberOfEmployees = 4,
+            WagesTipsCompensation = 400,
+            FederalIncomeTaxWithheld = 10000,
+            NotSubjectToSocialSecAndMediTax = true,
+            TaxableSocialSecurityTips = 1200,
+            TaxableSocialSecurityWages = 400,
+            TaxableMedicareWagesAndTips = 2000,
+            WagesAndTipsSubjectToAdditionalTax = 130,
+            TotalSocialAndMediTax = 3500,
+            UnreportedTipsTaxDue = 1256,
+            TotalTaxBeforeAdjustment = 30000,
+            AdjustForFractionsOfCents = 4500,
+            AdjustForSickPay = 1245,
+            AdjustForTipsAndLifeInsurance = 799,
+            TotalTaxAfterAdjustment = 6300,
+            TotalTaxAfterAdjustmentsCredits = 2390,
+            TotalDeposit = 3234,
+            BalanceDue = 15000,
+            Overpayment = 1000,
+            ApplyOverpaymentToNextReturn = true,
+            TaxLiabilityMonthOne = 9000,
+            TaxLiabilityMonthTwo = 4000,
+            TaxLiabilityMonthThree = 7500,
+            TotalLiabilityForQuarter = 21500,
+            DepositScheduleTypeId = 4500,
+            BusinessIsClosed = false,
+            BusinessStoppedPayingWages = false,
+            FinalDateWagesPaid = DateOnly.FromDateTime(DateTime.Now),
+            IsSeasonalBusiness = false,
+            HasThirdPartyDesignee = true,
+            CheckedBoxSixteenTypeId = 1,
+            ThirdPartyDesigneeName = "Telonai",
+            ThirdPartyDesigneePhone = "0921739313",
+            ThirdPartyFiveDigitPin = 1234,
+            Signature = "Biras",
+            SignatureDate = DateTime.Now,
+            SignerName = "Biruk Assefa",
+            SignerTitle = "Cheif Accountant",
+            SignerBestDayTimePhone = TimeOnly.FromDateTime(DateTime.Now).ToString(),
+            CompanyId = 12,
+            QuarterTypeId = 1,
+            Year = 2024,
+            TaxCreditForResearchActivities = 2000
+        };
+        List<FormNineFortyOne> irs941List = new List<FormNineFortyOne>();
+        irs941List.Add(irs941);
+        return irs941List;
     }
 }
