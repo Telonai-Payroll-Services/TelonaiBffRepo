@@ -45,5 +45,11 @@ public class FormNineFortyController : ControllerBase
         var item = _service.CreateAsync();
         return Ok();
     }
+    [HttpGet("test-scenario/{id}")]
+    public IActionResult GetTestScenarioById(int id)
+    {
+        var item = _service.GetTestScenario(id);
+        return Ok(item);
+    }
 
 }
