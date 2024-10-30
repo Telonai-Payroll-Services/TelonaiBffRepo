@@ -48,7 +48,7 @@ public class FormNineFortyOne:BaseTracker
     public DateOnly SignatureDate { get; set; }
     public string SignerName { get; set; }
     public string SignerTitle { get; set; }
-    public string SignerBestDayTimePhone { get; set; }
+    public TimeOnly SignerBestDayTimePhone { get; set; }
     public int CompanyId { get; set; }
     public int QuarterTypeId { get; set; }
     public int Year { get; set; }

@@ -11,12 +11,16 @@
       "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\entities\\formninefortyone.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\models\\formninefortyonemodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\models\\formninefortyonemodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\models\\formninefortyonemodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\models\\formninefortyonemodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\PC\\AppData\\Local\\Temp\\b0889fa4-11c2-4d91-a5dd-48388bd30237_output.zip.237\\69321820243040000001.xml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
@@ -49,32 +53,20 @@
       "DocumentGroups": [
         {
           "DockedWidth": 273,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "69321820243040000001.xml",
-              "DocumentMoniker": "C:\\Users\\PC\\AppData\\Local\\Temp\\b0889fa4-11c2-4d91-a5dd-48388bd30237_output.zip.237\\69321820243040000001.xml",
-              "RelativeDocumentMoniker": "..\\..\\..\\Users\\PC\\AppData\\Local\\Temp\\b0889fa4-11c2-4d91-a5dd-48388bd30237_output.zip.237\\69321820243040000001.xml",
-              "ToolTip": "C:\\Users\\PC\\AppData\\Local\\Temp\\b0889fa4-11c2-4d91-a5dd-48388bd30237_output.zip.237\\69321820243040000001.xml",
-              "RelativeToolTip": "..\\..\\..\\Users\\PC\\AppData\\Local\\Temp\\b0889fa4-11c2-4d91-a5dd-48388bd30237_output.zip.237\\69321820243040000001.xml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAzAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003576|",
-              "WhenOpened": "2024-10-30T06:53:26.025Z",
+              "DocumentIndex": 3,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "TelonaiBFF\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Properties\\launchSettings.json",
+              "RelativeToolTip": "TelonaiBFF\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-10-30T13:43:33.804Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "AutoMapperProfile.cs",
-              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
-              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
-              "RelativeToolTip": "TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
-              "ViewState": "AgIAAOUAAAAAAAAAAAAYwPAAAAA5AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-28T08:24:27.22Z"
             },
             {
               "$type": "Document",
@@ -82,22 +74,22 @@
               "Title": "FormNineFortyOneService.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\FormNineFortyOneService.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Services\\FormNineFortyOneService.cs",
-              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\FormNineFortyOneService.cs*",
-              "RelativeToolTip": "TelonaiBFF\\Services\\FormNineFortyOneService.cs*",
-              "ViewState": "AgIAABsBAAAAAAAAAAApwCkBAABEAAAAAAAAAA==",
+              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\FormNineFortyOneService.cs",
+              "RelativeToolTip": "TelonaiBFF\\Services\\FormNineFortyOneService.cs",
+              "ViewState": "AgIAACkBAAAAAAAAAAApwDQBAABJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-28T08:25:35.956Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "FormNineFortyOneModel.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Models\\FormNineFortyOneModel.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Models\\FormNineFortyOneModel.cs",
               "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Models\\FormNineFortyOneModel.cs",
               "RelativeToolTip": "TelonaiBFF\\Models\\FormNineFortyOneModel.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAADkAAAA1AAAAAAAAAA==",
+              "ViewState": "AgIAABIAAAAAAAAAAAAiwAoAAAA9AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-28T11:25:57.478Z",
               "EditorCaption": ""
@@ -110,27 +102,52 @@
               "RelativeDocumentMoniker": "TelonaiBFF\\Entities\\FormNineFortyOne.cs",
               "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Entities\\FormNineFortyOne.cs",
               "RelativeToolTip": "TelonaiBFF\\Entities\\FormNineFortyOne.cs",
-              "ViewState": "AgIAACUAAAAAAAAAAAAAACYAAAA4AAAAAAAAAA==",
+              "ViewState": "AgIAACsAAAAAAAAAAAAcwDIAAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-28T11:08:36.262Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Program.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Program.cs",
               "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Program.cs",
               "RelativeToolTip": "TelonaiBFF\\Program.cs",
-              "ViewState": "AgIAAIEAAAAAAAAAAAAAAI0AAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAKsAAAAAAAAAAAAAALIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-28T18:44:09.34Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "AutoMapperProfile.cs",
+              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
+              "RelativeDocumentMoniker": "TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
+              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
+              "RelativeToolTip": "TelonaiBFF\\Helpers\\AutoMapperProfile.cs",
+              "ViewState": "AgIAAOUAAAAAAAAAAAAYwPAAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-28T08:24:27.22Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 5,
+              "Title": "69321820243040000001.xml",
+              "DocumentMoniker": "C:\\Users\\PC\\AppData\\Local\\Temp\\b0889fa4-11c2-4d91-a5dd-48388bd30237_output.zip.237\\69321820243040000001.xml",
+              "RelativeDocumentMoniker": "..\\..\\..\\Users\\PC\\AppData\\Local\\Temp\\b0889fa4-11c2-4d91-a5dd-48388bd30237_output.zip.237\\69321820243040000001.xml",
+              "ToolTip": "C:\\Users\\PC\\AppData\\Local\\Temp\\b0889fa4-11c2-4d91-a5dd-48388bd30237_output.zip.237\\69321820243040000001.xml",
+              "RelativeToolTip": "..\\..\\..\\Users\\PC\\AppData\\Local\\Temp\\b0889fa4-11c2-4d91-a5dd-48388bd30237_output.zip.237\\69321820243040000001.xml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003576|",
+              "WhenOpened": "2024-10-30T06:53:26.025Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
               "Title": "FormNineFortyModel.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Models\\FormNineFortyModel.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Models\\FormNineFortyModel.cs",
@@ -142,7 +159,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "FormNineFortyRetunTypeModel.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Models\\FormNineFortyRetunTypeModel.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Models\\FormNineFortyRetunTypeModel.cs",
@@ -154,7 +171,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "FormNineFortyService.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\FormNineFortyService.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Services\\FormNineFortyService.cs",
@@ -166,7 +183,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "CompaniesController.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Controllers\\CompaniesController.cs",
               "RelativeDocumentMoniker": "TelonaiBFF\\Controllers\\CompaniesController.cs",
