@@ -131,7 +131,6 @@ public class TimecardUsaController : ControllerBase
     public IActionResult Delete(int id)
     {
         _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
-
         _timecardService.Delete(id);
         return Ok(new { message = "Timecard deleted." });
     }
