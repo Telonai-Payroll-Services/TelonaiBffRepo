@@ -66,9 +66,10 @@ public class TimecardUsaNoteController : ControllerBase
     [HttpPost("jobs/{jobId}")]
     public IActionResult Create(int jobId, [FromBody] List<TimecardUsaNoteModel> models)
     {
+
         _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, jobId);
 
         _timecardNoteService.Create(models);
-        return Ok(new { message = "Timecards created." });
+        return Ok(new { message = "Timecard created." });
     }
 }
