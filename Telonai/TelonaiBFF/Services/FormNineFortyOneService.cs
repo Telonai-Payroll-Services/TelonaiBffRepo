@@ -269,6 +269,7 @@ public class FormNineFortyOneService : IFormNineFortyOneService
         {
             Id = 1,
             NumberOfEmployees = 4,
+            WagesAndTipsSubjectToAdditionalTaxTax = 200.00,
             WagesTipsCompensation = 400,
             FederalIncomeTaxWithheld = 10000,
             NotSubjectToSocialSecAndMediTax = true,
