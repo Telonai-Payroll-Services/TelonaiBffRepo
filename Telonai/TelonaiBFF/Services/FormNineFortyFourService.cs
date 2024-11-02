@@ -70,12 +70,12 @@ public class FormNineFortyFourService : IFormNineFortyFourService
 
     public async Task CreateAsync()
     {
-        var telonaiSpecificFields = _context.TelonaiSpecificFieldValue.OrderByDescending(e => e.EffectiveDate).Include(e => e.TelonaiSpecificField)
-           .ToList();
-
         var year = DateTime.Now.Year - 1;
         var startDate = new DateOnly(year, 1, 1);
         var endDate = new DateOnly(year - 1, 12, 31);
+
+        var telonaiSpecificFields = _context.TelonaiSpecificFieldValue.Where(e => e.EffectiveYear == year)
+            .Include(e => e.TelonaiSpecificField).ToList();
 
         var groupedPayrolls = _context.IncomeTax.Include(e => e.PayStub).ThenInclude(e => e.Payroll).ThenInclude(e => e.Company)
             .Where(e => e.PayStub.Payroll.ScheduledRunDate >= startDate && e.PayStub.Payroll.ScheduledRunDate <= endDate)
@@ -104,10 +104,10 @@ public class FormNineFortyFourService : IFormNineFortyFourService
 
                 var federalIncomeTaxWithheld = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Federal Tax").Sum(e => e.Amount);
                 var sickLeaveWages = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Qualified Sick Leave Wages").Sum(e => e.OtherMoneyReceived.OtherPay);
-                var sickLeaveWagesTax = sickLeaveWages * double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == year.ToString() + "SickLeaveWagesTaxRate").FieldValue);
+                var sickLeaveWagesTax = sickLeaveWages * double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName ==  "SickLeaveWagesTaxRate").FieldValue);
                 
                 var familyLeaveWages = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Qualified Family Leave Wages").Sum(e => e.OtherMoneyReceived.OtherPay);
-                var familyLeaveWagesTax = familyLeaveWages * double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == year.ToString() + "FamilyLeaveWagesTaxRate").FieldValue);
+                var familyLeaveWagesTax = familyLeaveWages * double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName ==  "FamilyLeaveWagesTaxRate").FieldValue);
                 
                 var nonRefundSickLeaveWages1 = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Non Refundable Credit For Sick Leave Wages 1").Sum(e => e.OtherMoneyReceived.OtherPay);
                 var nonRefundFamilyLeaveWages1 = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Non Refundable Credit For Family Leave Wages 1").Sum(e => e.OtherMoneyReceived.OtherPay);

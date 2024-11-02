@@ -72,14 +72,14 @@ public class FormNineFortyOneService : IFormNineFortyOneService
 
     public async Task CreateAsync()
     {
-        var telonaiFields = _context.TelonaiSpecificFieldValue.OrderByDescending(e => e.EffectiveDate).Include(e => e.TelonaiSpecificField)
-            .ToList();
-
         var previousQuarter = GetPreviousQuarter();
         var startDate = previousQuarter.Item2;
         var endDate = previousQuarter.Item3;
         var twoPreviousQuarter = previousQuarter.Item1 == 4 ? Tuple.Create(1, previousQuarter.Item2.Year - 1) :
              Tuple.Create(previousQuarter.Item1 - 1, previousQuarter.Item2.Year);
+
+        var telonaiFields = _context.TelonaiSpecificFieldValue.Where(e => e.EffectiveYear == previousQuarter.Item2.Year)
+            .Include(e => e.TelonaiSpecificField).ToList();
 
         var previous941s = _context.FormNineFortyOne.Where(e => e.Year == twoPreviousQuarter.Item2 &&
             e.QuarterTypeId == twoPreviousQuarter.Item1);
@@ -267,7 +267,7 @@ public class FormNineFortyOneService : IFormNineFortyOneService
     {
         var irs941 = new FormNineFortyOne()
         {
-            Id = 1,
+            Id = 1, 
             NumberOfEmployees = 4,
             WagesTipsCompensation = 400,
             FederalIncomeTaxWithheld = 10000,

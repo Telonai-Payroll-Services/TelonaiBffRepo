@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-16"?>
+<IRSSubmissionManifest xmlns="http://www.irs.gov/efile" xmlns:efile="http://www.irs.gov/efile">
+    <SubmissionId>69321820243050000002</SubmissionId>
+    <EFIN><84689</EFIN>
+    <GovernmentCode>IRS</GovernmentCode>
+    <SubmissionType>941</SubmissionType>
+    <TaxYear>2024</TaxYear>
+    <TaxPeriodBeginDate>2024-07-01</TaxPeriodBeginDate>
+    <TaxPeriodEndDate>2024-09-30</TaxPeriodEndDate>
+    <EIN>992908691</EIN>
+</IRSSubmissionManifest>

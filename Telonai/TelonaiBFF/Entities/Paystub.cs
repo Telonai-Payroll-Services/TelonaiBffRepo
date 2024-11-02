@@ -8,7 +8,7 @@ public class PayStub: BaseTracker
     public int PayrollId { get; set; }
     public int EmploymentId { get; set; }
     public Guid? DocumentId { get; set; }
-    public int OtherMoneyReceivedId { get; set; }
+    public int? OtherMoneyReceivedId { get; set; }
 
     public double RegularHoursWorked { get; set; }
     public double OverTimeHoursWorked { get; set; }

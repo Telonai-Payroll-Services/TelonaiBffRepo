@@ -8,6 +8,7 @@ using System.ComponentModel.Design;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
+using static iTextSharp.text.pdf.AcroFields;
 
 public interface IPayStubService
 {
@@ -118,6 +119,7 @@ public class PayStubService : IPayStubService
             ?? throw new AppException("Payroll not found");
 
         _currentYear = payroll.ScheduledRunDate.Year;
+               
         var state = payroll.Company.Zipcode.City.State;
         _stateId = state.Id;
         _countryId = state.CountryId;
@@ -191,6 +193,9 @@ public class PayStubService : IPayStubService
             var numberOfPaymentsInYear = 12;
             var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
 
+            var previousIncomeTaxes = _context.IncomeTax.OrderByDescending(e => e.CreatedDate).Where(
+                e => e.CreatedDate.Year == _currentYear && !e.PayStub.IsCancelled && e.PayStub.EmploymentId == stub.EmploymentId);
+
             var withHolingForms = _context.EmployeeWithholding.Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year).ToList();
             var w4Form = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.WFour).ToList();
 
@@ -213,14 +218,14 @@ public class PayStubService : IPayStubService
 
             //Calculate Federal Tax to withhold
             var hasMultipleJobs = !string.IsNullOrWhiteSpace(w4TwoC);
-            var anualAmount = stub.GrossPay * numberOfPaymentsInYear + double.Parse(w4FourA);
+            var annualAmount = stub.GrossPay * numberOfPaymentsInYear + double.Parse(w4FourA);
             var deduction = double.Parse(w4FourB) * (hasMultipleJobs ? 0 : w4OneC.Contains("Jointly") ? 12900 : 8600);
-            var adjustedAnnualWageAmount = anualAmount - deduction;
+            var adjustedAnnualWageAmount = annualAmount - deduction;
 
             var rate = employeeFederalRates.First(e => e.IncomeTaxType.Name.StartsWith("Federal") &&
             e.Minimum < Math.Round(adjustedAnnualWageAmount) && e.Maximum < Math.Round(adjustedAnnualWageAmount));
 
-            var previousTax = _context.IncomeTax.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => !e.PayStub.IsCancelled && e.IncomeTaxTypeId == rate.IncomeTaxTypeId);
+            var previousIncomeTax = previousIncomeTaxes.FirstOrDefault(e => e.IncomeTaxTypeId == rate.IncomeTaxTypeId);
 
             var tentativeWithholdingAmt = ((adjustedAnnualWageAmount - rate.Minimum) * rate.Rate +
                 (rate.TentativeAmount ?? 0)) / numberOfPaymentsInYear;
@@ -236,25 +241,46 @@ public class PayStubService : IPayStubService
                     Amount = Math.Round(finalWithholdingAmount),
                     IncomeTaxTypeId = rate.IncomeTaxTypeId,
                     PayStubId = stub.Id,
-                    YtdAmount = finalWithholdingAmount + previousTax?.YtdAmount ?? 0
+                    YtdAmount = finalWithholdingAmount + previousIncomeTax?.YtdAmount ?? 0
                 }
             );
 
             //Other Federal Withholdings
             var otherFederalWithholdings = employeeFederalRates.Where(e => !e.IncomeTaxType.Name.StartsWith("Federal") &&
             e.Minimum < Math.Round(stub.GrossPay) && e.Maximum < Math.Round(stub.GrossPay));
+
+            var previousPayStub = _context.PayStub.OrderByDescending(e => e.Id).FirstOrDefault(e => e.EmploymentId == stub.EmploymentId
+            && !e.IsCancelled && e.Payroll.ScheduledRunDate.Year == _currentYear);
+
+
             foreach (var item in otherFederalWithholdings)
             {
-                var amount = stub.GrossPay * item.Rate;
-                var previous = _context.IncomeTax.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => !e.PayStub.IsCancelled && e.IncomeTaxTypeId == rate.IncomeTaxTypeId);
+                var previous = previousIncomeTaxes.FirstOrDefault(e => e.IncomeTaxTypeId == item.IncomeTaxTypeId);
 
+                if (item.IncomeTaxType.Name == "Additional Medicare")
+                {
+                    var addlAmount = stub.AmountSubjectToAdditionalMedicareTax * item.Rate;
+
+                    if (addlAmount > 0)
+                        _newIncomeTaxesToHold.Add(
+                            new IncomeTax
+                            {
+                                Amount = addlAmount,
+                                IncomeTaxTypeId = rate.IncomeTaxTypeId,
+                                PayStubId = stub.Id,
+                                YtdAmount = addlAmount + previous?.YtdAmount ?? 0
+                            });
+                    continue;
+                }
+
+                var amount = stub.GrossPay * item.Rate;
                 _newIncomeTaxesToHold.Add(
                     new IncomeTax
                     {
                         Amount = amount,
                         IncomeTaxTypeId = rate.IncomeTaxTypeId,
                         PayStubId = stub.Id,
-                        YtdAmount = finalWithholdingAmount + previous?.YtdAmount ?? 0
+                        YtdAmount = amount + previous?.YtdAmount ?? 0
                     }
                 );
             }
