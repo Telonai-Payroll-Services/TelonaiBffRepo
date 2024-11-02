@@ -69,7 +69,7 @@ public class PayStubService : IPayStubService
 
     public List<PayStubModel> GetCurrentByPayrollId(int payrollId)
     {
-        var obj = _context.PayStub.Where(e => e.PayrollId == payrollId).ToList();
+        var obj = _context.PayStub.Where(e => e.PayrollId == payrollId).Include(e=>e.Payroll).ToList();
         var result = _mapper.Map<List<PayStubModel>>(obj);
         return result;
     }
