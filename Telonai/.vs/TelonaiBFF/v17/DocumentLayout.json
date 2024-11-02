@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\services\\paystubservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\services\\paystubservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\controllers\\paystubcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\controllers\\paystubcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\services\\paystubservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\services\\paystubservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\services\\payrollservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -29,14 +29,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\services\\formninefortyfourservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\services\\formninefortyfourservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\entities\\telonaispecificfieldvalue.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\entities\\telonaispecificfieldvalue.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\users\\samsonkassa\\documents\\github\\develop\\telonaibffrepo\\telonai\\telonaibff\\services\\formninefortyservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\services\\formninefortyservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -46,21 +38,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 6,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "PayStubService.cs",
-              "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\PayStubService.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Services\\PayStubService.cs",
-              "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\PayStubService.cs",
-              "RelativeToolTip": "TelonaiBFF\\Services\\PayStubService.cs",
-              "ViewState": "AgIAADYAAAAAAAAAAAAQwEcAAABcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-02T15:23:48.17Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
@@ -77,7 +56,7 @@
               "RelativeDocumentMoniker": "TelonaiBFF\\Controllers\\PayStubController.cs",
               "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Controllers\\PayStubController.cs",
               "RelativeToolTip": "TelonaiBFF\\Controllers\\PayStubController.cs",
-              "ViewState": "AgIAAB8AAAAAAADT3/wUwDUAAAAxAAAAAAAAAA==",
+              "ViewState": "AgIAAB8AAAAAAADT3/wUwDQAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-02T15:22:05.683Z",
               "EditorCaption": ""
@@ -109,31 +88,6 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "TelonaiSpecificFieldValue.cs",
-              "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Entities\\TelonaiSpecificFieldValue.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Entities\\TelonaiSpecificFieldValue.cs",
-              "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Entities\\TelonaiSpecificFieldValue.cs",
-              "RelativeToolTip": "TelonaiBFF\\Entities\\TelonaiSpecificFieldValue.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAlAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-02T13:01:19.661Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "FormNineFortyService.cs",
-              "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\FormNineFortyService.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Services\\FormNineFortyService.cs",
-              "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\FormNineFortyService.cs",
-              "RelativeToolTip": "TelonaiBFF\\Services\\FormNineFortyService.cs",
-              "ViewState": "AgIAAEUAAACAdNEpCvgZwE0AAAA7AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-02T12:54:18.91Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 4,
               "Title": "PayrollsController.cs",
               "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Controllers\\PayrollsController.cs",
@@ -147,6 +101,32 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Program.cs",
+              "RelativeDocumentMoniker": "TelonaiBFF\\Program.cs",
+              "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Program.cs",
+              "RelativeToolTip": "TelonaiBFF\\Program.cs",
+              "ViewState": "AgIAAJ8AAAAAAAAAAAAiwLIAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-02T12:48:34.707Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "PayStubService.cs",
+              "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\PayStubService.cs",
+              "RelativeDocumentMoniker": "TelonaiBFF\\Services\\PayStubService.cs",
+              "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\PayStubService.cs",
+              "RelativeToolTip": "TelonaiBFF\\Services\\PayStubService.cs",
+              "ViewState": "AgIAADYAAAAAAAAAAAAQwEcAAABcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-02T15:23:48.17Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 3,
               "Title": "PayrollService.cs",
               "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Services\\PayrollService.cs",
@@ -156,19 +136,6 @@
               "ViewState": "AgIAAAoCAAAAAEAmdV8QwBcCAAA8AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-02T12:51:25.297Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Program.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Program.cs",
-              "ToolTip": "C:\\Users\\SamsonKassa\\Documents\\GitHub\\Develop\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Program.cs",
-              "RelativeToolTip": "TelonaiBFF\\Program.cs",
-              "ViewState": "AgIAAJsAAAAA4Nh1rWTqv7MAAAACAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-02T12:48:34.707Z",
               "EditorCaption": ""
             }
           ]
