@@ -70,15 +70,15 @@ public class FormNineFortyService : IFormNineFortyService
 
     public async Task CreateAsync()
     {
-        var telonaiSpecificFields = _context.TelonaiSpecificFieldValue.OrderByDescending(e => e.EffectiveDate).Include(e => e.TelonaiSpecificField)
-            .ToList();
-
-        var stateSpecificFields = _context.StateSpecificFieldValue.OrderByDescending(e => e.EffectiveDate).Include(e => e.StateSpecificField)
-            .ToList();
-
         var year = DateTime.Now.Year - 1;
         var startDate = new DateOnly(year, 1, 1);
         var endDate = new DateOnly(year - 1, 12, 31);
+
+        var telonaiSpecificFields = _context.TelonaiSpecificFieldValue.Where(e => e.EffectiveYear == year)
+            .Include(e => e.TelonaiSpecificField).ToList();
+
+        var stateSpecificFields = _context.StateSpecificFieldValue.Where(e => e.EffectiveYear == year)
+            .Include(e => e.StateSpecificField).ToList();
 
         var groupedPayrolls = _context.IncomeTax.Include(e => e.PayStub).ThenInclude(e => e.Payroll).ThenInclude(e => e.Company)
             .Where(e => e.PayStub.Payroll.ScheduledRunDate >= startDate && e.PayStub.Payroll.ScheduledRunDate <= endDate)
@@ -122,8 +122,8 @@ public class FormNineFortyService : IFormNineFortyService
 
                 var allFutaWagesWereExcludedFromStateUnemploymentTax = bool.Parse(companySpecificFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "allFutaWagesWereExcludedFromStateUnemploymentTax").FieldValue ?? "false");
                 var someFutaWagesWereExcludedFromStateUnemploymentTax = bool.Parse(companySpecificFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "someFutaWagesWereExcludedFromStateUnemploymentTax").FieldValue ?? "false");
-                var futaTaxIfAllExcludedFromStateUnemploymentTax = double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == year.ToString() + "FUTATaxRateIfAllExcludedFromStateUnemploymentTax").FieldValue);
-                var futaTaxIfSomeExcludedFromStateUnemploymentTax = double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == year.ToString() + "FUTATaxRateIfSomeExcludedFromStateUnemploymentTax").FieldValue);
+                var futaTaxIfAllExcludedFromStateUnemploymentTax = double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == "FUTATaxRateIfAllExcludedFromStateUnemploymentTax").FieldValue);
+                var futaTaxIfSomeExcludedFromStateUnemploymentTax = double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == "FUTATaxRateIfSomeExcludedFromStateUnemploymentTax").FieldValue);
 
                 var futaTaxBeforeAdjust = 0.0;
                 var adjustIfAllExcludedFromStateUnemploymentTax = 0.0;

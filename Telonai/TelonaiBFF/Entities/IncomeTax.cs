@@ -11,4 +11,5 @@ public class IncomeTax:BaseTracker
     public double YtdAmount { get; set; }
     public IncomeTaxType IncomeTaxType { get; set; }
     public PayStub PayStub { get; set; }
+
 }

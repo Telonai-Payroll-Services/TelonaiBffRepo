@@ -7,6 +7,7 @@
     using MeF.Client.Services.StateServices;
     using MeF.Client.Services.TransmitterServices;
     using System.Collections.Generic;
+    using System.IO;
 
     ///<summary>
     /// This demo app that is meant to get you familiar with some common api's within the MefClientSdk. 
@@ -21,8 +22,8 @@
     class Program
     {
         private static ServiceContext context = new ServiceContext();
-        private static string etin;
-        private static string appSysId;
+        private static string etin="84689";
+        private static string appSysId="69321899";
 
         static void Main(string[] args)
         {
@@ -78,9 +79,14 @@
                         CallGetNewSubmissionsStatus();
                         break;
                     case 8:
-                        CallGetNewSubmissionsStatus();
+                        CallSendSubmissionsClientForTest1();
                         break;
-                        //Send submission
+                    case 9:
+                        CallSendSubmissionsClientForTest2();
+                        break;
+                    case 10:
+                        CallSendSubmissionsClientForTestMultiple();
+                        break;
                     default:
                         Util.Write(string.Format("You selected an invalid number: {0}\r\n", iSel));
                         continue;
@@ -105,7 +111,10 @@
             Util.WriteResult("StateServices");
             Util.Write("  6) Call GetNewAckNotificationsClient. ");
             Util.WriteResult("TransmitterServices");
-            Util.Write("  7) Call GetNewSubmissionsStatusClient. ");
+            Util.Write("  7) Call GetNewSubmissionsStatusClient. ");        
+            Util.Write("  8) Call CallSendSubmissionsClient Test1. ");
+            Util.Write("  9) Call CallSendSubmissionsClient Test2. ");
+            Util.Write("  10) Call CallSendSubmissionsClient Multiple. ");
             Util.WriteInput("Enter Your selection (0 to exit): ");
         }
 
@@ -115,10 +124,10 @@
             Util.WriteMessage("Creating a new ServiceContext");
             try
             {
-                Util.WriteInput("  Enter your Etin:");
-                etin = Console.ReadLine();
-                Util.WriteInput("  Enter your AppSysId:");
-                appSysId = Console.ReadLine();
+               // Util.WriteInput("  Enter your Etin:");
+               // etin = Console.ReadLine();
+              //  Util.WriteInput("  Enter your AppSysId:");
+               // appSysId = Console.ReadLine();
                 //Create a new service context with the etin and appsysid input
                 context = new ServiceContext(new ClientInfo(etin, appSysId));
                 Util.WriteResult("ServiceContext has been sucessfully created.");
@@ -137,6 +146,7 @@
         {
             try
             {
+                
                 var client = new LoginClient();
                 var result = client.Invoke(context);
                 Util.WriteResult(result.StatusTxt);
@@ -145,7 +155,7 @@
             catch (Exception e)
             {
                 Util.WriteError("An error has occured check the log for details...");
-                Util.WriteError(e.Message);
+                Util.WriteError(e.ToString());
             }
         }
 
@@ -226,7 +236,7 @@
                 var maxResults = Console.ReadLine();
                 if (maxResults == "0") return;
                 //Create the client using the current directory for simplicity
-                var client = new GetNewSubmissionsStatusClient(Environment.CurrentDirectory + "\\");
+                var client = new GetNewSubmissionsStatusClient(Environment.CurrentDirectory + "\\Files\\");
                 var result = client.Invoke(context, maxResults);
                 Util.WriteMessage("Result:");
                 Util.WriteResult(string.Format(" Attachment Path: {0}", result.AttachmentFilePath));
@@ -243,36 +253,55 @@
             }
         }
 
-        private static void CallSendSubmissionsClient()
+        private static void CallSendSubmissionsClientForTest1()
         {
             try
             {
                 Util.Write("  Enter the maxResults:");
                 Util.WriteInput("Enter Your selection (0 to cancel): ");
 
-                var list = new List<MeF.Client.Services.InputComposition.SubmissionArchive> { };
-                var container = new SubmissionContainer(list,"");
-                
+                var list = new List<MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive>();
+
+                var path = Environment.CurrentDirectory + "\\Files1\\";
+                var path2 = Environment.CurrentDirectory + "\\Files1Result\\";
+                var submissionArch = new MeF.Client.Services.InputComposition.SubmissionArchive
+                {  
+                    isFileBased =false,
+                    submissionId = "69321820243050000011",
+                    submissionManifest = new MeF.Client.Services.InputComposition.SubmissionManifest(
+                    path + "manifest.xml"),                    
+                    submissionXml = new MeF.Client.Services.InputComposition.SubmissionXml(
+                        path + "941.xml")
+                };
+
+                list.Add(new MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive(submissionArch, DateTime.Now));
+
+                var container = new SubmissionContainer(list);
+
                 //Create the client using the current directory for simplicity
-                var client = new SendSubmissionsClient(Environment.CurrentDirectory + "\\");
+                var client = new SendSubmissionsClient(path2);
+                
                 var result = client.Invoke(context, container);
                 Util.WriteMessage("Result:");
 
                 Util.WriteResult(string.Format(" Attachment Path: {0}", result.AttachmentFilePath));
-                Util.WriteResult(string.Format(" Deposite ID: {0}", result.DepositId));
-                Util.WriteResult(string.Format(" Deposite ID: {0}", result.MessageID));
-                Util.WriteResult(string.Format(" Deposite ID: {0}", result.FileName));
+                Util.WriteResult(string.Format(" DepositId ID: {0}", result.DepositId));
+                Util.WriteResult(string.Format(" MessageID ID: {0}", result.MessageID));
+                Util.WriteResult(string.Format(" FileNameD: {0}", result.FileName));
                 
                 var unzippedContent= result.unzippedcontent;
 
-                System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
-                string xmlString = enc.GetString(unzippedContent);
+                if (unzippedContent != null)
+                {
+                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
+                    string xmlString = enc.GetString(unzippedContent);
 
-                Util.WriteResult(string.Format(" XML Content: {0}", xmlString));
+                    Util.WriteResult(string.Format(" XML Content: {0}", xmlString));
+                }
+                    var submissionRecieptlist = result.GetSubmissionReceiptList();
 
-                var submissionRecieptlist = result.GetSubmissionReceiptList();
-
-                Util.WriteResult(string.Format(" Submission Receipt List Count: {0}", submissionRecieptlist.Cnt));
+                    Util.WriteResult(string.Format(" Submission Receipt List Count: {0}", submissionRecieptlist.Cnt));
+                
                 Pause();
             }
             catch (Exception e)
@@ -281,6 +310,156 @@
                 Util.WriteError(e.Message);
             }
         }
+
+        private static void CallSendSubmissionsClientForTest2()
+        {
+            try
+            {
+                Util.Write("  Enter the maxResults:");
+                Util.WriteInput("Enter Your selection (0 to cancel): ");
+
+                var list = new List<MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive>();
+
+                var path = Environment.CurrentDirectory + "\\Files2\\";
+                var path2 = Environment.CurrentDirectory + "\\Files2Result\\";
+                
+                var fileStream1 = File.ReadAllBytes(path + "8453-EMP.pdf");
+                var fileStream2 = File.ReadAllBytes(path + "ScheduleB.pdf");
+
+                var submissionArch = new MeF.Client.Services.InputComposition.SubmissionArchive
+                {
+                    isFileBased = false,
+                    submissionId = "69321820243050000012",
+                    submissionManifest = new MeF.Client.Services.InputComposition.SubmissionManifest(
+                    path + "manifest.xml"),
+                    submissionXml = new MeF.Client.Services.InputComposition.SubmissionXml(
+                        path + "941.xml"), 
+                    binaryAttachments = new List<MeF.Client.Services.InputComposition.BinaryAttachment>
+                    {
+                        new MeF.Client.Services.InputComposition.BinaryAttachment("8453-EMP.pdf",fileStream1),
+                        new MeF.Client.Services.InputComposition.BinaryAttachment("ScheduleB.pdf",fileStream2),
+                    }
+                };
+
+                list.Add(new MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive(submissionArch, DateTime.Now));
+
+                var container = new SubmissionContainer(list);
+
+                //Create the client using the current directory for simplicity
+                var client = new SendSubmissionsClient(path2);
+
+                var result = client.Invoke(context, container);
+                Util.WriteMessage("Result:");
+
+                Util.WriteResult(string.Format(" Attachment Path: {0}", result.AttachmentFilePath));
+                Util.WriteResult(string.Format(" DepositId ID: {0}", result.DepositId));
+                Util.WriteResult(string.Format(" MessageID ID: {0}", result.MessageID));
+                Util.WriteResult(string.Format(" FileNameD: {0}", result.FileName));
+
+                var unzippedContent = result.unzippedcontent;
+
+                if (unzippedContent != null)
+                {
+                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
+                    string xmlString = enc.GetString(unzippedContent);
+
+                    Util.WriteResult(string.Format(" XML Content: {0}", xmlString));
+                }
+                var submissionRecieptlist = result.GetSubmissionReceiptList();
+
+                Util.WriteResult(string.Format(" Submission Receipt List Count: {0}", submissionRecieptlist.Cnt));
+
+                Pause();
+            }
+            catch (Exception e)
+            {
+                Util.WriteError("An error has occured check the log for details...");
+                Util.WriteError(e.Message);
+            }
+        }
+
+        private static void CallSendSubmissionsClientForTestMultiple()
+        {
+            try
+            {
+                Util.Write("  Enter the maxResults:");
+                Util.WriteInput("Enter Your selection (0 to cancel): ");
+
+                var list = new List<MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive>();
+
+                //first submission
+                var path = Environment.CurrentDirectory + "\\Files1\\";
+                var submissionArch = new MeF.Client.Services.InputComposition.SubmissionArchive
+                {
+                    isFileBased = false,
+                    submissionId = "69321820243050000014",
+                    submissionManifest = new MeF.Client.Services.InputComposition.SubmissionManifest(
+                    path + "manifest.xml"),
+                    submissionXml = new MeF.Client.Services.InputComposition.SubmissionXml(
+                        path + "941.xml")
+                };
+
+                //second submission
+                var path2 = Environment.CurrentDirectory + "\\Files2\\";
+                var path3 = Environment.CurrentDirectory + "\\FilesResultMultiple\\";
+
+                var fileStream1 = File.ReadAllBytes(path2 + "8453-EMP.pdf");
+                var fileStream2 = File.ReadAllBytes(path2 + "ScheduleB.pdf");
+
+                var submissionArch2 = new MeF.Client.Services.InputComposition.SubmissionArchive
+                {
+                    isFileBased = false,
+                    submissionId = "69321820243050000015",
+                    submissionManifest = new MeF.Client.Services.InputComposition.SubmissionManifest(
+                    path + "manifest.xml"),
+                    submissionXml = new MeF.Client.Services.InputComposition.SubmissionXml(
+                        path + "941.xml"),
+                    binaryAttachments = new List<MeF.Client.Services.InputComposition.BinaryAttachment>
+                    {
+                        new MeF.Client.Services.InputComposition.BinaryAttachment("8453-EMP.pdf",fileStream1),
+                        new MeF.Client.Services.InputComposition.BinaryAttachment("ScheduleB.pdf",fileStream2),
+                    }
+                };
+
+                //add both submissions
+                list.Add(new MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive(submissionArch, DateTime.Now));
+                list.Add(new MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive(submissionArch2, DateTime.Now));
+
+                var container = new SubmissionContainer(list);
+
+                //Create the client using the current directory for simplicity
+                var client = new SendSubmissionsClient(path2);
+
+                var result = client.Invoke(context, container);
+                Util.WriteMessage("Result:");
+
+                Util.WriteResult(string.Format(" Attachment Path: {0}", result.AttachmentFilePath));
+                Util.WriteResult(string.Format(" DepositId ID: {0}", result.DepositId));
+                Util.WriteResult(string.Format(" MessageID ID: {0}", result.MessageID));
+                Util.WriteResult(string.Format(" FileNameD: {0}", result.FileName));
+
+                var unzippedContent = result.unzippedcontent;
+
+                if (unzippedContent != null)
+                {
+                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
+                    string xmlString = enc.GetString(unzippedContent);
+
+                    Util.WriteResult(string.Format(" XML Content: {0}", xmlString));
+                }
+                var submissionRecieptlist = result.GetSubmissionReceiptList();
+
+                Util.WriteResult(string.Format(" Submission Receipt List Count: {0}", submissionRecieptlist.Cnt));
+
+                Pause();
+            }
+            catch (Exception e)
+            {
+                Util.WriteError("An error has occured check the log for details...");
+                Util.WriteError(e.Message);
+            }
+        }
+
         private static void Pause()
         {
             Util.WriteMessage("Press any key to continue....");
