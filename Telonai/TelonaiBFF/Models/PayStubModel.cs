@@ -5,6 +5,7 @@ public class PayStubModel: BaseTracker
     public int Id { get; set; }
     public int PayrollId { get; set; }
     public int EmploymentId { get; set; }
+    public int PersonId { get; set; }
     public int OtherMoneyReceivedId{ get; set; }
 
     public double RegularHoursWorked { get; set; }
