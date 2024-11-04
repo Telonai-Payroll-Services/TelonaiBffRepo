@@ -74,8 +74,8 @@ public class FormNineFortyFourService : IFormNineFortyFourService
         var startDate = new DateOnly(year, 1, 1);
         var endDate = new DateOnly(year - 1, 12, 31);
 
-        var telonaiSpecificFields = _context.TelonaiSpecificFieldValue.Where(e => e.EffectiveYear == year)
-            .Include(e => e.TelonaiSpecificField).ToList();
+        var countrySpecificFields = _context.CountrySpecificFieldValue.Where(e => e.EffectiveYear == year)
+            .Include(e => e.CountrySpecificField).ToList();
 
         var groupedPayrolls = _context.IncomeTax.Include(e => e.PayStub).ThenInclude(e => e.Payroll).ThenInclude(e => e.Company)
             .Where(e => e.PayStub.Payroll.ScheduledRunDate >= startDate && e.PayStub.Payroll.ScheduledRunDate <= endDate)
@@ -101,29 +101,41 @@ public class FormNineFortyFourService : IFormNineFortyFourService
                 var allPayStubsThisYear = incomeTaxes.Select(e => e.PayStub).ToList();
                 var allPayrollsThisYear = allPayStubsThisYear.Select(e => e.Payroll).Distinct().ToList();
                 var grossPayThisYear = allPayStubsThisYear.Sum(e => e.GrossPay);
+                var additionalMoneyReceivedIds = allPayStubsThisYear.SelectMany(e=>e.OtherMoneyReceived.AdditionalOtherMoneyReceivedId).ToArray();
+
+                var additionalMoneyReceived = _context.AdditionalOtherMoneyReceived.Where(e => additionalMoneyReceivedIds.Contains(e.Id)).ToList();
 
                 var federalIncomeTaxWithheld = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Federal Tax").Sum(e => e.Amount);
-                var sickLeaveWages = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Qualified Sick Leave Wages").Sum(e => e.OtherMoneyReceived.OtherPay);
-                var sickLeaveWagesTax = sickLeaveWages * double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName ==  "SickLeaveWagesTaxRate").FieldValue);
-                
-                var familyLeaveWages = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Qualified Family Leave Wages").Sum(e => e.OtherMoneyReceived.OtherPay);
-                var familyLeaveWagesTax = familyLeaveWages * double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName ==  "FamilyLeaveWagesTaxRate").FieldValue);
-                
-                var nonRefundSickLeaveWages1 = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Non Refundable Credit For Sick Leave Wages 1").Sum(e => e.OtherMoneyReceived.OtherPay);
-                var nonRefundFamilyLeaveWages1 = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Non Refundable Credit For Family Leave Wages 1").Sum(e => e.OtherMoneyReceived.OtherPay);
 
-                var nonRefundSickLeaveWages2 = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Non Refundable Credit For Sick Leave Wages 2").Sum(e => e.OtherMoneyReceived.OtherPay);
-                var nonRefundFamilyLeaveWages2 = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Non Refundable Credit For Family Leave Wages 2").Sum(e => e.OtherMoneyReceived.OtherPay);
+                var sickLeaveWages = additionalMoneyReceived.Where(e => e.Note=="Qualified Sick Leave Wages").Sum(e=> e.Amount);
+
+                var sickLeaveWagesTax = sickLeaveWages * double.Parse(countrySpecificFields.FirstOrDefault(e => e.CountrySpecificField.FieldName ==  "SickLeaveWagesTaxRate").FieldValue);
                 
-                var refundableSickLeaveWages1 = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Refundable Credit For Sick Leave Wages 1").Sum(e => e.OtherMoneyReceived.OtherPay);
-                var refundableFamilyLeaveWages1 = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Refundable Credit For Family Leave Wages 1").Sum(e => e.OtherMoneyReceived.OtherPay);
-
-                var refundableSickLeaveWages2 = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Refundable Credit For Sick Leave Wages 2").Sum(e => e.OtherMoneyReceived.OtherPay);
-                var refundableFamilyLeaveWages2 = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.Note == "Refundable Credit For Family Leave Wages 2").Sum(e => e.OtherMoneyReceived.OtherPay);
-
+                var familyLeaveWages = additionalMoneyReceived.Where(e => e.Note == "Qualified Family Leave Wages").Sum(e => e.Amount); 
+                
+                var familyLeaveWagesTax = familyLeaveWages * double.Parse(countrySpecificFields.FirstOrDefault(e => e.CountrySpecificField.FieldName ==  "FamilyLeaveWagesTaxRate").FieldValue);
+                
+                var nonRefundSickLeaveWages1 = additionalMoneyReceived.Where(e=>e.Note == "Non Refundable Credit For Sick Leave Wages 1").Sum(e => e.Amount); 
+                
+                var nonRefundFamilyLeaveWages1 = additionalMoneyReceived.Where(e => e.Note == "Non Refundable Credit For Sick Leave Wages 1").Sum(e => e.Amount);
+                
+                var nonRefundSickLeaveWages2 = additionalMoneyReceived.Where(e => e.Note == "Non Refundable Credit For Sick Leave Wages 2").Sum(e => e.Amount);
+                
+                var nonRefundFamilyLeaveWages2 = additionalMoneyReceived.Where(e => e.Note == "Non Refundable Credit For Family Leave Wages 2").Sum(e => e.Amount);
+                
+                var refundableSickLeaveWages1 = additionalMoneyReceived.Where(e => e.Note == "Refundable Credit For Sick Leave Wages 1").Sum(e => e.Amount);
+                
+                var refundableFamilyLeaveWages1 = additionalMoneyReceived.Where(e => e.Note == "Refundable Credit For Family Leave Wages 1").Sum(e => e.Amount);
+                
+                var refundableSickLeaveWages2 = additionalMoneyReceived.Where(e => e.Note == "Refundable Credit For Sick Leave Wages 2").Sum(e => e.Amount);
+                
+                var refundableFamilyLeaveWages2 = additionalMoneyReceived.Where(e => e.Note == "Refundable Credit For Family Leave Wages 2").Sum(e => e.Amount);
+                
                 var taxableSocialSecurityWages = allPayStubsThisYear.Sum(e => e.RegularPay + e.OverTimePay);
                 
-                var taxableSocialSecurityTips = allPayStubsThisYear.Select(e => e.OtherMoneyReceived).Sum(e => e.OtherPay + e.CashTips + e.CreditCardTips);
+                var taxableSocialSecurityTips =  allPayStubsThisYear.Select(e=> e.OtherMoneyReceived)
+                .Sum(e=>e.CashTips + e.CreditCardTips)+ additionalMoneyReceived.Sum(e => e.Amount);
+
                 var taxableMedicareWagesAndTips = taxableSocialSecurityWages + taxableSocialSecurityTips;
                 var wagesAndTipsSubjectToAdditionalTax = allPayStubsThisYear.Sum(e => e.AmountSubjectToAdditionalMedicareTax);
 
@@ -241,7 +253,7 @@ public class FormNineFortyFourService : IFormNineFortyFourService
                     //Signature
                     //Note: We will take form 8879-EMP from our customers and sign the submission ourselves using self generated pin
                     HasThirdPartyDesignee = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "HasThirdPartyDesignee").FieldValue ?? "false"),
-                    ThirdPartyFiveDigitPin = int.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == "SelfGeneratedFiveDigitPin").FieldValue)
+                    ThirdPartyFiveDigitPin = int.Parse(countrySpecificFields.FirstOrDefault(e => e.CountrySpecificField.FieldName == "SelfGeneratedFiveDigitPin").FieldValue)
 
                 };
 

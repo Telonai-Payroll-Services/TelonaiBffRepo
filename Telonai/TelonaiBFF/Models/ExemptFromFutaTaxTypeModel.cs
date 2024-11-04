@@ -1,5 +1,5 @@
 namespace TelonaiWebApi.Models;
-public enum PaymentExemptFromFutaTaxTypeModel
+public enum ExemptFromFutaTaxTypeModel
 {
     FringeBenefits =1,
     GroupTermLifeInsurance,

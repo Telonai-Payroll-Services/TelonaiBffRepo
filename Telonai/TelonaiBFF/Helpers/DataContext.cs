@@ -157,11 +157,12 @@ public class DataContext : DbContext
     public DbSet<CompanySpecificFieldValue> CompanySpecificFieldValue { get; set; }
     public DbSet<PayStubSpecificField> PayStubSpecificFiel { get; set; }
     public DbSet<PayStubSpecificFieldValue> PayStubSpecificFieldValue { get; set; }
-    public DbSet<TelonaiSpecificField> TelonaiSpecificField { get; set; }
-    public DbSet<TelonaiSpecificFieldValue> TelonaiSpecificFieldValue { get; set; }
+    public DbSet<CountrySpecificField> CountrySpecificField { get; set; }
+    public DbSet<CountrySpecificFieldValue> CountrySpecificFieldValue { get; set; }
     public DbSet<FormNineForty> FormNineForty { get; set; }
     public DbSet<StateSpecificField> StateSpecificField { get; set; }
     public DbSet<StateSpecificFieldValue> StateSpecificFieldValue { get; set; }
     public DbSet<FormNineFortyFour> FormNineFortyFour { get; set; }
+    public DbSet<AdditionalOtherMoneyReceived> AdditionalOtherMoneyReceived { get; set; }
 
 }

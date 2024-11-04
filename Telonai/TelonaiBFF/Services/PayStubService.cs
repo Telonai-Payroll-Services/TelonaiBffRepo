@@ -134,7 +134,7 @@ public class PayStubService : IPayStubService
         var payStubs = _context.PayStub.Include(e=>e.OtherMoneyReceived).Include(e => e.Employment).ThenInclude(e => e.Person)
                 .ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
                 .Where(e => e.PayrollId == payrollId) ?? throw new AppException("Pay stubs not found");
-
+   
         foreach (var payStub in payStubs.ToList())
         {
             //Calculate Federal and State Taxes
@@ -146,8 +146,11 @@ public class PayStubService : IPayStubService
                 await _context.SaveChangesAsync();
             }
 
+            var additionalMoneyReceivedIds = payStub.OtherMoneyReceived.AdditionalOtherMoneyReceivedId;
+            var additionalMoneyReceived = _context.AdditionalOtherMoneyReceived.Where(e => additionalMoneyReceivedIds.Contains(e.Id)).ToList();
+
             //Create PDFs
-            var docId = await pdfManager.CreatePayStubPdfAsync(payStub, payStub.OtherMoneyReceived, _newIncomeTaxesToHold.ToList());
+            var docId = await pdfManager.CreatePayStubPdfAsync(payStub, payStub.OtherMoneyReceived, additionalMoneyReceived, _newIncomeTaxesToHold.ToList());
             var doc = new Document { Id = docId, FileName = string.Format("PayStub-" + payStub.Id + "-" + dTime.ToString("yyyyMMddmmss") + ".pdf") };
             _context.Document.Add(doc);
 

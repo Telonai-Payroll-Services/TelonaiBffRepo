@@ -9,7 +9,6 @@ public class PayStub: BaseTracker
     public int EmploymentId { get; set; }
     public Guid? DocumentId { get; set; }
     public int? OtherMoneyReceivedId { get; set; }
-
     public double RegularHoursWorked { get; set; }
     public double OverTimeHoursWorked { get; set; }
     public double GrossPay { get; set; }
@@ -17,7 +16,6 @@ public class PayStub: BaseTracker
     public double OverTimePay { get; set; }
     public double RegularPay { get; set; }
     public double AmountSubjectToAdditionalMedicareTax { get; set; }
-
     public double YtdRegularHoursWorked { get; set; }
     public double YtdOverTimeHoursWorked { get; set; }
     public double YtdGrossPay { get; set; }

@@ -297,8 +297,8 @@ public class PayrollService : IPayrollService
         timecards.ForEach(e => e.IsLocked = true);
         _context.UpdateRange(timecards);
 
-        var additionalWithholdingTaxWageLimit = double.Parse(_context.TelonaiSpecificFieldValue.FirstOrDefault(e => e.EffectiveYear == currentYear && 
-        e.TelonaiSpecificField.FieldName== "AdditionalMedicareTaxWithholdingWageLimit")?.FieldValue?? "0.0");
+        var additionalWithholdingTaxWageLimit = double.Parse(_context.CountrySpecificFieldValue.FirstOrDefault(e => e.EffectiveYear == currentYear && 
+        e.CountrySpecificField.FieldName== "AdditionalMedicareTaxWithholdingWageLimit")?.FieldValue?? "0.0");
 
         foreach (var  emp in employments) 
         {
@@ -534,7 +534,7 @@ public class PayrollService : IPayrollService
         var regularHours = totalHoursWorked.Sum() - overTimeHours;
 
         var regularPay = Math.Round(emp.PayRate * regularHours,2);
-        var overTimePayAmount = Math.Round(emp.PayRate * 1.5 * overTimeHours,2); //TO DO: get the 1.5 value from TelonaiSpecificFields table in DB
+        var overTimePayAmount = Math.Round(emp.PayRate * 1.5 * overTimeHours,2); //TO DO: get the 1.5 value from CountrySpecificFields table in DB
         return Tuple.Create(regularPay, regularHours, overTimePayAmount,overTimeHours);
     }
     private static Tuple<double, int> CalculatePayForDailyRatedEmployees(List<TimecardUsa> timecards, 
