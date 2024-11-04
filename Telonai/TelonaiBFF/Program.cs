@@ -176,5 +176,5 @@ var app = builder.Build();
     app.UseSwaggerUI();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
-app.Run("http://localhost:5000");
+//app.Run("http://localhost:5000");
 app.Run();
