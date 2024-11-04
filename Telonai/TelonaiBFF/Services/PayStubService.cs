@@ -69,7 +69,8 @@ public class PayStubService : IPayStubService
 
     public List<PayStubModel> GetCurrentByPayrollId(int payrollId)
     {
-        var obj = _context.PayStub.Where(e => e.PayrollId == payrollId).Include(e=>e.Payroll).ToList();
+        var obj = _context.PayStub.Where(e => e.PayrollId == payrollId).Include(e=>e.Payroll)
+            .Include(e=> e.Employment).ToList();
         var result = _mapper.Map<List<PayStubModel>>(obj);
         return result;
     }
@@ -185,7 +186,7 @@ public class PayStubService : IPayStubService
 
     private PayStub GetPayStub(int id)
     {
-        var dto = _context.PayStub.Find(id);
+        var dto = _context.PayStub.Include(e=>e.Payroll).Include(e => e.Employment).FirstOrDefault(e=>e.Id==id);
         return dto;
     }
 

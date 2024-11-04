@@ -17,6 +17,7 @@ public class AutoMapperProfile : Profile
     public AutoMapperProfile()
     {
         CreateMap<PayStub, PayStubModel>()
+            .ForMember(dest => dest.PersonId, opt => opt.MapFrom(src => src.Employment.PersonId))
             .ForMember(dest => dest.Employment, opt => opt.Ignore());
         CreateMap<PayStubModel, PayStub>()
             .ForMember(dest => dest.YtdGrossPay, opt => opt.Ignore())
