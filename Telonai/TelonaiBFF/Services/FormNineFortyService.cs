@@ -74,8 +74,8 @@ public class FormNineFortyService : IFormNineFortyService
         var startDate = new DateOnly(year, 1, 1);
         var endDate = new DateOnly(year - 1, 12, 31);
 
-        var telonaiSpecificFields = _context.TelonaiSpecificFieldValue.Where(e => e.EffectiveYear == year)
-            .Include(e => e.TelonaiSpecificField).ToList();
+        var countrySpecificFields = _context.CountrySpecificFieldValue.Where(e => e.EffectiveYear == year)
+            .Include(e => e.CountrySpecificField).ToList();
 
         var stateSpecificFields = _context.StateSpecificFieldValue.Where(e => e.EffectiveYear == year)
             .Include(e => e.StateSpecificField).ToList();
@@ -103,7 +103,11 @@ public class FormNineFortyService : IFormNineFortyService
                 var allPayStubsThisYear = incomeTaxes.Select(e => e.PayStub).ToList();
                 var allPayrollsThisYear = allPayStubsThisYear.Select(e => e.Payroll).Distinct().ToList();
                 var grossPayThisYear = allPayStubsThisYear.Sum(e => e.GrossPay);
-                var paymentExemptFromFutaTax = allPayStubsThisYear.Where(e => e.OtherMoneyReceived.PaymentExemptFromFutaTaxTypeId > 0).Select(e => e.OtherMoneyReceived);
+                var additionalMoneyReceivedIds = allPayStubsThisYear.SelectMany(e => e.OtherMoneyReceived.AdditionalOtherMoneyReceivedId).ToArray();
+
+                var additionalMoneyReceived = _context.AdditionalOtherMoneyReceived.Where(e => additionalMoneyReceivedIds.Contains(e.Id)).ToList();
+
+                var paymentExemptFromFutaTax = additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId>0);
 
                 var statesTax = incomeTaxes.Where(e => e.IncomeTaxType.Name == "State Tax")
                 .Select(e => new { State = e.IncomeTaxType.State.StateCode, TaxAmount = e.Amount, Wages = e.PayStub.GrossPay }).ToList();
@@ -116,14 +120,14 @@ public class FormNineFortyService : IFormNineFortyService
                 var futaTax = incomeTaxes.Where(e => e.IncomeTaxType.Name == "FUTA");
                 
                 var totalPaymentsAbove7K = allPayStubsThisYear.Where(e => e.GrossPay > 7000).Sum(e => e.GrossPay - 7000);
-                var paymentsExemptFromFutaTaxAmount = paymentExemptFromFutaTax.Sum(e => e.OtherPay);
+                var paymentsExemptFromFutaTaxAmount = paymentExemptFromFutaTax.Sum(e => e.Amount);
                 var subTotal = paymentsExemptFromFutaTaxAmount + totalPaymentsAbove7K;
                 var totalTaxableFutaWages = grossPayThisYear - subTotal;
 
                 var allFutaWagesWereExcludedFromStateUnemploymentTax = bool.Parse(companySpecificFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "allFutaWagesWereExcludedFromStateUnemploymentTax").FieldValue ?? "false");
                 var someFutaWagesWereExcludedFromStateUnemploymentTax = bool.Parse(companySpecificFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "someFutaWagesWereExcludedFromStateUnemploymentTax").FieldValue ?? "false");
-                var futaTaxIfAllExcludedFromStateUnemploymentTax = double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == "FUTATaxRateIfAllExcludedFromStateUnemploymentTax").FieldValue);
-                var futaTaxIfSomeExcludedFromStateUnemploymentTax = double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == "FUTATaxRateIfSomeExcludedFromStateUnemploymentTax").FieldValue);
+                var futaTaxIfAllExcludedFromStateUnemploymentTax = double.Parse(countrySpecificFields.FirstOrDefault(e => e.CountrySpecificField.FieldName == "FUTATaxRateIfAllExcludedFromStateUnemploymentTax").FieldValue);
+                var futaTaxIfSomeExcludedFromStateUnemploymentTax = double.Parse(countrySpecificFields.FirstOrDefault(e => e.CountrySpecificField.FieldName == "FUTATaxRateIfSomeExcludedFromStateUnemploymentTax").FieldValue);
 
                 var futaTaxBeforeAdjust = 0.0;
                 var adjustIfAllExcludedFromStateUnemploymentTax = 0.0;
@@ -150,17 +154,17 @@ public class FormNineFortyService : IFormNineFortyService
                     //3 to 4e
                     TotalPaymentsToAllEmployees = grossPayThisYear,
                     PaymentsExemptFromFutaTax = paymentsExemptFromFutaTaxAmount,
-                    ExemptFromFutaFringeBenefits = paymentExemptFromFutaTax.Any(e => e.PaymentExemptFromFutaTaxTypeId == (int)PaymentExemptFromFutaTaxTypeModel.FringeBenefits),
-                    ExemptFromFutaGroupTermLifeInsurance = paymentExemptFromFutaTax.Any(e => e.PaymentExemptFromFutaTaxTypeId == (int)PaymentExemptFromFutaTaxTypeModel.GroupTermLifeInsurance),
-                    ExemptFromFutaRetirementOrPension = paymentExemptFromFutaTax.Any(e => e.PaymentExemptFromFutaTaxTypeId == (int)PaymentExemptFromFutaTaxTypeModel.RetirementOrPension),
-                    ExemptFromFutaDependentCare = paymentExemptFromFutaTax.Any(e => e.PaymentExemptFromFutaTaxTypeId == (int)PaymentExemptFromFutaTaxTypeModel.DependentCare),
-                    ExemptFromFutaOther = paymentExemptFromFutaTax.Any(e => e.PaymentExemptFromFutaTaxTypeId == (int)PaymentExemptFromFutaTaxTypeModel.Other),
+                    ExemptFromFutaFringeBenefits = paymentExemptFromFutaTax.Any(e => e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.FringeBenefits),
+                    ExemptFromFutaGroupTermLifeInsurance = paymentExemptFromFutaTax.Any(e => e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.GroupTermLifeInsurance),
+                    ExemptFromFutaRetirementOrPension = paymentExemptFromFutaTax.Any(e => e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.RetirementOrPension),
+                    ExemptFromFutaDependentCare = paymentExemptFromFutaTax.Any(e => e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.DependentCare),
+                    ExemptFromFutaOther = paymentExemptFromFutaTax.Any(e => e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.Other),
 
                     //5f to 8
                     TotalPaymentsAbove7K = totalPaymentsAbove7K,
                     SubTotal = subTotal,
                     TotalTaxableFutaWages = totalTaxableFutaWages,
-                    FutaTaxBeforeAdjust = futaTaxBeforeAdjust = totalTaxableFutaWages * double.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == year.ToString() + "FUTATaxRate").FieldValue),
+                    FutaTaxBeforeAdjust = futaTaxBeforeAdjust = totalTaxableFutaWages * double.Parse(countrySpecificFields.FirstOrDefault(e => e.CountrySpecificField.FieldName == year.ToString() + "FUTATaxRate").FieldValue),
 
                     
                     //9 to 11
@@ -193,7 +197,7 @@ public class FormNineFortyService : IFormNineFortyService
                     //Signature
                     //Note: We will take form 8879-EMP from our customers and sign the submission ourselves using self generated pin
                     HasThirdPartyDesignee = bool.Parse(companySpecificFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "HasThirdPartyDesignee").FieldValue ?? "false"),
-                    ThirdPartyFiveDigitPin = int.Parse(telonaiSpecificFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == "SelfGeneratedFiveDigitPin").FieldValue)
+                    ThirdPartyFiveDigitPin = int.Parse(countrySpecificFields.FirstOrDefault(e => e.CountrySpecificField.FieldName == "SelfGeneratedFiveDigitPin").FieldValue)
 
                 };
 

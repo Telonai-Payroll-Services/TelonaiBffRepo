@@ -13,7 +13,8 @@ using Amazon.S3;
 
 public interface IPDFManager
 {
-    Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived, List<IncomeTax> incomeTaxes);
+    Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived,
+        List<AdditionalOtherMoneyReceived> additionalMoneyReceived, List<IncomeTax> incomeTaxes);
 }
 
 [Obsolete]
@@ -33,18 +34,21 @@ public class PDFManager : IPDFManager
 
     private OtherMoneyReceived _otherMoneyReceived = null;
     private List<IncomeTax> _incomeTaxes = null;
+    private List<AdditionalOtherMoneyReceived> _additionalMoneyReceived = null;
 
     public PDFManager()
     {
     }
 
-    public async Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived, List<IncomeTax> incomeTaxes)
+    public async Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived,
+        List<AdditionalOtherMoneyReceived> additionalMoneyReceived, List<IncomeTax> incomeTaxes)
     {
         var  documentId=Guid.NewGuid();
         var doc = new iTextSharp.text.Document();
 
         _incomeTaxes = incomeTaxes;
         _otherMoneyReceived = otherReceived;
+        _additionalMoneyReceived = additionalMoneyReceived;
 
         _payStub = payStub;
         _person = payStub.Employment.Person;
@@ -163,17 +167,17 @@ public class PDFManager : IPDFManager
                 AddCellToBody(_childTableLayout1, _otherMoneyReceived.Reimbursement.ToString(), count, _fontNormal);
                 AddCellToBody(_childTableLayout1, _otherMoneyReceived.YtdReimbursement.ToString(), count, _fontNormal);
             }
-            if (_otherMoneyReceived.YtdOtherPay > 0.0)
+            foreach(var item in _additionalMoneyReceived?? new List<AdditionalOtherMoneyReceived>())
             {
                 count++;
-                var note = _otherMoneyReceived.Note;
+                var note = item.Note;
                 if (note.Length > 50)
                     note = note.Substring(0, 50);
                 AddCellToBody(_childTableLayout1, note, count, _fontNormal);
                 AddCellToBody(_childTableLayout1, "", count, _fontNormal);
                 AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, _otherMoneyReceived.OtherPay.ToString(), count, _fontNormal);
-                AddCellToBody(_childTableLayout1, _otherMoneyReceived.YtdOtherPay.ToString(), count, _fontNormal);
+                AddCellToBody(_childTableLayout1, item.Amount.ToString(), count, _fontNormal);
+                AddCellToBody(_childTableLayout1, item.YtdAmount.ToString(), count, _fontNormal);
             }
         }
         count++;

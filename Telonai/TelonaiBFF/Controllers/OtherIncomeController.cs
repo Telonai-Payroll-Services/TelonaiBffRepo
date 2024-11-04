@@ -24,10 +24,10 @@ public class OtherIncomeController : ControllerBase
     }
 
 
-    [HttpGet("payrolls/{payrollId}")]
-    public IActionResult GetCurrentByPayrollId(int payrollId)
+    [HttpGet("paystubs/{paystubId}")]
+    public IActionResult GetCurrentByPayrollId(int paystubId)
     {
-        var OtherIncomes = _otherIncomeService.GetByPayrollId(payrollId,  out var companyId);
+        var OtherIncomes = _otherIncomeService.GetByPayStubId(paystubId,  out var companyId);
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         return Ok(OtherIncomes);
     }
@@ -36,25 +36,24 @@ public class OtherIncomeController : ControllerBase
     public IActionResult GetById(int id)
     {
         var item = _otherIncomeService.GetById(id);
-
         //_scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, item.PayStub.Payroll.CompanyId);
         return Ok(item);
     }
 
-    [HttpPost()]
-    public IActionResult Create([FromBody]OtherMoneyReceivedModel model)
+    [HttpPost("paystub/{paystubId}")]
+    public IActionResult Create(int paystubId, [FromBody]OtherMoneyReceivedModel model)
     {
-        _otherIncomeService.Create(model);
+        _otherIncomeService.Create(paystubId,model);
         return Ok();
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody]OtherMoneyReceivedModel model)
+    public IActionResult Update(int paystubId, [FromBody]OtherMoneyReceivedModel model)
     {
-        var stub = _otherIncomeService.GetById(id);
+        //var stub = _otherIncomeService.GetById(paystubId);
         //_scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, stub.PayStub.Payroll.CompanyId);
 
-        _otherIncomeService.Update(model);
+        _otherIncomeService.Update(paystubId,model);
         return Ok(new { message = "OtherIncome updated." });
     }
 

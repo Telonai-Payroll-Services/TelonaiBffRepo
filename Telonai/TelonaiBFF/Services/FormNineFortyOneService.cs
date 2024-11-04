@@ -78,8 +78,8 @@ public class FormNineFortyOneService : IFormNineFortyOneService
         var twoPreviousQuarter = previousQuarter.Item1 == 4 ? Tuple.Create(1, previousQuarter.Item2.Year - 1) :
              Tuple.Create(previousQuarter.Item1 - 1, previousQuarter.Item2.Year);
 
-        var telonaiFields = _context.TelonaiSpecificFieldValue.Where(e => e.EffectiveYear == previousQuarter.Item2.Year)
-            .Include(e => e.TelonaiSpecificField).ToList();
+        var countrySpecificFields = _context.CountrySpecificFieldValue.Where(e => e.EffectiveYear == previousQuarter.Item2.Year)
+            .Include(e => e.CountrySpecificField).ToList();
 
         var previous941s = _context.FormNineFortyOne.Where(e => e.Year == twoPreviousQuarter.Item2 &&
             e.QuarterTypeId == twoPreviousQuarter.Item1);
@@ -116,6 +116,9 @@ public class FormNineFortyOneService : IFormNineFortyOneService
                 var allPayStubsThisQuarter = incomeTaxes.Select(e => e.PayStub).ToList();
                 var allPayrollsThisQuarter = allPayStubsThisQuarter.Select(e => e.Payroll).Distinct().ToList();
                 var grossPayThisQuarter = allPayStubsThisQuarter.Sum(e => e.GrossPay);
+                var additionalMoneyReceivedIds = allPayStubsThisQuarter.SelectMany(e => e.OtherMoneyReceived.AdditionalOtherMoneyReceivedId).ToArray();
+
+                var additionalMoneyReceived = _context.AdditionalOtherMoneyReceived.Where(e => additionalMoneyReceivedIds.Contains(e.Id)).ToList();
 
                 var calculatedSocialAndMedicareTax = e.Where(e => e.IncomeTaxType.ForEmployee &&
                     (e.IncomeTaxType.Name == "Social Security" ||
@@ -125,7 +128,9 @@ public class FormNineFortyOneService : IFormNineFortyOneService
 
                 var federalIncomeTaxWithheld = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Federal Tax").Sum(e => e.Amount);
                 var taxableSocialSecurityWages = allPayStubsThisQuarter.Sum(e => e.RegularPay + e.OverTimePay);
-                var taxableSocialSecurityTips = allPayStubsThisQuarter.Select(e => e.OtherMoneyReceived).Sum(e => e.OtherPay + e.CashTips + e.CreditCardTips);
+                var taxableSocialSecurityTips = allPayStubsThisQuarter.Select(e => e.OtherMoneyReceived)
+                .Sum(e => e.CashTips + e.CreditCardTips) + additionalMoneyReceived.Sum(e => e.Amount);
+
                 var taxableMedicareWagesAndTips = taxableSocialSecurityWages + taxableSocialSecurityTips;
                 var wagesAndTipsSubjectToAdditionalTax = allPayStubsThisQuarter.Sum(e => e.AmountSubjectToAdditionalMedicareTax);
                 var unreportedTipsTaxDue = incomeTaxes.Where(e => e.IncomeTaxType.Name == "Unreported Tips Tax Due").Sum(e => e.Amount);
@@ -210,7 +215,7 @@ public class FormNineFortyOneService : IFormNineFortyOneService
                     //Signature
                     //Note: We will take form 8879-EMP from our customers and sign the submission ourselves using self generated pin
                     HasThirdPartyDesignee = bool.Parse(companyFields.FirstOrDefault(e => e.CompanySpecificField.FieldName == "HasThirdPartyDesignee").FieldValue ?? "false"),
-                    ThirdPartyFiveDigitPin = int.Parse(telonaiFields.FirstOrDefault(e => e.TelonaiSpecificField.FieldName == "SelfGeneratedFiveDigitPin").FieldValue)
+                    ThirdPartyFiveDigitPin = int.Parse(countrySpecificFields.FirstOrDefault(e => e.CountrySpecificField.FieldName == "SelfGeneratedFiveDigitPin").FieldValue)
 
                 };
 

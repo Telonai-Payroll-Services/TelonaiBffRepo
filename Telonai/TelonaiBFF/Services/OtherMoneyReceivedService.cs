@@ -2,6 +2,7 @@ namespace TelonaiWebApi.Services;
 
 using Amazon.Runtime.Internal;
 using AutoMapper;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System;
 using TelonaiWebApi.Entities;
@@ -11,11 +12,9 @@ using TelonaiWebApi.Models;
 public interface IOtherMoneyReceivedService
 {
     OtherMoneyReceivedModel GetById(int id);
-    List<OtherMoneyReceivedModel> GetByPayrollId(int payrollId, out int jobId);
-    void Update(List<OtherMoneyReceivedModel> models);
-    void Update(OtherMoneyReceivedModel model);
-    void Create(List<OtherMoneyReceivedModel> models);
-    void Create(OtherMoneyReceivedModel model);
+    List<OtherMoneyReceivedModel> GetByPayStubId(int payStubId, out int jobId);
+    void Update(int payStubId, OtherMoneyReceivedModel model);
+    void Create(int payStubId, OtherMoneyReceivedModel model);
     void Delete(int id);
 }
 
@@ -43,10 +42,11 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
 
         return _mapper.Map<OtherMoneyReceivedModel>(obj);
     }
-    public List<OtherMoneyReceivedModel> GetByPayrollId(int payrollId,  out int companyId )
+    public List<OtherMoneyReceivedModel> GetByPayStubId(int payStubId,  out int companyId )
     {
         var payStub = _context.PayStub.Include(e=>e.OtherMoneyReceived).Include(e=>e.Payroll)
-                                      .Where(e=>e.PayrollId==payrollId);
+                                      .Where(e=>e.Id== payStubId);
+
         companyId = payStub.Select(e=>e.Payroll.CompanyId).First();
 
         var obj = payStub.Select(e => e.OtherMoneyReceived)?.ToList();
@@ -55,90 +55,75 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
         return  _mapper.Map<List<OtherMoneyReceivedModel>>(obj.ToList());
     }
 
-    public void Create(OtherMoneyReceivedModel model)
+    public void Create(int paystubId, OtherMoneyReceivedModel model)
     {
-        var dtoPayStub = GetPayStub(model.PayStubId) ?? throw new KeyNotFoundException("PayStub not found");
+        var dtoPayStub = GetPayStub(paystubId) ?? throw new KeyNotFoundException("PayStub not found");
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, dtoPayStub.Payroll.CompanyId);
 
-        dtoPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.OtherPay;
+        dtoPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.AdditionalOtherMoneyReceived?.Sum(e => e.Amount) ?? 0; 
+
         var objOtherMoney = _mapper.Map<OtherMoneyReceived>(model);
 
-        _context.OtherMoneyReceived.Add(objOtherMoney);  
+
+        if (model.AdditionalOtherMoneyReceived != null)
+        {
+            var objAdditional = _mapper.Map<List<AdditionalOtherMoneyReceived>>(model.AdditionalOtherMoneyReceived);
+            objAdditional.ForEach(e => e.PayStubId = paystubId);
+            _context.AdditionalOtherMoneyReceived.AddRange(objAdditional);
+            _context.SaveChanges();
+            objOtherMoney.AdditionalOtherMoneyReceivedId = objAdditional.Select(e => e.Id).ToArray();
+        }
+        _context.OtherMoneyReceived.Add(objOtherMoney);
+        _context.SaveChanges();
+
+        dtoPayStub.OtherMoneyReceivedId=objOtherMoney.Id;
         _context.PayStub.Update(dtoPayStub);
         _context.SaveChanges();
     }
-    public void Create(List<OtherMoneyReceivedModel> models)
+
+    public void Update(int payStubId, OtherMoneyReceivedModel model)
     {
-        List<OtherMoneyReceived> list = new();
+        var dtoPayStub = GetPayStub(payStubId) ?? throw new KeyNotFoundException("PayStub not found");
 
-        foreach (var model in models)
-        {
-            var stub = GetPayStub(model.PayStubId) ?? throw new KeyNotFoundException("PayStub not found");
+        dtoPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.AdditionalOtherMoneyReceived?.Sum(e=>e.Amount)?? 0;
 
-            var dto = _mapper.Map<OtherMoneyReceived>(model);
-            _context.OtherMoneyReceived.Add(dto);
+        var obj = GetOtherMoneyReceived(dtoPayStub.OtherMoneyReceivedId.Value);
 
-            stub.OtherMoneyReceivedId = dto.Id;
-            stub.GrossPay += dto.CreditCardTips + dto.CashTips + dto.OtherPay;
-            _context.PayStub.Update(stub);
-        }
-
-        _context.SaveChanges();
-    }
-
-    public void Update(OtherMoneyReceivedModel model)
-    {
-        var dtoPayStub = GetPayStub(model.PayStubId) ?? throw new KeyNotFoundException("PayStub not found");
-        dtoPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.OtherPay;
-
-        var obj = GetOtherMoneyReceived(model.Id);
         if (obj == null)
         {
             obj = _mapper.Map<OtherMoneyReceived>(model);
+            if (model.AdditionalOtherMoneyReceived != null)
+            {
+                var obj2 = _mapper.Map<List<AdditionalOtherMoneyReceived>>(model.AdditionalOtherMoneyReceived);
+                _context.AdditionalOtherMoneyReceived.AddRange(obj2);
+                _context.SaveChanges();
+                obj.AdditionalOtherMoneyReceivedId = obj2.Select(e => e.Id).ToArray();
+            }
             _context.OtherMoneyReceived.Add(obj);
-            _context.PayStub.Update(dtoPayStub);
-
+            _context.SaveChanges();
         }
         else
         {
-            obj.CashTips = model.CashTips;
-            obj.CreditCardTips = model.CreditCardTips;
-            obj.OtherPay = model.OtherPay;
-            obj.Note = model.Note;
+            //cancell the existing one and create a new one
+            obj.IsCancelled = true;
             _context.OtherMoneyReceived.Update(obj);
-            _context.PayStub.Update(dtoPayStub);
+
+            var objNew = _mapper.Map<OtherMoneyReceived>(model);
+            if (model.AdditionalOtherMoneyReceived != null)
+            {
+                var obj2New = _mapper.Map<List<AdditionalOtherMoneyReceived>>(model.AdditionalOtherMoneyReceived);
+                _context.AdditionalOtherMoneyReceived.AddRange(obj2New);
+                _context.SaveChanges();
+                objNew.AdditionalOtherMoneyReceivedId = obj2New.Select(e => e.Id).ToArray();
+            }
+
+            _context.OtherMoneyReceived.Add(objNew);          
+            _context.SaveChanges();
         }
-        
+        _context.PayStub.Update(dtoPayStub);
         _context.SaveChanges();
     }
-    public void Update(List<OtherMoneyReceivedModel> models)
-    {
-        foreach (var model in models)
-        {
-            var stub = GetPayStub(model.PayStubId) ?? throw new KeyNotFoundException("PayStub not found");
-            stub.GrossPay += model.CreditCardTips + model.CashTips + model.OtherPay;
-
-            var obj = GetOtherMoneyReceived(model.Id);
-            if (obj == null)
-            {
-                obj = _mapper.Map<OtherMoneyReceived>(model);
-                _context.OtherMoneyReceived.Add(obj);
-                _context.PayStub.Update(stub);
-
-            }
-            else
-            {
-                obj.CashTips = model.CashTips;
-                obj.CreditCardTips = model.CreditCardTips;
-                obj.OtherPay = model.OtherPay;
-                obj.Note = model.Note;
-                _context.OtherMoneyReceived.Update(obj);
-                _context.PayStub.Update(stub);
-            }
-        }
-        _context.SaveChanges();
-    }
-
+    
     public void Delete(int id)
     {
         var dto = GetOtherMoneyReceived(id);
@@ -153,7 +138,7 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
     }
     private PayStub GetPayStub(int id)
     {
-        var dto = _context.PayStub.Include(e=>e.OtherMoneyReceived).FirstOrDefault(e=>e.Id==id);
+        var dto = _context.PayStub.Include(e=>e.OtherMoneyReceived).Include(e=>e.Payroll).FirstOrDefault(e=>e.Id==id);
         return dto;
     }
 }

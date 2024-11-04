@@ -11,4 +11,4 @@ public class SpecificField
 
 public sealed class StateSpecificField : SpecificField { }
 public sealed class CompanySpecificField : SpecificField { }
-public sealed class TelonaiSpecificField : SpecificField { }
+public sealed class CountrySpecificField : SpecificField { }
