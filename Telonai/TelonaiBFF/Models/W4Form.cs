@@ -4,6 +4,7 @@
     {
         public FilingStatus FilingStatus { get; set; }
         public bool householdIncomeBelow200k { get; set; }
+        public bool householdIncomeBelow400k { get; set; }
         public bool MultipleJobs { get; set; }
         public bool SpouseWorks { get; set; }
         public int NumberOfChildrenUnder17 { get; set; }
