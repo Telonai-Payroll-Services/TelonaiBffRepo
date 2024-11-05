@@ -25,24 +25,6 @@
 
    
 
-    public class MultipleJobsWorksheet
-    {
-        public decimal Step2b_1 { get; set; } 
-        public decimal Step2b_2a { get; set; } 
-        public decimal Step2b_2b { get; set; } 
-        public decimal Step2b_2c { get; set; } 
-        public decimal Step2b_3 { get; set; } 
-        public decimal Step2b_4 { get; set; } 
-       
-    }
-
-    public class DeductionsWorksheet
-    {
-        public decimal Step4b_1 { get; set; } 
-        public decimal Step4b_2 { get; set; } 
-        public decimal Step4b_3 { get; set; } 
-        public decimal Step4b_4 { get; set; }
-        public decimal Step4b_5 { get; set; }
-    }
+    
 
 }

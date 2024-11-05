@@ -365,18 +365,7 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.Step4b_Deductions, model.Deductions.ToString());
                 formFields.SetField(PdfFields.Step4c_ExtraWithholding, model.ExtraWithholding.ToString());
 
-               /* formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_1, model.MultipleJobsWorksheet.Step2b_1.ToString());
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_2a, model.MultipleJobsWorksheet.Step2b_2a.ToString());
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_2b, model.MultipleJobsWorksheet.Step2b_2b.ToString());
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_2c, model.MultipleJobsWorksheet.Step2b_2c.ToString());
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_3, model.MultipleJobsWorksheet.Step2b_3.ToString());
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_4, model.MultipleJobsWorksheet.Step2b_4.ToString());
-
-                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_1, model.DeductionsWorksheet.Step4b_1.ToString());
-                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_2, model.DeductionsWorksheet.Step4b_2.ToString());
-                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_3, model.DeductionsWorksheet.Step4b_3.ToString());
-                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_4, model.DeductionsWorksheet.Step4b_4.ToString());
-                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_5, model.DeductionsWorksheet.Step4b_5.ToString());*/
+               
 
                 pdfStamper.FormFlattening = true;
                 pdfStamper.Close();
