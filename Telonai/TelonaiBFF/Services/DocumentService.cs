@@ -326,15 +326,15 @@ public class DocumentService : IDocumentService
     public async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus)
     {
         var person = await _personService.GetCurrentUserAsync();
-        var firstName = person?.FirstName ?? model.Employee.FirstName;
-        var middeName= person?.LastName ?? model.Employee.LastName;
+        var firstName = person?.FirstName ;
+        var middeName= person?.LastName ;
         var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
-        var lastName= person?.LastName ?? model.Employee.LastName;
-        var ssn = person?.Ssn ?? model.Employee.SocialSecurityNumber;
-        var address= person?.AddressLine1??model.Employee.Address;
-        var zipCode = person?.Zipcode?.Code?? model.Employee.ZipCode;
-        var cityOrTown = person?.Zipcode?.City?.Name ?? model.Employee.CityOrTown;
-        var state=person?.Zipcode?.City?.State.Name ?? model.Employee.State;
+        var lastName= person?.LastName ;
+        var ssn = person?.Ssn;
+        var address= person?.AddressLine1;
+        var zipCode = person?.Zipcode?.Code;
+        var cityOrTown = person?.Zipcode?.City?.Name ;
+        var state=person?.Zipcode?.City?.State.Name ;
 
 
 
@@ -352,18 +352,20 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.Step1a_City_Or_Town_State_ZIPCode, $"{cityOrTown} {state} {zipCode}");
                 formFields.SetField(PdfFields.Step1b_SocialSecurityNumber, ssn);
                 formFields.SetField(filingStatus, "1");
+                var multipleJobsOrSpouseWorks = model.MultipleJobs || model.SpouseWorks;
 
-                formFields.SetField(PdfFields.Step2_MultipleJobsOrSpouseWorks, model.MultipleJobsOrSpouseWorks ? "1" : "");
+                formFields.SetField(PdfFields.Step2_MultipleJobsOrSpouseWorks, multipleJobsOrSpouseWorks ? "1" : "");
+                var totalClaimedAmount = model.NumberOfChildrenUnder17 * 2000 + model.OtherDependents * 500;
 
-                formFields.SetField(PdfFields.Step3_Dependents_NumberOfChildrenUnder17, model.Dependents.NumberOfChildrenUnder17.ToString());
-                formFields.SetField(PdfFields.Step3_Dependents_OtherDependents, model.Dependents.OtherDependents.ToString());
-                formFields.SetField(PdfFields.Step3_TotalClaimedAmount, model.Dependents.TotalClaimedAmount.ToString());
+                formFields.SetField(PdfFields.Step3_Dependents_NumberOfChildrenUnder17, model.NumberOfChildrenUnder17.ToString());
+                formFields.SetField(PdfFields.Step3_Dependents_OtherDependents, model.OtherDependents.ToString());
+                formFields.SetField(PdfFields.Step3_TotalClaimedAmount, totalClaimedAmount.ToString());
 
                 formFields.SetField(PdfFields.Step4a_OtherIncome, model.OtherIncome.ToString());
                 formFields.SetField(PdfFields.Step4b_Deductions, model.Deductions.ToString());
                 formFields.SetField(PdfFields.Step4c_ExtraWithholding, model.ExtraWithholding.ToString());
 
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_1, model.MultipleJobsWorksheet.Step2b_1.ToString());
+               /* formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_1, model.MultipleJobsWorksheet.Step2b_1.ToString());
                 formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_2a, model.MultipleJobsWorksheet.Step2b_2a.ToString());
                 formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_2b, model.MultipleJobsWorksheet.Step2b_2b.ToString());
                 formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_2c, model.MultipleJobsWorksheet.Step2b_2c.ToString());
@@ -374,7 +376,7 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_2, model.DeductionsWorksheet.Step4b_2.ToString());
                 formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_3, model.DeductionsWorksheet.Step4b_3.ToString());
                 formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_4, model.DeductionsWorksheet.Step4b_4.ToString());
-                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_5, model.DeductionsWorksheet.Step4b_5.ToString());
+                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_5, model.DeductionsWorksheet.Step4b_5.ToString());*/
 
                 pdfStamper.FormFlattening = true;
                 pdfStamper.Close();
@@ -512,9 +514,11 @@ public class DocumentService : IDocumentService
      public async Task<List<EmployeeWithholdingModel>> CreatemployeeWithholdingModels( Guid documentId,string filingStatus, W4Form model, DocumentModel documentModel)
     {
         var person = await _personService.GetCurrentUserAsync();
+        var multipleJobsOrSpouseWorks = model.MultipleJobs || model.SpouseWorks;
+        var totalClaimedAmount = model.NumberOfChildrenUnder17 * 2000 + model.OtherDependents * 500;
         var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(person, documentId, 1, filingStatus, documentModel);
-        var employeeWithHodingModel2C = CreateEmployeeWithholdingModel(person, documentId, 4, model.MultipleJobsOrSpouseWorks.ToString(), documentModel);
-        var employeeWithHodingModel3 = CreateEmployeeWithholdingModel(person, documentId, 5, model.Dependents.TotalClaimedAmount.ToString(), documentModel);
+        var employeeWithHodingModel2C = CreateEmployeeWithholdingModel(person, documentId, 4, multipleJobsOrSpouseWorks.ToString(), documentModel);
+        var employeeWithHodingModel3 = CreateEmployeeWithholdingModel(person, documentId, 5, totalClaimedAmount.ToString(), documentModel);
         var employeeWithHodingModel4A = CreateEmployeeWithholdingModel(person, documentId, 7, model.OtherIncome.ToString(), documentModel);
         var employeeWithHodingModel4B = CreateEmployeeWithholdingModel(person, documentId, 8, model.Deductions.ToString(), documentModel);
         var employeeWithHodingModel4C = CreateEmployeeWithholdingModel(person, documentId, 9, model.ExtraWithholding.ToString(), documentModel);

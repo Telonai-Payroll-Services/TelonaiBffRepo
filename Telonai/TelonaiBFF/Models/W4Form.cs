@@ -2,29 +2,18 @@
 {
     public class W4Form
     {
-        public Employee Employee { get; set; }
         public FilingStatus FilingStatus { get; set; }
-        public bool MultipleJobsOrSpouseWorks { get; set; }
-        public Dependents Dependents { get; set; }
+        public bool householdIncomeBelow200k { get; set; }
+        public bool MultipleJobs { get; set; }
+        public bool SpouseWorks { get; set; }
+        public int NumberOfChildrenUnder17 { get; set; }
+        public int OtherDependents { get; set; }
         public decimal OtherIncome { get; set; } 
         public decimal Deductions { get; set; } 
         public decimal ExtraWithholding { get; set; } 
-        public MultipleJobsWorksheet MultipleJobsWorksheet { get; set; }
-        public DeductionsWorksheet DeductionsWorksheet { get; set; }
     
     }
 
-    public class Employee
-    {
-        public string FirstName { get; set; }
-        public string MiddleInitial { get; set; }
-        public string LastName { get; set; }
-        public string SocialSecurityNumber { get; set; }
-        public string Address { get; set; }
-        public string CityOrTown { get; set; }
-        public string State { get; set; }
-        public string ZipCode { get; set; }
-    }
 
     public class FilingStatus
     {
@@ -33,12 +22,7 @@
         public bool HeadOfHousehold { get; set; }
     }
 
-    public class Dependents
-    {
-        public int NumberOfChildrenUnder17 { get; set; }
-        public int OtherDependents { get; set; }
-        public decimal TotalClaimedAmount { get; set; }
-    }
+   
 
     public class MultipleJobsWorksheet
     {
