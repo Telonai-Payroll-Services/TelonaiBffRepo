@@ -30,13 +30,12 @@ public class PayStubService : IPayStubService
 {
     private DataContext _context;
     private readonly IMapper _mapper;
-    private int _numberOfPaymentsInYear = 12;
+    private int _numberOfPaymentsInYear;
     private IStaticDataService _staticDataService;
     private List<IncomeTax> _newIncomeTaxesToHold = new();
     private int _countryId;
     private int _stateId;
     private int _currentYear;
-
 
     public PayStubService(DataContext context, IMapper mapper, IStaticDataService staticDataService)
     {
@@ -120,7 +119,7 @@ public class PayStubService : IPayStubService
             ?? throw new AppException("Payroll not found");
 
         _currentYear = payroll.ScheduledRunDate.Year;
-               
+        
         var state = payroll.Company.Zipcode.City.State;
         _stateId = state.Id;
         _countryId = state.CountryId;
@@ -194,7 +193,6 @@ public class PayStubService : IPayStubService
     {
         try
         {
-            var numberOfPaymentsInYear = 12;
             var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
 
             var previousIncomeTaxes = _context.IncomeTax.OrderByDescending(e => e.CreatedDate).Where(
@@ -205,24 +203,25 @@ public class PayStubService : IPayStubService
 
             var fedFilingStatus = FilingStatusTypeModel.Single;
 
-            var w4OneA = w4Form.First(e => e.Field.FieldNme == "1a")?.FieldValue;
-            var w4OneC = w4Form.First(e => e.Field.FieldNme == "1c")?.FieldValue;
+            var w4OneA = w4Form.FirstOrDefault(e => e.Field.FieldNme == "1a")?.FieldValue;
+            var w4OneC = w4Form.FirstOrDefault(e => e.Field.FieldNme == "1c")?.FieldValue;
+
             if (!Enum.TryParse(w4OneC, out fedFilingStatus))
                 throw new InvalidDataException($"Invalid filing status [{w4OneC}]");
 
-            var w4TwoC = w4Form.First(e => e.Field.FieldNme == "2c")?.FieldValue;
-            var w4Three = w4Form.First(e => e.Field.FieldNme == "3")?.FieldValue;
-            var w4FourA = w4Form.First(e => e.Field.FieldNme == "4a")?.FieldValue;
-            var w4FourB = w4Form.First(e => e.Field.FieldNme == "4a")?.FieldValue;
-            var w4FourC = w4Form.First(e => e.Field.FieldNme == "4a")?.FieldValue;
-            var w4FourD = w4Form.First(e => e.Field.FieldNme == "4a")?.FieldValue;
+            var w4TwoC = w4Form.FirstOrDefault(e => e.Field.FieldNme == "2c")?.FieldValue;
+            var w4Three = w4Form.FirstOrDefault(e => e.Field.FieldNme == "3")?.FieldValue;
+            var w4FourA = w4Form.FirstOrDefault(e => e.Field.FieldNme == "4a")?.FieldValue;
+            var w4FourB = w4Form.FirstOrDefault(e => e.Field.FieldNme == "4a")?.FieldValue;
+            var w4FourC = w4Form.FirstOrDefault(e => e.Field.FieldNme == "4a")?.FieldValue;
+            var w4FourD = w4Form.FirstOrDefault(e => e.Field.FieldNme == "4a")?.FieldValue;
 
             var employeeFederalRates = incomeTaxRates.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId == null && e.FilingStatusId == (int)fedFilingStatus).ToList();
             var employerFederalRates = incomeTaxRates.Where(e => !e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId == null).ToList();
 
             //Calculate Federal Tax to withhold
             var hasMultipleJobs = !string.IsNullOrWhiteSpace(w4TwoC);
-            var annualAmount = stub.GrossPay * numberOfPaymentsInYear + double.Parse(w4FourA);
+            var annualAmount = stub.GrossPay * _numberOfPaymentsInYear + double.Parse(w4FourA);
             var deduction = double.Parse(w4FourB) * (hasMultipleJobs ? 0 : w4OneC.Contains("Jointly") ? 12900 : 8600);
             var adjustedAnnualWageAmount = annualAmount - deduction;
 
@@ -232,10 +231,10 @@ public class PayStubService : IPayStubService
             var previousIncomeTax = previousIncomeTaxes.FirstOrDefault(e => e.IncomeTaxTypeId == rate.IncomeTaxTypeId);
 
             var tentativeWithholdingAmt = ((adjustedAnnualWageAmount - rate.Minimum) * rate.Rate +
-                (rate.TentativeAmount ?? 0)) / numberOfPaymentsInYear;
+                (rate.TentativeAmount ?? 0)) / _numberOfPaymentsInYear;
 
             //Credits
-            var credits = double.Parse(w4Three) / numberOfPaymentsInYear;
+            var credits = double.Parse(w4Three) / _numberOfPaymentsInYear;
             tentativeWithholdingAmt = Math.Max(tentativeWithholdingAmt - credits, 0);
 
             var finalWithholdingAmount = tentativeWithholdingAmt + double.Parse(w4FourC);
@@ -297,7 +296,6 @@ public class PayStubService : IPayStubService
 
     private async Task CalculateStateWitholdingAsync(PayStub stub)
     {
-        var numberOfPaymentsInYear = 12;
         var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
         var withHolingForms = _context.EmployeeWithholding.Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year);
         var nc4 = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.NCFour);
@@ -321,7 +319,7 @@ public class PayStubService : IPayStubService
         && e.IncomeTaxTypeId == employeeStateRate.IncomeTaxTypeId);
 
         //Calculate Tax
-        var annualWage = stub.GrossPay * numberOfPaymentsInYear;
+        var annualWage = stub.GrossPay * _numberOfPaymentsInYear;
         var allowance = 2500 * double.Parse(ncOne);
         var deduction = allowance + annualDeduction.Amount;
         var netAnnualWage = annualWage - deduction;

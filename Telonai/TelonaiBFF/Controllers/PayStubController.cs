@@ -57,7 +57,7 @@ public class PayStubController : ControllerBase
     }
 
 
-    [HttpGet("payrolls/{payrollId}/companies/{companyId}/generate")]
+    [HttpPost("payrolls/{payrollId}/companies/{companyId}/complete")]
     public IActionResult GeneratePayStubPdfs(int payrollId, int companyId)
     {
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
