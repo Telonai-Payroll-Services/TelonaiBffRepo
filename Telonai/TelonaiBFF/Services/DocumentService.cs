@@ -39,7 +39,7 @@ public interface IDocumentService
     Tuple<string, string> GetSelectedFilingStatus(Models.FilingStatus filingStatus);
     DateTime GetInvitationDateForEmployee(int id);
     Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file);
-    Task<DocumentModel> CreateDocumentModel(Guid documentId, string filename, DateOnly effectiveDate);
+    Task<DocumentModel> CreateDocumentModel(Guid documentId, string filename, DateOnly effectiveDate, Person person);
     EmployeeWithholdingModel CreateEmployeeWithholdingModel(Person person, Guid documentId, int fieldId, string fieldValue, DocumentModel documentModel);
     Task<byte[]> GenerateW4pdf(int employmentId, W4Form model);
     Task<byte[]> SignW4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
@@ -291,9 +291,8 @@ public class DocumentService : IDocumentService
         }
         var result= text.ToString();
     }
-    public async Task<Tuple<Stream, string,DateOnly>> GetDocumentByDocumentTypeAndIdAsync(DocumentTypeModel documentType,Guid id)
+    public async Task<Tuple<Stream, string,DateOnly>> GetDocumentByDocumentTypeAndIdAsync(DocumentTypeModel documentType,Guid id, Person person)
     {
-        var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
         var dto = await _context.Document.FindAsync(id);
@@ -304,9 +303,8 @@ public class DocumentService : IDocumentService
 
         return Tuple.Create(document, dto.FileName,dto.EffectiveDate);
     }
-    public async Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[] file) 
+    public async Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[] file, Person person) 
     {
-        var person =  await _personService.GetCurrentUserAsync();
 
         var fileBytes = file;
         var documentModel = new DocumentModel
@@ -327,7 +325,6 @@ public class DocumentService : IDocumentService
     }
     private async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus)
     {
-        var person = await _personService.GetCurrentUserAsync();
         var firstName = person?.FirstName ;
         var middeName= person?.LastName ;
         var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
@@ -413,6 +410,7 @@ public class DocumentService : IDocumentService
         var dto = _mapper.Map<EmployeeWithholding>(employee);
         var withholding = _context.EmployeeWithholding.OrderByDescending(e => e.EffectiveDate).FirstOrDefault(e => e.FieldId == employee.FieldId &&
         e.EmploymentId == employee.EmploymentId && !e.Deactivated && e.WithholdingYear == employee.WithholdingYear);
+            e.EmploymentId == employee.EmploymentId && !e.Deactivated && e.WithholdingYear == employee.WithholdingYear);
 
         if (withholding == null || (dto.EffectiveDate > DateOnly.FromDateTime(DateTime.UtcNow) && withholding.EffectiveDate > DateOnly.FromDateTime(DateTime.UtcNow)))
         {
@@ -579,9 +577,8 @@ public class DocumentService : IDocumentService
         return employeeWithholdingModel;
 
     }
-     public async Task<List<EmployeeWithholdingModel>> CreatemployeeWithholdingModels( Guid documentId,string filingStatus, W4Form model, DocumentModel documentModel)
+     public async Task<List<EmployeeWithholdingModel>> CreatemployeeWithholdingModels( Guid documentId,string filingStatus, W4Form model, DocumentModel documentModel, Person person)
     {
-        var person = await _personService.GetCurrentUserAsync();
         var multipleJobsOrSpouseWorks = model.MultipleJobs || model.SpouseWorks;
         var totalClaimedAmount = model.NumberOfChildrenUnder17 * 2000 + model.OtherDependents * 500;
         var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(person, documentId, 1, filingStatus, documentModel);
@@ -603,11 +600,12 @@ public class DocumentService : IDocumentService
         return employeeWithHodingModelList;
     }
 
-    public async Task<DocumentModel> CreateDocumentModel(Guid documentId, string filename, DateOnly effectiveDate)
+    public async Task<DocumentModel> CreateDocumentModel(Guid documentId, string filename, DateOnly effectiveDate, Person person)
     {
-        var person = await _personService.GetCurrentUserAsync();
         var documentModel=EmployeeWithholdingHelper.CreateDocumentModel(documentId, filename, person.Id, effectiveDate);
         return documentModel;
     }
+    public async Task<Person> GetPerson() {  return await _personService.GetCurrentUserAsync();}
+    public  Person GetPerson( int id) { return  _context.Person.Find(id); }
 }
 

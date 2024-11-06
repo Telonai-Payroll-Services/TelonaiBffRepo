@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Net.Http.Headers;
+using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
@@ -168,7 +169,8 @@ public class DocumentsController : ControllerBase
     [HttpGet("{id}/documentType/{documentType}")]
     public async Task<IActionResult> GetDocumentByIdAndDocumentType(Guid id, DocumentTypeModel documentType)
     {
-        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id);
+        var person = await _documentService.GetPerson();
+        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id,person);
         if (document == null)
         {
             return NotFound();
