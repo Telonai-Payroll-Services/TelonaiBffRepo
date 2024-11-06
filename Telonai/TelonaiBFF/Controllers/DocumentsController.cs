@@ -165,19 +165,6 @@ public class DocumentsController : ControllerBase
         return File(fileBytes, "application/pdf", "edited_fw4.pdf");
     }
 
-
-    [HttpGet("{id}/documentType/{documentType}")]
-    public async Task<IActionResult> GetDocumentByIdAndDocumentType(Guid id, DocumentTypeModel documentType)
-    {
-        var person = await _documentService.GetPerson();
-        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id,person);
-        if (document == null)
-        {
-            return NotFound();
-        };
-        return File(document.Item1, "application/pdf", "edited_fw4.pdf");
-    }
-
     [HttpPost("{id}/employments/{employmentId}/signW4pdf")]
     public async Task<IActionResult> SignW4Doument(Guid id, int employmentId, SignatureModel signature)
     {
