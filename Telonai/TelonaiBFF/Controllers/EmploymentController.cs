@@ -47,4 +47,10 @@ public class EmploymentController : ControllerBase
         _service.DeleteAsync(id, companyId);
         return Ok(new { message = "Employee Terminated" });
     }
+    [HttpGet("get_all_employees")]
+    public IActionResult GetAllEmployees()
+    {
+       var employees= _service.GetAllEmployees(); ;
+        return Ok(employees);
+    }
 }

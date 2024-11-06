@@ -11,8 +11,9 @@
         public int OtherDependents { get; set; }
         public decimal OtherIncome { get; set; } 
         public decimal Deductions { get; set; } 
-        public decimal ExtraWithholding { get; set; } 
-    
+        public decimal ExtraWithholding { get; set; }
+        public int PersonId { get; set; }
+
     }
 
 

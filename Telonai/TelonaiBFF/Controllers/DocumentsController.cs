@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Net.Http.Headers;
+using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
@@ -159,7 +160,13 @@ public class DocumentsController : ControllerBase
     {
         var documentType = DocumentTypeModel.WFourUnsigned;
         Guid.TryParse("8712e3e1-e380-4bc5-8cfc-96ef92a53b41", out id);
-        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id);
+        
+        var person = model.PersonId != 0 
+            ? _documentService.GetPerson(model.PersonId)
+            : await _documentService.GetPerson();
+       
+
+        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id,person);
         if (document == null)
         {
             return NotFound();
@@ -171,18 +178,18 @@ public class DocumentsController : ControllerBase
             throw new InvalidOperationException("No filing status selected or more than one status selected.");
         }
 
-        var fileBytes = await _documentService.SetPdfFormFilds(model, document.Item1, filingStatus.Item1);
+        var fileBytes = await _documentService.SetPdfFormFilds(model, document.Item1, filingStatus.Item1,person);
 
-        var doumentId = await _documentService.SaveGeneratedUnsignedW4Pdf(document.Item2, fileBytes);
-        var doumentModel = await _documentService.CreateDocumentModel(doumentId, document.Item2, document.Item3);
+        var doumentId = await _documentService.SaveGeneratedUnsignedW4Pdf(document.Item2, fileBytes,person);
+        var doumentModel = await _documentService.CreateDocumentModel(doumentId, document.Item2, document.Item3,person);
       
         string prefix = "Step1c_FilingStatus_";
         string result = filingStatus.Item2.Substring(prefix.Length);
 
-        var employeeWithHodingModelList= await _documentService.CreatemployeeWithholdingModels(doumentId,result,model, doumentModel);
+        var employeeWithHodingModelList= await _documentService.CreatemployeeWithholdingModels(doumentId,result,model, doumentModel,person);
         foreach (EmployeeWithholdingModel employee in employeeWithHodingModelList)
         {
-            await _documentService.CreateEmployeeWithholdingAsync(employee);
+            await _documentService.CreateEmployeeWithholdingAsync(employee,person);
         }
         return File(fileBytes, "application/pdf", "edited_fw4.pdf");
 
@@ -192,7 +199,8 @@ public class DocumentsController : ControllerBase
     [HttpGet("{id}/documentType/{documentType}")]
     public async Task<IActionResult> GetDocumentByIdAndDocumentType(Guid id, DocumentTypeModel documentType)
     {
-        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id);
+        var person = await _documentService.GetPerson();
+        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id,person);
         if (document == null)
         {
             return NotFound();
@@ -204,7 +212,8 @@ public class DocumentsController : ControllerBase
     public async Task<IActionResult> SignW4Doument(Guid id, SignatureModel signature)
     {
         var documentType = DocumentTypeModel.WFourUnsigned;
-        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id);
+        var person = await _documentService.GetPerson();
+        var document = await _documentService.GetDocumentByDocumentTypeAndIdAsync(documentType, id, person);
         if (document == null)
         {
             return NotFound();
@@ -235,5 +244,6 @@ public class DocumentsController : ControllerBase
             return File(fileBytes, "application/pdf", "signed_fw4.pdf");
         }
     }
+
 
 }
