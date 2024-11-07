@@ -12,7 +12,6 @@
         public decimal OtherIncome { get; set; } 
         public decimal Deductions { get; set; } 
         public decimal ExtraWithholding { get; set; }
-        public int PersonId { get; set; }
 
     }
 
@@ -23,9 +22,13 @@
         public bool MarriedFilingJointly { get; set; }
         public bool HeadOfHousehold { get; set; }
     }
+    public class W4PdfResult
+    {
+        public byte[] FileBytes { get; set; }
+        public Guid DocumentId { get; set; }
+    }
 
-   
 
-    
 
-}
+
+    }
