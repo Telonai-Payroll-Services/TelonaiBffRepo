@@ -22,7 +22,7 @@ public interface IPayStubService
     Task<Stream> GetDocumentByDocumentId(Guid documentId);
     void Create(PayStubModel model);
     void Update(int id, PayStubModel model);
-    void Delete(int id);
+    bool Delete(int id);
 }
 
 public class PayStubService : IPayStubService
@@ -167,15 +167,60 @@ public class PayStubService : IPayStubService
     public void Update(int id, PayStubModel model)
     {
         var dto = GetPayStub(id) ?? throw new KeyNotFoundException("PayStub not found");
+        var payStub = _mapper.Map<PayStub>(model);
+        if (payStub.PayrollId != dto.PayrollId)
+        {
+            dto.PayrollId = payStub.PayrollId;
+        }
+        if (payStub.EmploymentId != dto.EmploymentId)
+        {
+            dto.EmploymentId = payStub.EmploymentId;    
+        }
+        if(payStub.OtherMoneyReceived != dto.OtherMoneyReceived)
+        {
+            dto.OtherMoneyReceived = payStub.OtherMoneyReceived;
+        }
+        if(payStub.RegularHoursWorked != dto.RegularHoursWorked)
+        {
+            dto.RegularHoursWorked = payStub.RegularHoursWorked;    
+        }
+        if(payStub.OverTimeHoursWorked != dto.OverTimeHoursWorked)
+        {
+            dto.OverTimeHoursWorked = dto.OverTimeHoursWorked;
+        }
+        if(payStub.GrossPay != payStub.GrossPay)
+        {
+            dto.GrossPay = payStub.GrossPay;
+        }
+        if(payStub.NetPay != dto.NetPay)
+        {
+            dto.NetPay = payStub.NetPay;
+        }
+        if(payStub.OverTimePay != dto.OverTimePay)
+        {
+            dto.OverTimePay = payStub.OverTimePay;
+        }
+        if(payStub.RegularPay != dto.RegularPay)
+        {
+            dto.RegularPay = payStub.RegularPay;
+        }
+
         _context.PayStub.Update(dto);
         _context.SaveChanges();
     }
 
-    public void Delete(int id)
+    public bool Delete(int id)
     {
         var dto = GetPayStub(id);
-        _context.PayStub.Remove(dto);
-        _context.SaveChanges();
+        if (dto != null)
+        {
+            _context.PayStub.Remove(dto);
+            return _context.SaveChanges() > 0 ? true : false;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     private PayStub GetPayStub(int id)

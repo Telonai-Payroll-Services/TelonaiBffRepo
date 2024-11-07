@@ -53,6 +53,7 @@ public class PayStubController : ControllerBase
     {
         var payStubs = _PayStubService.GetCurrentByPayrollId(payrollId);
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, payStubs.FirstOrDefault().Payroll.CompanyId);
+        
         return Ok(payStubs);
     }
 
@@ -100,10 +101,16 @@ public class PayStubController : ControllerBase
     public IActionResult Update(int id, PayStubModel model)
     {
         var stub = _PayStubService.GetById(id);
-        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, stub.Payroll.CompanyId);
-
-        _PayStubService.Update(id, model);
-        return Ok(new { message = "PayStub updated." });
+        if (stub != null)
+        {
+            _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, stub.Payroll.CompanyId);
+            _PayStubService.Update(id, model);
+            return Ok(new { message = "PayStub updated." });
+        }
+        else
+        {
+            return NotFound();
+        }
     }
 
 
@@ -111,7 +118,13 @@ public class PayStubController : ControllerBase
     [Authorize(Policy = "SystemAdmin")]
     public IActionResult Delete(int id)
     {
-        _PayStubService.Delete(id);
-        return Ok(new { message = "PayStub deleted." });
+        if(_PayStubService.Delete(id))
+        {
+            return Ok(new { message = "PayStub deleted." });
+        }
+        else
+        {
+            return NotFound();
+        }
     }
 }
