@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Project\\TelonaiBffRepo\\Telonai\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaiwebapi.unittest\\controllers\\paystubcontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|solutionrelative:telonaiwebapi.unittest\\controllers\\paystubcontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaiwebapi.unittest\\controllers\\documentcontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|solutionrelative:telonaiwebapi.unittest\\controllers\\documentcontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\controllers\\paystubcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|solutionrelative:telonaibff\\controllers\\paystubcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaiwebapi.unittest\\controllers\\paystubcontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|solutionrelative:telonaiwebapi.unittest\\controllers\\paystubcontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1E4EA52C-A167-4BA5-ADEC-9B0F542A213F}|TelonaiBFF\\TelonaiWebApi.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaibff\\services\\paystubservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -17,10 +17,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaiwebapi.unittest\\services\\paystubservicetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|solutionrelative:telonaiwebapi.unittest\\services\\paystubservicetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaiwebapi.unittest\\controllers\\documentcontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|solutionrelative:telonaiwebapi.unittest\\controllers\\documentcontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}|TelonaiWebApi.UnitTest\\TelonaiWebAPI.UnitTest.csproj|c:\\project\\telonaibffrepo\\telonai\\telonaiwebapi.unittest\\controllers\\companycontrollertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -38,7 +34,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 4,
               "Title": "CompanyControllerTests.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiWebApi.UnitTest\\Controllers\\CompanyControllerTests.cs",
               "RelativeDocumentMoniker": "TelonaiWebApi.UnitTest\\Controllers\\CompanyControllerTests.cs",
@@ -64,13 +60,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "PayStubControllerTest.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiWebApi.UnitTest\\Controllers\\PayStubControllerTest.cs",
               "RelativeDocumentMoniker": "TelonaiWebApi.UnitTest\\Controllers\\PayStubControllerTest.cs",
               "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiWebApi.UnitTest\\Controllers\\PayStubControllerTest.cs",
               "RelativeToolTip": "TelonaiWebApi.UnitTest\\Controllers\\PayStubControllerTest.cs",
-              "ViewState": "AgIAAF0FAAAAAAAAAAAlwIUFAAAuAAAAAAAAAA==",
+              "ViewState": "AgIAAJsDAAAAAAAAAAAEwOkEAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-07T08:41:19.34Z",
               "EditorCaption": ""
@@ -83,20 +79,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "PayStubController.cs",
-              "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Controllers\\PayStubController.cs",
-              "RelativeDocumentMoniker": "TelonaiBFF\\Controllers\\PayStubController.cs",
-              "ToolTip": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiBFF\\Controllers\\PayStubController.cs*",
-              "RelativeToolTip": "TelonaiBFF\\Controllers\\PayStubController.cs*",
-              "ViewState": "AgIAAGMAAAAAAAAAAAAAAH0AAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-07T08:44:19.803Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 0,
               "Title": "DocumentControllerTest.cs",
               "DocumentMoniker": "C:\\Project\\TelonaiBffRepo\\Telonai\\TelonaiWebApi.UnitTest\\Controllers\\DocumentControllerTest.cs",
               "RelativeDocumentMoniker": "TelonaiWebApi.UnitTest\\Controllers\\DocumentControllerTest.cs",
