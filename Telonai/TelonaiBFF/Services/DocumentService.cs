@@ -34,7 +34,7 @@ public interface IDocumentService
     Tuple<string, string> GetSelectedFilingStatus(Models.FilingStatus filingStatus);
     DateTime GetInvitationDateForEmployee(int id);
     Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file);
-    Task<byte[]> GenerateW4pdf(int employmentId, W4Form model);
+    Task<W4PdfResult> GenerateW4pdf(int employmentId, W4Form model);
     Task<byte[]> SignW4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
 }
 
@@ -486,7 +486,7 @@ public class DocumentService : IDocumentService
             return fileBytes;
         }
     }
-    public async Task<byte[]> GenerateW4pdf(int empId, W4Form model)
+    public async Task<W4PdfResult> GenerateW4pdf(int empId, W4Form model)
     {
         var emp = _context.Employment.Include(e=>e.Person).FirstOrDefault(e=>e.Id==empId);
        
@@ -528,7 +528,7 @@ public class DocumentService : IDocumentService
         _context.Employment.Update(emp);
         await _context.SaveChangesAsync();
 
-        return fileBytes;
+        return new W4PdfResult { FileBytes = fileBytes, DocumentId = doumentId };
 
     }
 
@@ -598,6 +598,6 @@ public class DocumentService : IDocumentService
         var documentModel=EmployeeWithholdingHelper.CreateDocumentModel(documentId, filename, _person.Id, effectiveDate);
         return documentModel;
     }
-    private  Person GetPerson( int id) { return  _context.Person.Find(id); }
+    //private  Person GetPerson( int id) { return  _context.Person.Find(id); }
 }
 
