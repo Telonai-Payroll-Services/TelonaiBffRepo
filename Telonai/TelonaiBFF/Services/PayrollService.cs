@@ -15,11 +15,16 @@ public interface IPayrollService
     PayrollModel GetCurrentPayroll( int companyId);
     PayrollModel GetPreviousPayroll(int companyId);
 
+
+
     PayrollModel GetById(int id);
     Task<int> CreateNextPayrollForAll();
     void Create(int companyId);
     void Update(int id, int companyId);
     void Delete(int id);
+
+    public Task<List<PayrollSummary>> GetPayrollSummanryByPayrollId(int payrollId);
+
 }
 
 public class PayrollService : IPayrollService
@@ -549,6 +554,11 @@ public class PayrollService : IPayrollService
         var regularPay = Math.Round(emp.PayRate * totalDaysWorked,2);
 
         return Tuple.Create(regularPay, totalDaysWorked);
+    }
+
+    public Task<List<PayrollSummary>> GetPayrollSummanryByPayrollId(int payrollId)
+    {
+        var payroll = _context.Payroll.Find
     }
 }
 
