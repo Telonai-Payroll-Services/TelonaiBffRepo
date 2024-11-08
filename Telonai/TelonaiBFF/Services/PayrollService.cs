@@ -1,6 +1,7 @@
 namespace TelonaiWebApi.Services;
 
 using AutoMapper;
+using iTextSharp.text;
 using Microsoft.EntityFrameworkCore;
 using System;
 using TelonaiWebApi.Entities;
@@ -274,18 +275,30 @@ public class PayrollService : IPayrollService
         var payStubs= new List<PayStub>();
         var companyId = currentPayroll.CompanyId;
         var company= currentPayroll.Company;
+        var currentYear = currentPayroll.ScheduledRunDate.Year;
 
-        var employments = _context.Employment.Where(e=>e.Job.CompanyId == companyId && !e.Deactivated).ToList();
-        
-        var timecards = _context.TimecardUsa.Where(e=>e.Job.CompanyId == companyId && 
-        DateOnly.FromDateTime(e.ClockIn)>= currentPayroll.StartDate &&
+
+        var timecards = _context.TimecardUsa.Where(e => e.Job.CompanyId == companyId &&
+        DateOnly.FromDateTime(e.ClockIn) >= currentPayroll.StartDate &&
         DateOnly.FromDateTime(e.ClockIn) <= currentPayroll.ScheduledRunDate).ToList();
+
+        if (timecards.Any(e => !e.IsApproved))
+            throw new AppException("You have not approved all timecards");
+               
+        var schedule = _context.PayrollSchedule.FirstOrDefault(e => e.CompanyId == companyId && (e.EndDate == null ||
+        e.EndDate < currentPayroll.ScheduledRunDate));
+        
+        var frequency = (PayrollScheduleTypeModel)schedule?.PayrollScheduleTypeId;
+
+        var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId &&
+        (!e.Deactivated || (e.EndDate != null && e.EndDate < currentPayroll.ScheduledRunDate
+        && e.EndDate > currentPayroll.StartDate))).ToList();
 
         timecards.ForEach(e => e.IsLocked = true);
         _context.UpdateRange(timecards);
 
-        var schedule = _context.PayrollSchedule.FirstOrDefault(e=>e.CompanyId== companyId && (e.EndDate==null || e.EndDate< currentPayroll.ScheduledRunDate));
-        var frequency = (PayrollScheduleTypeModel)schedule?.PayrollScheduleTypeId;
+        var additionalWithholdingTaxWageLimit = double.Parse(_context.CountrySpecificFieldValue.FirstOrDefault(e => e.EffectiveYear == currentYear && 
+        e.CountrySpecificField.FieldName== "AdditionalMedicareTaxWithholdingWageLimit")?.FieldValue?? "0.0");
 
         foreach (var  emp in employments) 
         {
@@ -298,12 +311,37 @@ public class PayrollService : IPayrollService
             var otHours = 0.0;
             Tuple<double,double,double,double> calculatedPay = null;
 
+            var previousPayStub = _context.PayStub.OrderByDescending(e => e.Id).FirstOrDefault(e => e.EmploymentId == emp.Id
+            && !e.IsCancelled);
+
             if (payRateBasis == (int)PayRateBasisModel.Daily)
             {
                 var pay = CalculatePayForDailyRatedEmployees(timecards, currentPayroll, emp);
                 regularPay = pay.Item1;
                 regularHours = pay.Item2 * 8;
-                break;
+
+                var paystub1 = new PayStub
+                {
+                    EmploymentId = emp.Id,
+                    RegularHoursWorked = regularHours,                    
+                    PayrollId = currentPayroll.Id,
+                    RegularPay = regularPay,
+                    GrossPay =  regularPay
+                };
+
+                if (previousPayStub != null)
+                {
+                    paystub1.YtdGrossPay = regularPay + previousPayStub.YtdGrossPay;
+                    paystub1.YtdOverTimeHoursWorked = previousPayStub.YtdOverTimeHoursWorked;
+                    paystub1.YtdOverTimePay = previousPayStub.YtdOverTimePay;
+                    paystub1.YtdRegularHoursWorked = regularHours + previousPayStub.YtdRegularHoursWorked;
+                    paystub1.YtdRegularPay = regularPay + previousPayStub.RegularPay;
+                    paystub1.AmountSubjectToAdditionalMedicareTax = previousPayStub.AmountSubjectToAdditionalMedicareTax > 0 ? otPay + regularPay :
+                        Math.Max(regularPay + previousPayStub.YtdGrossPay - additionalWithholdingTaxWageLimit, 0.0);
+                }
+                payStubs.Add(paystub1);
+
+                continue;
             }
 
             switch (frequency)
@@ -422,14 +460,26 @@ public class PayrollService : IPayrollService
             }
             var paystub = new PayStub
             {
-                EmploymentId=emp.Id,
+                EmploymentId = emp.Id,
                 RegularHoursWorked = regularHours,
                 OverTimeHoursWorked = otHours,
                 OverTimePay = otPay,
                 PayrollId = currentPayroll.Id,
                 RegularPay = regularPay,
-                GrossPay = otPay + regularPay
+                GrossPay = otPay + regularPay                
             };
+
+            if (previousPayStub != null)
+            {
+                paystub.YtdGrossPay = otPay + regularPay + previousPayStub.YtdGrossPay;
+                paystub.YtdOverTimeHoursWorked = otHours + previousPayStub.YtdOverTimeHoursWorked;
+                paystub.YtdOverTimePay = otPay + previousPayStub.YtdOverTimePay;
+                paystub.YtdRegularHoursWorked = regularHours + previousPayStub.YtdRegularHoursWorked;
+                paystub.YtdRegularPay = regularPay + previousPayStub.RegularPay;
+                paystub.AmountSubjectToAdditionalMedicareTax = previousPayStub.AmountSubjectToAdditionalMedicareTax > 0 ? otPay + regularPay :
+                    Math.Max(otPay + regularPay + previousPayStub.YtdGrossPay - additionalWithholdingTaxWageLimit, 0.0);
+            }
+
             payStubs.Add(paystub);
         }
        
@@ -437,18 +487,18 @@ public class PayrollService : IPayrollService
         return payStubs;
     }
 
-    private static Tuple<double,double,double,double> CalculatePayForHourlyRatedEmployees(List<TimecardUsa> timecards , Payroll currentPayroll, Employment emp, 
-        PayrollScheduleTypeModel frequency)
+    private static Tuple<double,double,double,double> CalculatePayForHourlyRatedEmployees(List<TimecardUsa> timecards , Payroll currentPayroll, 
+        Employment emp, PayrollScheduleTypeModel frequency)
     {
         var myTimeCards = timecards.Where(e => e.PersonId == emp.PersonId &&
                             e.ClockIn > currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue) &&
                             e.ClockIn < currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MaxValue));
 
-        var totalHoursWorked = myTimeCards.Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60)).ToList();
-
+        var totalHoursWorked = myTimeCards.Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds/60 / 60)).ToList();
 
         var firstWeekHours = myTimeCards.Where(e => e.ClockIn < currentPayroll.StartDate.AddDays(7).ToDateTime(TimeOnly.MinValue))
-            .Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60)).ToList().Sum();
+            .Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60,2)).ToList().Sum();
+
         var firstWeekOverTime = firstWeekHours - 40;
 
         var secondWeekHours=0.0;
@@ -458,11 +508,12 @@ public class PayrollService : IPayrollService
         var fourthWeekHours = 0.0;
         var fourthWeekOverTime = 0.0;
 
-        if (frequency < PayrollScheduleTypeModel.Monthly)
+        if (frequency == PayrollScheduleTypeModel.SemiMonthly || frequency==PayrollScheduleTypeModel.Biweekly
+            || frequency == PayrollScheduleTypeModel.Monthly)
         { 
             secondWeekHours = myTimeCards.Where(e => e.ClockIn >= currentPayroll.StartDate.AddDays(7).ToDateTime(TimeOnly.MinValue)
             && e.ClockIn < currentPayroll.StartDate.AddDays(14).ToDateTime(TimeOnly.MinValue))
-            .Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60)).ToList().Sum();
+            .Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60, 2)).ToList().Sum();
             secondWeekOverTime = secondWeekHours - 40;
         }
 
@@ -470,20 +521,20 @@ public class PayrollService : IPayrollService
         {
             thirdWeekHours = myTimeCards.Where(e => e.ClockIn >= currentPayroll.StartDate.AddDays(14).ToDateTime(TimeOnly.MinValue)
            && e.ClockIn < currentPayroll.StartDate.AddDays(21).ToDateTime(TimeOnly.MinValue))
-               .Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60)).ToList().Sum();
+               .Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60,2)).ToList().Sum();
             thirdWeekOverTime = thirdWeekHours - 40;
 
             fourthWeekHours = myTimeCards.Where(e => e.ClockIn >= currentPayroll.StartDate.AddDays(21)
             .ToDateTime(TimeOnly.MinValue) && e.ClockIn < currentPayroll.StartDate.AddDays(28)
-            .ToDateTime(TimeOnly.MinValue)).Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60)).ToList().Sum();
+            .ToDateTime(TimeOnly.MinValue)).Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60, 2)).ToList().Sum();
             fourthWeekOverTime = fourthWeekHours - 40;
         }
 
         var overTimeHours = firstWeekOverTime + secondWeekOverTime + thirdWeekOverTime + fourthWeekOverTime;
         var regularHours = totalHoursWorked.Sum() - overTimeHours;
 
-        var regularPay = emp.PayRate * regularHours;
-        var overTimePayAmount = emp.PayRate * 1.5 * overTimeHours;
+        var regularPay = Math.Round(emp.PayRate * regularHours,2);
+        var overTimePayAmount = Math.Round(emp.PayRate * 1.5 * overTimeHours,2); //TO DO: get the 1.5 value from CountrySpecificFields table in DB
         return Tuple.Create(regularPay, regularHours, overTimePayAmount,overTimeHours);
     }
     private static Tuple<double, int> CalculatePayForDailyRatedEmployees(List<TimecardUsa> timecards, 
@@ -495,7 +546,7 @@ public class PayrollService : IPayrollService
 
         var totalDaysWorked = myTimeCards.Select(e => e.ClockIn.Day).Distinct().Count();
 
-        var regularPay = emp.PayRate * totalDaysWorked;
+        var regularPay = Math.Round(emp.PayRate * totalDaysWorked,2);
 
         return Tuple.Create(regularPay, totalDaysWorked);
     }

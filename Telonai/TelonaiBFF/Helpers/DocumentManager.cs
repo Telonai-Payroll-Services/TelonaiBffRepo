@@ -16,7 +16,8 @@ using Microsoft.OpenApi.Extensions;
 
 public interface IDocumentManager
 {
-    Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived, List<IncomeTax> incomeTaxes);
+    Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived, 
+        List<AdditionalOtherMoneyReceived> additionalMoneyReceived, List<IncomeTax> incomeTaxes);
     Task<Stream> GetPayStubByIdAsync(string id);
     Task<Stream> GetDocumentByTypeAndIdAsync(string documentType, string id);
     Task UploadDocumentAsync(Guid documentId, Stream stream, DocumentTypeModel documentType);
@@ -37,6 +38,7 @@ public class DocumentManager : IDocumentManager
     private PayStub _payStub = null;
 
     private OtherMoneyReceived _otherMoneyReceived = null;
+    private List<AdditionalOtherMoneyReceived> _additionalMoneyReceived = null;
     private List<IncomeTax> _incomeTaxes = null;
     private readonly AmazonS3Client _s3Client = null;
     private readonly TransferUtility _transferUtility = null;
@@ -73,13 +75,15 @@ public class DocumentManager : IDocumentManager
         var response = await _s3Client.GetObjectAsync(request);
         return response.ResponseStream;
     }
-    public async Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived, List<IncomeTax> incomeTaxes)
+    public async Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived, 
+        List<AdditionalOtherMoneyReceived> additionalMoneyReceived, List<IncomeTax> incomeTaxes)
     {
         var documentId = Guid.NewGuid();
         var doc = new iTextSharp.text.Document();
 
         _incomeTaxes = incomeTaxes;
         _otherMoneyReceived = otherReceived;
+        _additionalMoneyReceived = additionalMoneyReceived;
 
         _payStub = payStub;
         _person = payStub.Employment.Person;
@@ -212,17 +216,17 @@ public class DocumentManager : IDocumentManager
                 AddCellToBody(_childTableLayout1, _otherMoneyReceived.Reimbursement.ToString(), count, _fontNormal);
                 AddCellToBody(_childTableLayout1, _otherMoneyReceived.YtdReimbursement.ToString(), count, _fontNormal);
             }
-            if (_otherMoneyReceived.YtdOtherPay > 0.0)
+            foreach (var item in _additionalMoneyReceived ?? new List<AdditionalOtherMoneyReceived>())
             {
                 count++;
-                var note = _otherMoneyReceived.Note;
+                var note = item.Note;
                 if (note.Length > 50)
                     note = note.Substring(0, 50);
                 AddCellToBody(_childTableLayout1, note, count, _fontNormal);
                 AddCellToBody(_childTableLayout1, "", count, _fontNormal);
                 AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, _otherMoneyReceived.OtherPay.ToString(), count, _fontNormal);
-                AddCellToBody(_childTableLayout1, _otherMoneyReceived.YtdOtherPay.ToString(), count, _fontNormal);
+                AddCellToBody(_childTableLayout1, item.Amount.ToString(), count, _fontNormal);
+                AddCellToBody(_childTableLayout1, item.YtdAmount.ToString(), count, _fontNormal);
             }
         }
         count++;

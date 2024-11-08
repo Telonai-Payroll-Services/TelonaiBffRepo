@@ -8,4 +8,4 @@ public class SpecificFieldModel
 
 public sealed class StateSpecificFieldModel : SpecificFieldModel { }
 public sealed class CompanySpecificFieldModel : SpecificFieldModel { }
-public sealed class TelonaiSpecificFieldModel : SpecificFieldModel { }
+public sealed class CountrySpecificFieldModel : SpecificFieldModel { }

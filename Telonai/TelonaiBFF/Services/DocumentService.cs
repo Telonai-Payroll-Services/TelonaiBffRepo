@@ -10,7 +10,7 @@ using iTextSharp.text.pdf.parser;
 using iTextSharp.text.pdf;
 using System.Text;
 using Microsoft.OpenApi.Extensions;
-using Amazon.SimpleEmail.Model;
+using Document = Entities.Document;
 
 //using Amazon.Runtime.Documents;
 
@@ -31,20 +31,16 @@ public interface IDocumentService
     Task AddGovernmentDocumentAsync(Stream file, DocumentTypeModel documentType);
     Task Update(Guid id, DocumentModel model);
     Task Delete(Guid id);
-    Task<Tuple<Stream, string, DateOnly>> GetDocumentByDocumentTypeAndIdAsync(DocumentTypeModel documentType, Guid id);
-    Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[]file);
-    Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream, string filingStatus);
     Tuple<string, string> GetSelectedFilingStatus(Models.FilingStatus filingStatus);
-    Task CreateEmployeeWithholdingAsync(EmployeeWithholdingModel model);
     DateTime GetInvitationDateForEmployee(int id);
     Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file);
-    Task<DocumentModel> CreateDocumentModel(Guid documentId, string filename, DateOnly effectiveDate);
-    EmployeeWithholdingModel CreateEmployeeWithholdingModel(Person person, Guid documentId, int fieldId, string fieldValue, DocumentModel documentModel);
-    Task<List<EmployeeWithholdingModel>> CreatemployeeWithholdingModels( Guid documentId, string filingStatus, W4Form model, DocumentModel documentModel);
+    Task<W4PdfResult> GenerateW4pdf(int employmentId, W4Form model);
+    Task<byte[]> SignW4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
 }
 
 public class DocumentService : IDocumentService
 {
+    private Person _person = null;
     private readonly IDocumentManager _documentManager;
     private readonly DataContext _context;
     private readonly IMapper _mapper;
@@ -52,11 +48,10 @@ public class DocumentService : IDocumentService
     private readonly IPersonService<PersonModel, Person> _personService;
     private readonly IScopedAuthorization _scopedAuthorization;
     private readonly IInvitationService<InvitationModel, Invitation> _invitationService;
-    private readonly IEmploymentService<EmploymentModel, Employment> _employmentService;
+
     public DocumentService(DataContext context, IMapper mapper, IDocumentManager documentManager, 
                            IHttpContextAccessor httpContextAccessor, IPersonService<PersonModel, Person> personService, 
-                           IScopedAuthorization scopedAuthorization, IInvitationService<InvitationModel, Invitation> invitationService
-                           , IEmploymentService<EmploymentModel, Employment> employmentService)
+                           IScopedAuthorization scopedAuthorization, IInvitationService<InvitationModel, Invitation> invitationService)
     {
         _context = context;
         _mapper = mapper;
@@ -65,12 +60,11 @@ public class DocumentService : IDocumentService
         _personService = personService;
         _scopedAuthorization = scopedAuthorization;
         _invitationService = invitationService;
-        _employmentService = employmentService;
     }
     public  async Task<DocumentModel> GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType)
     {
         var person = await _personService.GetCurrentUserAsync(); ;
-        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, _person.CompanyId);
         var dto =  _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => e.PersonId == person.Id && e.DocumentTypeId == (int)documentType);
 
         if (dto == null)
@@ -291,27 +285,25 @@ public class DocumentService : IDocumentService
     }
     public async Task<Tuple<Stream, string,DateOnly>> GetDocumentByDocumentTypeAndIdAsync(DocumentTypeModel documentType,Guid id)
     {
-        var person = await _personService.GetCurrentUserAsync();
-        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
-        var dto = await _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefaultAsync(e => e.Id == id);
+        var dto = await _context.Document.FindAsync(id);
         if (dto == null)
             return null;
+        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, dto.PersonId);
 
         var document = await _documentManager.GetDocumentByTypeAndIdAsync(documentType.ToString(), dto.Id.ToString());
 
         return Tuple.Create(document, dto.FileName,dto.EffectiveDate);
     }
-    public async Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[] file) 
+    private async Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[] file) 
     {
-        var person =  await _personService.GetCurrentUserAsync();
 
         var fileBytes = file;
         var documentModel = new DocumentModel
         {
-            FileName = person.FirstName+ person.MiddleName+ person.LastName+fileName,
+            FileName = _person.FirstName+ _person.MiddleName+ _person.LastName+fileName,
             DocumentType = DocumentTypeModel.WFourUnsigned,
-            PersonId = person.Id
+            PersonId = _person.Id
         };
         using Stream stream = new MemoryStream(fileBytes);
         var dto = _mapper.Map<Document>(documentModel);
@@ -323,20 +315,17 @@ public class DocumentService : IDocumentService
     
         return dto.Id;
     }
-    public async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus)
+    private async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus)
     {
-        var person = await _personService.GetCurrentUserAsync();
-        var firstName = person?.FirstName ?? model.Employee.FirstName;
-        var middeName= person?.LastName ?? model.Employee.LastName;
+        var firstName = _person?.FirstName ;
+        var middeName= _person?.LastName ;
         var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
-        var lastName= person?.LastName ?? model.Employee.LastName;
-        var ssn = person?.Ssn ?? model.Employee.SocialSecurityNumber;
-        var address= person?.AddressLine1??model.Employee.Address;
-        var zipCode = person?.Zipcode?.Code?? model.Employee.ZipCode;
-        var cityOrTown = person?.Zipcode?.City?.Name ?? model.Employee.CityOrTown;
-        var state=person?.Zipcode?.City?.State.Name ?? model.Employee.State;
-
-
+        var lastName= _person?.LastName ;
+        var ssn = _person?.Ssn;
+        var address= _person?.AddressLine1;
+        var zipCode = _person?.Zipcode?.Code;
+        var cityOrTown = _person?.Zipcode?.City?.Name ;
+        var state=_person?.Zipcode?.City?.State.Name ;
 
         using (var workStream = new MemoryStream())
         {
@@ -352,29 +341,19 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.Step1a_City_Or_Town_State_ZIPCode, $"{cityOrTown} {state} {zipCode}");
                 formFields.SetField(PdfFields.Step1b_SocialSecurityNumber, ssn);
                 formFields.SetField(filingStatus, "1");
+                var multipleJobsOrSpouseWorks = model.MultipleJobs || model.SpouseWorks;
 
-                formFields.SetField(PdfFields.Step2_MultipleJobsOrSpouseWorks, model.MultipleJobsOrSpouseWorks ? "1" : "");
+                formFields.SetField(PdfFields.Step2_MultipleJobsOrSpouseWorks, multipleJobsOrSpouseWorks ? "1" : "");
+                var totalClaimedAmount = model.NumberOfChildrenUnder17 * 2000 + model.OtherDependents * 500;
 
-                formFields.SetField(PdfFields.Step3_Dependents_NumberOfChildrenUnder17, model.Dependents.NumberOfChildrenUnder17.ToString());
-                formFields.SetField(PdfFields.Step3_Dependents_OtherDependents, model.Dependents.OtherDependents.ToString());
-                formFields.SetField(PdfFields.Step3_TotalClaimedAmount, model.Dependents.TotalClaimedAmount.ToString());
+                formFields.SetField(PdfFields.Step3_Dependents_NumberOfChildrenUnder17, model.NumberOfChildrenUnder17.ToString());
+                formFields.SetField(PdfFields.Step3_Dependents_OtherDependents, model.OtherDependents.ToString());
+                formFields.SetField(PdfFields.Step3_TotalClaimedAmount, totalClaimedAmount.ToString());
 
                 formFields.SetField(PdfFields.Step4a_OtherIncome, model.OtherIncome.ToString());
                 formFields.SetField(PdfFields.Step4b_Deductions, model.Deductions.ToString());
                 formFields.SetField(PdfFields.Step4c_ExtraWithholding, model.ExtraWithholding.ToString());
-
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_1, model.MultipleJobsWorksheet.Step2b_1.ToString());
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_2a, model.MultipleJobsWorksheet.Step2b_2a.ToString());
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_2b, model.MultipleJobsWorksheet.Step2b_2b.ToString());
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_2c, model.MultipleJobsWorksheet.Step2b_2c.ToString());
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_3, model.MultipleJobsWorksheet.Step2b_3.ToString());
-                formFields.SetField(PdfFields.MultipleJobsWorksheet_Step2b_4, model.MultipleJobsWorksheet.Step2b_4.ToString());
-
-                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_1, model.DeductionsWorksheet.Step4b_1.ToString());
-                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_2, model.DeductionsWorksheet.Step4b_2.ToString());
-                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_3, model.DeductionsWorksheet.Step4b_3.ToString());
-                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_4, model.DeductionsWorksheet.Step4b_4.ToString());
-                formFields.SetField(PdfFields.DeductionsWorksheet_Step4b_5, model.DeductionsWorksheet.Step4b_5.ToString());
+                             
 
                 pdfStamper.FormFlattening = true;
                 pdfStamper.Close();
@@ -418,16 +397,12 @@ public class DocumentService : IDocumentService
 
         return Tuple.Create(selectedFilingStatus,selectedField);
     }
-    public async Task CreateEmployeeWithholdingAsync(EmployeeWithholdingModel employee)
+    private async Task CreateEmployeeWithholdingAsync(EmployeeWithholdingModel employee)
     {
-        var person = await _personService.GetCurrentUserAsync();
-        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
-            var emp = await _context.Employment.FindAsync(employee.EmploymentId) ?? throw new InvalidDataException("User not found");
-
-
-            var dto = _mapper.Map<EmployeeWithholding>(employee);
-            var withholding = _context.EmployeeWithholding.OrderByDescending(e => e.EffectiveDate).FirstOrDefault(e => e.FieldId == employee.FieldId &&
-            e.EmploymentId == employee.EmploymentId && !e.Deactivated && e.WithholdingYear == employee.WithholdingYear);
+        var dto = _mapper.Map<EmployeeWithholding>(employee);
+        var withholding = _context.EmployeeWithholding.OrderByDescending(e => e.EffectiveDate)
+            .FirstOrDefault(e => e.FieldId == employee.FieldId && e.EmploymentId == employee.EmploymentId &&
+            !e.Deactivated && e.WithholdingYear == employee.WithholdingYear);
 
         if (withholding == null || (dto.EffectiveDate > DateOnly.FromDateTime(DateTime.UtcNow) && withholding.EffectiveDate > DateOnly.FromDateTime(DateTime.UtcNow)))
         {
@@ -437,15 +412,15 @@ public class DocumentService : IDocumentService
         }
         else if (withholding != null)
         {
-            var employeeWithholding = await _context.EmployeeWithholding.FindAsync(withholding.Id) ?? throw new KeyNotFoundException("EmployeeWithholding not found");         
+            var employeeWithholding = await _context.EmployeeWithholding.FindAsync(withholding.Id) ?? throw new KeyNotFoundException("EmployeeWithholding not found");
 
             if (employeeWithholding.FieldValue != dto.FieldValue)
-             { 
-            employeeWithholding.FieldValue = dto.FieldValue;
-             }
+            {
+                employeeWithholding.FieldValue = dto.FieldValue;
+            }
 
             if (employeeWithholding.DocumentId != dto.DocumentId)
-            { 
+            {
                 employeeWithholding.DocumentId = dto.DocumentId;
             }
             if (employeeWithholding.WithholdingYear != dto.WithholdingYear)
@@ -458,10 +433,11 @@ public class DocumentService : IDocumentService
             }
 
             _context.EmployeeWithholding.Update(employeeWithholding);
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
         }
-       
+
     }
+
     public DateTime GetInvitationDateForEmployee(int id)
     {
        var person= _personService.GetById(id);
@@ -470,6 +446,92 @@ public class DocumentService : IDocumentService
        return effectiveDate;
 
     }
+    public async Task<byte[]> SignW4DoumentAsync(Guid id, int employmentId, SignatureModel signature)
+    {
+        var emp = _context.Employment.Find(employmentId);
+        _scopedAuthorization.ValidateByJobId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, emp.JobId);
+
+        var documentType = DocumentTypeModel.WFourUnsigned;
+        var document = await GetDocumentByDocumentTypeAndIdAsync(documentType, id);
+        if (document == null)
+        {
+            throw new KeyNotFoundException();
+        };
+
+        using (var workStream = new MemoryStream())
+        {
+
+            using (PdfReader pdfReader = new PdfReader(document.Item1))
+            using (PdfStamper pdfStamper = new PdfStamper(pdfReader, workStream))
+            {
+                AcroFields formFields = pdfStamper.AcroFields;
+                //Todo
+                //Replace the Signature and Date fields from with Editable W4 PDF Fields
+                formFields.SetField(PdfFields.Signature, signature.Signature);
+                formFields.SetField(PdfFields.Date, signature.SignatureDate.ToString());
+
+                pdfStamper.FormFlattening = true;
+                pdfStamper.Close();
+                pdfReader.Close();
+            }
+
+            var fileBytes = workStream.ToArray();
+
+            await UpdateW4PdfWithSignature(id, fileBytes);
+
+            emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserCompletedSubmittingWFour;
+            _context.Employment.Update(emp);
+            await _context.SaveChangesAsync();
+
+            return fileBytes;
+        }
+    }
+    public async Task<W4PdfResult> GenerateW4pdf(int empId, W4Form model)
+    {
+        var emp = _context.Employment.Include(e=>e.Person).FirstOrDefault(e=>e.Id==empId);
+       
+        _scopedAuthorization.ValidateByJobId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, emp.JobId);
+
+        _person = emp.Person;
+        var documentTypeId = (int)DocumentTypeModel.WFourUnsigned;
+        var document = _context.Document.FirstOrDefault(e => e.DocumentTypeId == documentTypeId && !e.IsDeleted);
+
+        if (document == null)
+        {
+            throw new KeyNotFoundException();
+        };
+
+        var filingStatus = GetSelectedFilingStatus(model.FilingStatus);
+        if (string.IsNullOrEmpty(filingStatus.Item1))
+        {
+            throw new InvalidOperationException("No filing status selected or more than one status selected.");
+        }
+
+        var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.WFourUnsigned.ToString(),
+            document.Id.ToString());
+
+        var fileBytes = await SetPdfFormFilds(model, documentResult, filingStatus.Item1);
+
+        var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes);
+        var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
+
+        string prefix = "Step1c_FilingStatus_";
+        string result = filingStatus.Item2.Substring(prefix.Length);
+
+        var employeeWithhodingModelList = await CreatemployeeWithholdingModels(doumentId, result, model, doumentModel);
+        foreach (EmployeeWithholdingModel employee in employeeWithhodingModelList)
+        {
+            await CreateEmployeeWithholdingAsync(employee);
+        }
+
+        emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserStartedSubmittingWFour;
+        _context.Employment.Update(emp);
+        await _context.SaveChangesAsync();
+
+        return new W4PdfResult { FileBytes = fileBytes, DocumentId = doumentId };
+
+    }
+
     public async Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file)
     {
         var person = await _personService.GetCurrentUserAsync(); ;
@@ -499,25 +561,25 @@ public class DocumentService : IDocumentService
 
         return document.Id;
     }
-   public EmployeeWithholdingModel CreateEmployeeWithholdingModel(Person person, Guid documentId, int fieldId, string fieldValue, DocumentModel documentModel)
+    private EmployeeWithholdingModel CreateEmployeeWithholdingModel(Guid documentId, int fieldId, string fieldValue, DocumentModel documentModel)
     {
-        
-        var employments = _employmentService.GetByPersonId(person.Id).ToList();
-        var employeeAtCompany = employments.FirstOrDefault(e => e.CompanyId == person.CompanyId);
+        var employeeAtCompany = _context.Employment.FirstOrDefault(e => e.PersonId == _person.Id && e.Job.CompanyId==_person.CompanyId);
         var effectiveDate = GetInvitationDateForEmployee(employeeAtCompany.PersonId);
-        var employeeWithholdingModel= EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(person, documentId, fieldId, fieldValue, documentModel, employeeAtCompany, effectiveDate);
+        var employeeWithholdingModel = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_person, documentId, fieldId, fieldValue, documentModel, employeeAtCompany.Id, effectiveDate);
         return employeeWithholdingModel;
 
     }
-     public async Task<List<EmployeeWithholdingModel>> CreatemployeeWithholdingModels( Guid documentId,string filingStatus, W4Form model, DocumentModel documentModel)
+
+    private async Task<List<EmployeeWithholdingModel>> CreatemployeeWithholdingModels( Guid documentId,string filingStatus, W4Form model, DocumentModel documentModel)
     {
-        var person = await _personService.GetCurrentUserAsync();
-        var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(person, documentId, 1, filingStatus, documentModel);
-        var employeeWithHodingModel2C = CreateEmployeeWithholdingModel(person, documentId, 4, model.MultipleJobsOrSpouseWorks.ToString(), documentModel);
-        var employeeWithHodingModel3 = CreateEmployeeWithholdingModel(person, documentId, 5, model.Dependents.TotalClaimedAmount.ToString(), documentModel);
-        var employeeWithHodingModel4A = CreateEmployeeWithholdingModel(person, documentId, 7, model.OtherIncome.ToString(), documentModel);
-        var employeeWithHodingModel4B = CreateEmployeeWithholdingModel(person, documentId, 8, model.Deductions.ToString(), documentModel);
-        var employeeWithHodingModel4C = CreateEmployeeWithholdingModel(person, documentId, 9, model.ExtraWithholding.ToString(), documentModel);
+        var multipleJobsOrSpouseWorks = model.MultipleJobs || model.SpouseWorks;
+        var totalClaimedAmount = model.NumberOfChildrenUnder17 * 2000 + model.OtherDependents * 500;
+        var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(documentId, 1, filingStatus, documentModel);
+        var employeeWithHodingModel2C = CreateEmployeeWithholdingModel(documentId, 4, multipleJobsOrSpouseWorks.ToString(), documentModel);
+        var employeeWithHodingModel3 = CreateEmployeeWithholdingModel(documentId, 5, totalClaimedAmount.ToString(), documentModel);
+        var employeeWithHodingModel4A = CreateEmployeeWithholdingModel(documentId, 7, model.OtherIncome.ToString(), documentModel);
+        var employeeWithHodingModel4B = CreateEmployeeWithholdingModel(documentId, 8, model.Deductions.ToString(), documentModel);
+        var employeeWithHodingModel4C = CreateEmployeeWithholdingModel(documentId, 9, model.ExtraWithholding.ToString(), documentModel);
 
         var employeeWithHodingModelList = new List<EmployeeWithholdingModel>
         {
@@ -531,11 +593,11 @@ public class DocumentService : IDocumentService
         return employeeWithHodingModelList;
     }
 
-    public async Task<DocumentModel> CreateDocumentModel(Guid documentId, string filename, DateOnly effectiveDate)
+    private async Task<DocumentModel> CreateDocumentModel(Guid documentId, string filename, DateOnly effectiveDate)
     {
-        var person = await _personService.GetCurrentUserAsync();
-        var documentModel=EmployeeWithholdingHelper.CreateDocumentModel(documentId, filename, person.Id, effectiveDate);
+        var documentModel=EmployeeWithholdingHelper.CreateDocumentModel(documentId, filename, _person.Id, effectiveDate);
         return documentModel;
     }
+    //private  Person GetPerson( int id) { return  _context.Person.Find(id); }
 }
 
