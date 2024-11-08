@@ -2,6 +2,8 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
@@ -58,6 +60,25 @@ public class PayrollsController : ControllerBase
 
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, item.CompanyId);
         return Ok(item);
+    }
+
+    [HttpGet("Summary/{payrollId}")]
+    public async Task<IActionResult> GetPayrollSummaryById(int payrollId)
+    {
+        var payrollSummary = await _payrollService.GetPayrollSummanryByPayrollId(payrollId);
+        if(payrollSummary != null)
+        {
+            return Ok(payrollSummary);
+        }
+        else
+        {
+            var noPayrollSummaryFoundMessage = new
+            {
+                message = "There is no payroll summary"
+            };
+            var json = JsonSerializer.Serialize(noPayrollSummaryFoundMessage);
+            return NotFound(json);
+        }
     }
 
     [HttpPost("companies/{companyId}")]
