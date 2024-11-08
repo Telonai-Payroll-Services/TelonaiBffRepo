@@ -15,7 +15,11 @@ public enum SignUpStatusTypeModel
     UserAccountCreationCompleted,
     UserProfileCreationStarted,
     UserProfileCreationCompleted,
-    UserSubmittedINine,
-    UserSubmittedWFour,
-    UserSubmittedStateFour
+    UserStartedSubmittingINine,
+    UserStartedSubmittingWFour,
+    UserStartedSubmittingStateFour,
+    UserCompletedSubmittingINine,
+    UserCompletedSubmittingWFour,
+    UserCompletedSubmittingStateFour,
+    AccountConfirmationCodeSent
 }
