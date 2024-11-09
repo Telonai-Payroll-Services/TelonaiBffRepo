@@ -34,6 +34,7 @@ public interface IDocumentService
     Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file);
     Task<W4PdfResult> GenerateW4pdf(int employmentId, W4Form model);
     Task<byte[]> SignW4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
+    Task<Guid> Confirm(Guid id);
 }
 
 public class DocumentService : IDocumentService
@@ -594,6 +595,14 @@ public class DocumentService : IDocumentService
     {
         var documentModel=EmployeeWithholdingHelper.CreateDocumentModel(documentId, filename, _person.Id, effectiveDate);
         return documentModel;
+    }
+    public async Task<Guid> Confirm(Guid id)
+    {   
+        var document = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
+        document.IsConfirmed = true;
+        _context.Document.Update(document);
+        await _context.SaveChangesAsync();
+        return document.Id;
     }
 }
 
