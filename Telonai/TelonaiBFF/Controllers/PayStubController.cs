@@ -32,11 +32,18 @@ public class PayStubController : ControllerBase
         return Ok(PayStub);
     }
 
-    [HttpGet("companies/{companies}/persons/{personId}")]
-    public IActionResult GetCurrentByJobIdAndPersonId(int companyId, int personId)
+    [HttpGet("companies/{companyId}/persons/{personId}")]
+    public IActionResult GetCurrentByCompanyAndPersonId(int companyId, int personId)
     {
-        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.User, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         var PayStub = _PayStubService.GetCurrentByCompanyIdAndPersonId(companyId, personId);
+        return Ok(PayStub);
+    }
+    [HttpGet("companies/{companyId}/own/count/{count}/skip/{skip}")]
+    public async Task<IActionResult> GetCurrentByJobIdAnd(int companyId,int count=6,int skip=0)
+    {
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, companyId);
+        var PayStub =await _PayStubService.GetCurrentOwnPayStubByCompanyId(companyId,count,skip);
         return Ok(PayStub);
     }
 
