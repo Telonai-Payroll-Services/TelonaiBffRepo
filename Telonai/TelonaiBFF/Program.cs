@@ -28,7 +28,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 
     IAmazonS3 _s3Client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
-    var s3ObjectStream = _s3Client.GetObjectAsync("telonai-bff-appsettings", $"appsettings-{env}.json").Result.ResponseStream;
+    var s3ObjectStream = _s3Client.GetObjectAsync("telonai-bff-appsettings", $"appsettings-{env.EnvironmentName}.json").Result.ResponseStream;
     
     builder.Host.ConfigureAppConfiguration((_, configurationBuilder) =>
     {
@@ -166,5 +166,5 @@ var app = builder.Build();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
 
-app.Run("http://localhost:5000");
-//app.Run();
+//app.Run("http://localhost:5000");
+app.Run();
