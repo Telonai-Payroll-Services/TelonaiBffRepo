@@ -1,10 +1,6 @@
-﻿using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
-using Microsoft.Extensions.Options;
-using Microsoft.VisualBasic;
-using Org.BouncyCastle.Asn1.Ocsp;
-using System.Net.Http;
+﻿using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
-using System.Text.Json;
+using TelonaiWebApi.Helpers.Configuration;
 using TelonaiWebApi.Helpers.Interface;
 using TelonaiWebApi.Models.FileScan;
 
@@ -12,12 +8,12 @@ namespace TelonaiWebApi.Helpers.FileScan
 {
     public class FileScanRequest : IFileScanRequest
     {
-        private readonly FileScanLogin _filelScanLogin;
         private readonly FileScanSettings _fileScanSettings;
+        private readonly FileScanAuthSettings _fileScanOptions;
 
-        public FileScanRequest(IOptions<FileScanLogin> fileScanlogin, IOptions<FileScanSettings> fileScanSettings)
+        public FileScanRequest(IOptions<FileScanSettings> fileScanSettings, IOptions<FileScanAuthSettings> fileScanAuthSettings)
         {
-            _filelScanLogin = fileScanlogin.Value;
+            _fileScanOptions = fileScanAuthSettings.Value;          
             _fileScanSettings = fileScanSettings.Value;
         }
 
@@ -39,7 +35,7 @@ namespace TelonaiWebApi.Helpers.FileScan
                 if (awsLoginResponse.IsSuccessStatusCode)
                 {
                     string jsonResponse = await awsLoginResponse.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<FileScanLoginResponse>(jsonResponse);
+                    var result = System.Text.Json.JsonSerializer.Deserialize<FileScanLoginResponse>(jsonResponse);
                     return result;
                 }
                 
@@ -64,7 +60,7 @@ namespace TelonaiWebApi.Helpers.FileScan
                     if (fileScanResponse.IsSuccessStatusCode)
                     {
                         string jsonResponse = await fileScanResponse.Content.ReadAsStringAsync();
-                        var result = JsonSerializer.Deserialize<FileScanResponse>(jsonResponse);
+                        var result = System.Text.Json.JsonSerializer.Deserialize<FileScanResponse>(jsonResponse);
                         return result;
                     }
                     else

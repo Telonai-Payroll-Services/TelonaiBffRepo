@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.Net;
 using System.Net.Mail;
 using Amazon;
+using TelonaiWebApi.Helpers.Configuration;
 
 public interface IMailSender
 {

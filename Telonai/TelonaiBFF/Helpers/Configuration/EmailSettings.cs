@@ -1,9 +1,6 @@
-﻿using Amazon.SimpleEmail.Model;
-using System.Net.Mail;
-using System.Text.Json.Serialization;
-using TelonaiWebApi.Services;
+﻿using System.Text.Json.Serialization;
 
-namespace TelonaiWebApi.Helpers
+namespace TelonaiWebApi.Helpers.Configuration
 {
     public class EmailSettings
     {

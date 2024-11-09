@@ -47,8 +47,7 @@ public class DocumentManager : IDocumentManager
 
     public DocumentManager()
     {
-        _s3Client = new AmazonS3Client("AKIARTEG7VLRZM2XOBQA", "/DfldqzGtFfkZsxDgfCedQ9rTHmsBqhBD1eH2sJb", Amazon.RegionEndpoint.USEast2 );
-        //_s3Client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
+        _s3Client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
         _transferUtility = new TransferUtility(_s3Client);
     }
 
@@ -64,7 +63,6 @@ public class DocumentManager : IDocumentManager
         return response.ResponseStream;
     }
 
-
     public async Task<Stream> GetDocumentByTypeAndIdAsync(string documentType, string id)
     {
         var request = new GetObjectRequest
@@ -72,8 +70,17 @@ public class DocumentManager : IDocumentManager
             BucketName = _bucketName,
             Key = $"{documentType}/{id}",
         };
-        var response = await _s3Client.GetObjectAsync(request);
-        return response.ResponseStream;
+
+        try
+        {
+            var response = await _s3Client.GetObjectAsync(request);
+            return response.ResponseStream;
+
+        }
+        catch (Exception ex)
+        {
+            throw;
+        } 
     }
     public async Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived, 
         List<AdditionalOtherMoneyReceived> additionalMoneyReceived, List<IncomeTax> incomeTaxes)
