@@ -160,9 +160,16 @@ public class DocumentsController : ControllerBase
     public async Task<IActionResult> GenerateW4pdf(int employmentId, [FromBody] W4Form model)
     {
 
-        var fileBytes = await _documentService.GenerateW4pdf(employmentId, model);
+        var result = await _documentService.GenerateW4pdf(employmentId, model);
 
-        return File(fileBytes, "application/pdf", "edited_fw4.pdf");
+        var response = new 
+        {
+            DocumentId = result.DocumentId, 
+            File = File(result.FileBytes, "application/pdf", "edited_fw4.pdf") 
+        };
+        return Ok(response);
+
+  
     }
 
     [HttpPost("{id}/employments/{employmentId}/signW4pdf")]
@@ -172,5 +179,12 @@ public class DocumentsController : ControllerBase
 
         return File(fileBytes, "application/pdf", "signed_fw4.pdf");
 
+    }
+
+    [HttpPost("{id}/confirm")]
+    public async Task<IActionResult> Confirm(Guid id)
+    {
+        await _documentService.Confirm(id);
+        return Ok(new { message = "Document Signature Confirmed." });
     }
 }

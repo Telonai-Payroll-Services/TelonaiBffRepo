@@ -9,4 +9,5 @@ public class Document : BaseTracker
     public bool IsDeleted { get; set; }
     public int PersonId { get; set; }
     public DateOnly EffectiveDate { get; set; }
+    public bool? IsConfirmed { get; set; }
 }
