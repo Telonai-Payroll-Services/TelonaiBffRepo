@@ -7,4 +7,5 @@ public class DocumentModel: BaseTracker
     public DocumentTypeModel DocumentType { get; set; }
     public int PersonId { get; set; }
     public DateOnly EffectiveDate { get; set; }
+    public bool? IsConfirmed { get; set; }
 }
