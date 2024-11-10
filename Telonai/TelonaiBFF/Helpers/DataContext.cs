@@ -146,7 +146,7 @@ public class DataContext : DbContext
     public DbSet<EmployeeWithholding> EmployeeWithholding { get; set; }
     public DbSet<EmployeeWithholdingField> EmployeeWithholdingField { get; set; }
     public virtual DbSet<PayStub> PayStub { get; set; }
-    public DbSet<OtherMoneyReceived> OtherMoneyReceived { get; set; }
+    public virtual DbSet<OtherMoneyReceived> OtherMoneyReceived { get; set; }
     public DbSet<PayRateBasis> PayRateBasis { get; set; }
     public DbSet<IncomeTax> IncomeTax { get; set; }
     public virtual DbSet<Document> Document { get; set; }
