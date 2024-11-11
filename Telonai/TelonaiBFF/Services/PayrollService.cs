@@ -15,17 +15,23 @@ public interface IPayrollService
     PayrollModel GetCurrentPayroll( int companyId);
     PayrollModel GetPreviousPayroll(int companyId);
 
+
+
     PayrollModel GetById(int id);
     Task<int> CreateNextPayrollForAll();
     void Create(int companyId);
     void Update(int id, int companyId);
     void Delete(int id);
+
+    public Task<PayrollSummary> GetPayrollSummanryByPayrollId(int payrollId);
+
 }
 
 public class PayrollService : IPayrollService
 {
     private readonly DataContext _context;
     private readonly IMapper _mapper;
+    private readonly IPayStubService _payStubService;
 
     public PayrollService(DataContext context, IMapper mapper)
     {
@@ -549,6 +555,57 @@ public class PayrollService : IPayrollService
         var regularPay = Math.Round(emp.PayRate * totalDaysWorked,2);
 
         return Tuple.Create(regularPay, totalDaysWorked);
+    }
+
+    public async Task<PayrollSummary> GetPayrollSummanryByPayrollId(int payrollId)
+    {
+        try
+        {
+            var payrollSummary = new PayrollSummary();
+            var payroll = await _context.Payroll.FirstAsync(p => p.Id == payrollId);
+            if (payroll != null)
+            {
+                var incometax = _context.IncomeTax.Include(e => e.PayStub).Where(e => e.PayStub.PayrollId == payrollId);
+                if (incometax != null)
+                {
+                    payrollSummary.EmployeeSocialSecurity = incometax.Where(e => e.IncomeTaxType.Name == "Social Security" && e.IncomeTaxType.ForEmployee == true).Sum(e => e.Amount);
+                    payrollSummary.EmployerSocialSecurity = incometax.Where(e => e.IncomeTaxType.Name == "Social Security" && e.IncomeTaxType.ForEmployee == false).Sum(e => e.Amount);
+                    payrollSummary.EmployeeMediCare = incometax.Where(e => e.IncomeTaxType.Name == "Medicare" && e.IncomeTaxType.ForEmployee == true).Sum(e => e.Amount);
+                    payrollSummary.EmployerMediCare = incometax.Where(e => e.IncomeTaxType.Name == "Medicare" && e.IncomeTaxType.ForEmployee == false).Sum(e => e.Amount);
+
+                    if (payroll.EmployeesOwed.HasValue)
+                    {
+                        payrollSummary.WagesAndTIps = payroll.EmployeesOwed.Value;
+                    }
+
+                    if (payroll.FederalOwed.HasValue)
+                    {
+                        payrollSummary.FederalTaxWithHeld = payroll.FederalOwed.Value;
+                    }
+
+                    if (payroll.StatesOwed.HasValue)
+                    {
+                        payrollSummary.StateTaxWithHeld = payroll.StatesOwed.Value;
+                    }
+
+                    return payrollSummary;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
+        catch(Exception ex) 
+        {
+
+            return null;
+        }
+
     }
 }
 

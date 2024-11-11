@@ -51,12 +51,12 @@ namespace TelonaiWebApi.Services
         private readonly IContactTypeService _contactTypeService;
         private readonly IRoleTypeService _roleTypeService;
         private readonly IHolidaysService _holidaysService;
-        private readonly IIncomeTaxService<IncomeTaxRateModel,IncomeTaxRate> _incomeTaxService;
+        private readonly IIncomeTaxRateService<IncomeTaxRateModel,IncomeTaxRate> _incomeTaxService;
         private readonly IStateStandardDeductionService _stateStandardDeduction;
 
         public StaticDataService(ITelonaiCache cache, ICityService cityService, ICountryService countryService, IStateService stateService,
             IZipcodeService zipcodeService, IBusinessTypeService businessTypeService, IContactTypeService contactTypeService,
-            IRoleTypeService roleTypeService, IHolidaysService holidaysService, IIncomeTaxService<IncomeTaxRateModel, IncomeTaxRate> incomeTaxService,
+            IRoleTypeService roleTypeService, IHolidaysService holidaysService, IIncomeTaxRateService<IncomeTaxRateModel, IncomeTaxRate> incomeTaxService,
             IStateStandardDeductionService stateStandardDeductionService)
         {
             _cache = cache;
