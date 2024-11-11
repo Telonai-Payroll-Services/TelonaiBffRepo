@@ -397,3 +397,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /Telonai/.vs/TelonaiBFF/v17/DocumentLayout.json
+*.txt
