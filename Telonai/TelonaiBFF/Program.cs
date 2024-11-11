@@ -66,7 +66,8 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<ICountryService, CountryService>();
     services.AddScoped<IEmploymentService<EmploymentModel, Employment>, EmploymentService>();
     services.AddScoped<IHolidaysService, HolidaysService>();
-    services.AddScoped<IIncomeTaxService<IncomeTaxRateModel, IncomeTaxRate>, IncomeTaxService>();
+    services.AddScoped<IIncomeTaxRateService<IncomeTaxRateModel, IncomeTaxRate>, IncomeTaxRateService>();
+    services.AddScoped<IIncomeTaxService, IncomeTaxService>();  
     services.AddScoped<IInvitationService<InvitationModel, Invitation>, InvitationService>();
     services.AddScoped<IJobService<JobModel, Job>, JobService>();
     services.AddScoped<IOtherMoneyReceivedService, OtherMoneyReceivedService>();
@@ -176,5 +177,5 @@ var app = builder.Build();
     app.UseSwaggerUI();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
-//app.Run("http://localhost:5000");
-app.Run();
+app.Run("http://localhost:5000");
+//app.Run();

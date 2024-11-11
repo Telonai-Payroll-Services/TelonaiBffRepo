@@ -1,70 +1,100 @@
-namespace TelonaiWebApi.Services;
-
-using AutoMapper;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 
-public interface IIncomeTaxService<IncomeTaxRateModel, IncomeTaxRate> : IDataService<IncomeTaxRateModel, IncomeTaxRate>
+namespace TelonaiWebApi.Services
 {
-    IList<IncomeTaxRateModel> GetModelByCountryId(int countryId);
-    IList<IncomeTaxRate> GetByCountryId(int countryId);
-
-}
-
-public class IncomeTaxService : IIncomeTaxService<IncomeTaxRateModel, IncomeTaxRate>
-{
-    private readonly DataContext _context;
-    private readonly IMapper _mapper;
-    
-    public IncomeTaxService(DataContext context, IMapper mapper)
+    public interface IIncomeTaxService
     {
-        _context = context;
-        _mapper = mapper;
+        IList<IncomeTaxModel> GetByPayStubId(int payStubId);
     }
-    public IList<IncomeTaxRateModel> Get()
+    public class IncomeTaxService : IIncomeTaxService
     {
-        var dto = _context.IncomeTaxRate;
-        return _mapper.Map<IList<IncomeTaxRateModel>>(dto);
-    }
+        private readonly DataContext _context;
+        private readonly IMapper _mapper;
 
-    public IncomeTaxRateModel GetById(int id)
-    {
-        var dto = _context.IncomeTaxRate.Find(id);
-        return _mapper.Map<IncomeTaxRateModel>(dto);
-    }
-
-    public IList<IncomeTaxRateModel> GetModelByCountryId(int countryId)
-    {
-        var dto =  _context.IncomeTaxRate.Where(e=> e.IncomeTaxType.CountryId==countryId).ToList();
-        return _mapper.Map<List<IncomeTaxRateModel>>(dto);
-    }
-
-    public IList<IncomeTaxRate> GetByCountryId(int countryId)
-    {
-        try
+        public IncomeTaxService(DataContext context, IMapper mapper)
         {
-            var dto = _context.IncomeTaxRate.Where(e => e.IncomeTaxType.CountryId == countryId && e.EffectiveDate.Year <= DateTime.Now.Year).ToList();
-
-            return dto;
+            _context = context;
+            _mapper = mapper;
         }
-        catch(Exception ex)
-        { return null; }
-    }
 
-    public async Task<IncomeTaxRate> CreateAsync(IncomeTaxRateModel model)
-    {
-        throw new NotImplementedException();
-    }
+        public async  Task<IncomeTax> CreateAsync(IncomeTaxModel model)
+        {
+            var incomeTax = _mapper.Map<IncomeTax>(model);
+            await _context.IncomeTax.AddAsync(incomeTax);
+            _context.SaveChanges();
+            return incomeTax;
+        }
 
-    public async Task UpdateAsync(int id, IncomeTaxRateModel model)
-    {
-        throw new NotImplementedException();
-    }
+        public async Task DeleteAsync(int id)
+        {
+            var incomeTax = await _context.IncomeTax.FindAsync(id);
+            if (incomeTax != null)
+            {
+                _context.Remove(incomeTax);
+                await _context.SaveChangesAsync();
+            }
+        }
 
-    public async Task DeleteAsync(int id)
-    {
-        throw new NotImplementedException();
+        public IList<IncomeTaxModel> GetByPayStubId(int payStubId)
+        {
+            List<IncomeTaxModel> incomeTaxModel = new List<IncomeTaxModel>();
+            IList<IncomeTax> incomeTax =  _context.IncomeTax.Where(x=>x.PayStubId == payStubId).ToList();
+            if(incomeTax != null)
+            {
+                incomeTaxModel = _mapper.Map<List<IncomeTaxModel>>(incomeTax);
+                return incomeTaxModel;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task<IncomeTaxModel> GetById(int id)
+        {
+            var incomeTax = await _context.IncomeTax.FindAsync(id);
+            var incomeTaxModel = _mapper.Map<IncomeTaxModel>(incomeTax);
+            return incomeTaxModel;
+        }
+
+
+        public async Task<bool> UpdateAsync(int id, IncomeTaxModel model)
+        {
+            var incomeTax = await _context.IncomeTax.FindAsync(id);
+            if (incomeTax != null)
+            {
+                if (incomeTax.IncomeTaxTypeId != model.IncomeTaxTypeId)
+                {
+                    incomeTax.IncomeTaxTypeId = model.IncomeTaxTypeId;
+                }
+                if (incomeTax.DepositedAmount != model.DepositedAmount)
+                {
+                    incomeTax.DepositedAmount = model.DepositedAmount;
+                }
+                if (incomeTax.PayStubId != model.PayStubId)
+                {
+                    incomeTax.PayStubId = model.PayStubId;
+                }
+                if (incomeTax.Amount != model.Amount)
+                {
+                    incomeTax.Amount = model.Amount;
+                }
+                if (incomeTax.YtdAmount != model.YtdAmount)
+                {
+                    incomeTax.YtdAmount = model.YtdAmount;
+                }
+                _context.Update(incomeTax);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
-    
 }

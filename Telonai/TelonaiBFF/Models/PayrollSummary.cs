@@ -2,8 +2,6 @@
 {
     public class PayrollSummary
     {
-        public int Id { get; set; }
-        public int payrollId { get; set; }
         public double WagesAndTIps{ get; set; }
         public double FederalTaxWithHeld { get; set; }
         public double EmployeeSocialSecurity { get; set; }
