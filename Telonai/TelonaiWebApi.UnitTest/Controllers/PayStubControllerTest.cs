@@ -397,7 +397,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             _mockPayStubService.Setup(service => service.GetCurrentByCompanyIdAndPersonId(companyId, presonId)).Returns(payStubModel);
 
             //Act 
-            var result = _payStubController.GetCurrentByJobIdAndPersonId(companyId, presonId);
+            var result = _payStubController.GetCurrentByCompanyAndPersonId(companyId, presonId);
             //Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
             var returnedDocument = Assert.IsType<List<PayStubModel>>(okResult.Value);
@@ -528,7 +528,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             _mockPayStubService.Setup(service => service.GetCurrentByCompanyIdAndPersonId(companyId, presonId)).Returns(payStubModel);
 
             //Act 
-            var result = _payStubController.GetCurrentByJobIdAndPersonId(It.IsAny<int>(), It.IsAny<int>());
+            var result = _payStubController.GetCurrentByCompanyAndPersonId(It.IsAny<int>(), It.IsAny<int>());
 
             //Assert
             var okResult = Assert.IsType<OkObjectResult>(result);

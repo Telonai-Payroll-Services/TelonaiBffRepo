@@ -23,7 +23,7 @@ public interface IPayStubService
     Task<Stream> GetDocumentByDocumentId(Guid documentId);
     void Create(PayStubModel model);
     void Update(int id, PayStubModel model);
-    void Delete(int id);
+    bool Delete(int id);
     Task<List<PayStubModel>> GetCurrentOwnPayStubByCompanyId(int companyId, int count, int skip);
 }
 
