@@ -157,6 +157,7 @@ public class PayStubService : IPayStubService
             {
                 await CalculateFederalWitholdingsAsync(payStub);
                 await CalculateStateWitholdingAsync(payStub);
+                _context.IncomeTax.AddRange(_newIncomeTaxesToHold);
                 await _context.SaveChangesAsync();
             }
 
@@ -281,7 +282,7 @@ public class PayStubService : IPayStubService
             //Calculate Federal Tax to withhold
             var hasMultipleJobs = !string.IsNullOrWhiteSpace(w4TwoC);
             var annualAmount = stub.GrossPay * _numberOfPaymentsInYear + double.Parse(w4FourA);
-            var deduction = double.Parse(w4FourB) * (hasMultipleJobs ? 0 : w4OneC.Contains("Jointly") ? 12900 : 8600);
+            var deduction = double.Parse(w4FourB) * (hasMultipleJobs ? 0 : w4OneC.Contains("Jointly") ? 12900 : 8600);//TO DO The hard coded values should come from database 
             var adjustedAnnualWageAmount = annualAmount - deduction;
 
             var rate = employeeFederalRates.First(e => e.IncomeTaxType.Name.StartsWith("Federal") &&
