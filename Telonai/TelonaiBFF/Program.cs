@@ -67,7 +67,6 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IEmploymentService<EmploymentModel, Employment>, EmploymentService>();
     services.AddScoped<IHolidaysService, HolidaysService>();
     services.AddScoped<IIncomeTaxRateService<IncomeTaxRateModel, IncomeTaxRate>, IncomeTaxRateService>();
-    services.AddScoped<IIncomeTaxService, IncomeTaxService>();  
     services.AddScoped<IInvitationService<InvitationModel, Invitation>, InvitationService>();
     services.AddScoped<IJobService<JobModel, Job>, JobService>();
     services.AddScoped<IOtherMoneyReceivedService, OtherMoneyReceivedService>();

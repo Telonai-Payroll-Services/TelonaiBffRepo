@@ -62,7 +62,7 @@ public class PayrollsController : ControllerBase
         return Ok(item);
     }
 
-    [HttpGet("Summary/{payrollId}")]
+    [HttpGet("{payrollId}/Summary")]
     public async Task<IActionResult> GetPayrollSummaryById(int payrollId)
     {
         var payrollSummary = await _payrollService.GetPayrollSummanryByPayrollId(payrollId);

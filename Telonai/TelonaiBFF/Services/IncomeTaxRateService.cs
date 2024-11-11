@@ -54,59 +54,17 @@ public class IncomeTaxRateService : IIncomeTaxRateService<IncomeTaxRateModel, In
 
     public async Task<IncomeTaxRate> CreateAsync(IncomeTaxRateModel model)
     {
-        var incomeTax = _mapper.Map<IncomeTaxRate>(model);
-        _context.IncomeTaxRate.Add(incomeTax);
-        await _context.SaveChangesAsync();
-        return incomeTax;
+        throw new NotImplementedException();
     }
 
     public async Task UpdateAsync(int id, IncomeTaxRateModel model)
     {
-        var incomeTaxRate = await _context.IncomeTaxRate.FindAsync(id);
-        if (incomeTaxRate != null)
-        {
-            var changedIncomeTax = _mapper.Map<IncomeTaxRate>(model);
-            if (changedIncomeTax.IncomeTaxType != incomeTaxRate.IncomeTaxType)
-            {
-                incomeTaxRate.IncomeTaxType = changedIncomeTax.IncomeTaxType;
-            }
-            if (changedIncomeTax.Rate != incomeTaxRate.Rate)
-            {
-                incomeTaxRate.Rate = changedIncomeTax.Rate;
-            }
-            if (changedIncomeTax.FilingStatusId != incomeTaxRate.FilingStatusId)
-            {
-                incomeTaxRate.FilingStatusId = changedIncomeTax.FilingStatusId;
-            }
-            if (changedIncomeTax.EffectiveDate != incomeTaxRate.EffectiveDate)
-            {
-                incomeTaxRate.EffectiveDate = changedIncomeTax.EffectiveDate;   
-            }
-            if(changedIncomeTax.TentativeAmount != incomeTaxRate.TentativeAmount)
-            {
-                incomeTaxRate.TentativeAmount = changedIncomeTax.TentativeAmount;
-            }
-            if(changedIncomeTax.Minimum != incomeTaxRate.Minimum)
-            {
-                incomeTaxRate.Minimum = changedIncomeTax.Minimum;
-            }
-            if(changedIncomeTax.Maximum != changedIncomeTax.Maximum)
-            {
-                incomeTaxRate.Maximum= changedIncomeTax.Maximum;
-            }
-            _context.Update(incomeTaxRate);
-            _context.SaveChanges(); 
-        }
+        throw new NotImplementedException();
     }
 
     public async Task DeleteAsync(int id)
     {
-        var incomeTaxRate = await _context.IncomeTaxRate.FindAsync(id);
-        if (incomeTaxRate != null) 
-        {
-            _context.Remove(incomeTaxRate);
-            _context.SaveChanges();
-        }
+        throw new NotImplementedException();
     }
-    
+
 }
