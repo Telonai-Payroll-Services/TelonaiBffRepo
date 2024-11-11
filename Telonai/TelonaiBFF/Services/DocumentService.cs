@@ -12,8 +12,6 @@ using System.Text;
 using Microsoft.OpenApi.Extensions;
 using Document = Entities.Document;
 
-//using Amazon.Runtime.Documents;
-
 public interface IDocumentService
 {
     Task<DocumentModel> GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType);
@@ -36,6 +34,7 @@ public interface IDocumentService
     Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file);
     Task<W4PdfResult> GenerateW4pdf(int employmentId, W4Form model);
     Task<byte[]> SignW4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
+    Task<Guid> Confirm(Guid id);
 }
 
 public class DocumentService : IDocumentService
@@ -448,10 +447,10 @@ public class DocumentService : IDocumentService
     }
     public async Task<byte[]> SignW4DoumentAsync(Guid id, int employmentId, SignatureModel signature)
     {
-        var emp = _context.Employment.Find(employmentId);
+        var emp = _context.Employment.Include(e => e.Person).FirstOrDefault(e => e.Id == employmentId);
         _scopedAuthorization.ValidateByJobId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, emp.JobId);
-
-        var documentType = DocumentTypeModel.WFourUnsigned;
+        _person = emp.Person;
+        var documentType = DocumentTypeModel.WFourUnsigned;      
         var document = await GetDocumentByDocumentTypeAndIdAsync(documentType, id);
         if (document == null)
         {
@@ -507,9 +506,9 @@ public class DocumentService : IDocumentService
             throw new InvalidOperationException("No filing status selected or more than one status selected.");
         }
 
-        var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.WFourUnsigned.ToString(),
-            document.Id.ToString());
-
+         var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.WFourUnsigned.ToString(),
+             document.Id.ToString());
+        
         var fileBytes = await SetPdfFormFilds(model, documentResult, filingStatus.Item1);
 
         var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes);
@@ -534,13 +533,12 @@ public class DocumentService : IDocumentService
 
     public async Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file)
     {
-        var person = await _personService.GetCurrentUserAsync(); ;
 
         var documentModel = new DocumentModel
         {
-            FileName = person.FirstName + person.MiddleName + person.LastName + DocumentTypeModel.WFour.GetDisplayName(),
+            FileName = _person.FirstName + _person.MiddleName + _person.LastName + DocumentTypeModel.WFour.GetDisplayName(),
             DocumentType = DocumentTypeModel.WFour,
-            PersonId = person.Id
+            PersonId =  _person.Id
         };
         using Stream stream = new MemoryStream(file);
 
@@ -598,6 +596,13 @@ public class DocumentService : IDocumentService
         var documentModel=EmployeeWithholdingHelper.CreateDocumentModel(documentId, filename, _person.Id, effectiveDate);
         return documentModel;
     }
-    //private  Person GetPerson( int id) { return  _context.Person.Find(id); }
+    public async Task<Guid> Confirm(Guid id)
+    {   
+        var document = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
+        document.IsConfirmed = true;
+        _context.Document.Update(document);
+        await _context.SaveChangesAsync();
+        return document.Id;
+    }
 }
 

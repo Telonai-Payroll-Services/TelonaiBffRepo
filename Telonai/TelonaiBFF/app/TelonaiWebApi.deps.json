@@ -11,8 +11,8 @@
         "dependencies": {
           "AWS.Logger.AspNetCore": "3.4.1",
           "AWSSDK.CognitoIdentityProvider": "3.7.300.6",
-          "AWSSDK.Extensions.NETCore.Setup": "3.7.300",
-          "AWSSDK.S3": "3.7.304",
+          "AWSSDK.Extensions.NETCore.Setup": "3.7.301",
+          "AWSSDK.S3": "3.7.405.11",
           "AWSSDK.SQS": "3.7.400.13",
           "AWSSDK.SecretsManager": "3.7.302.11",
           "AWSSDK.SecretsManager.Caching": "1.0.6",
@@ -39,7 +39,7 @@
         "dependencies": {
           "AWSSDK.CognitoIdentity": "3.7.0.3",
           "AWSSDK.CognitoIdentityProvider": "3.7.300.6",
-          "AWSSDK.Extensions.NETCore.Setup": "3.7.300",
+          "AWSSDK.Extensions.NETCore.Setup": "3.7.301",
           "Amazon.Extensions.CognitoAuthentication": "2.5.2",
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "6.35.0"
         },
@@ -112,7 +112,7 @@
       },
       "AWSSDK.CloudWatchLogs/3.7.0.5": {
         "dependencies": {
-          "AWSSDK.Core": "3.7.400.13"
+          "AWSSDK.Core": "3.7.400.47"
         },
         "runtime": {
           "lib/netcoreapp3.1/AWSSDK.CloudWatchLogs.dll": {
@@ -123,7 +123,7 @@
       },
       "AWSSDK.CognitoIdentity/3.7.0.3": {
         "dependencies": {
-          "AWSSDK.Core": "3.7.400.13",
+          "AWSSDK.Core": "3.7.400.47",
           "AWSSDK.SecurityToken": "3.7.0.3"
         },
         "runtime": {
@@ -135,7 +135,7 @@
       },
       "AWSSDK.CognitoIdentityProvider/3.7.300.6": {
         "dependencies": {
-          "AWSSDK.Core": "3.7.400.13"
+          "AWSSDK.Core": "3.7.400.47"
         },
         "runtime": {
           "lib/netcoreapp3.1/AWSSDK.CognitoIdentityProvider.dll": {
@@ -144,17 +144,17 @@
           }
         }
       },
-      "AWSSDK.Core/3.7.400.13": {
+      "AWSSDK.Core/3.7.400.47": {
         "runtime": {
           "lib/netcoreapp3.1/AWSSDK.Core.dll": {
             "assemblyVersion": "3.3.0.0",
-            "fileVersion": "3.7.400.13"
+            "fileVersion": "3.7.400.47"
           }
         }
       },
-      "AWSSDK.Extensions.NETCore.Setup/3.7.300": {
+      "AWSSDK.Extensions.NETCore.Setup/3.7.301": {
         "dependencies": {
-          "AWSSDK.Core": "3.7.400.13",
+          "AWSSDK.Core": "3.7.400.47",
           "Microsoft.Extensions.Configuration.Abstractions": "7.0.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "7.0.0",
           "Microsoft.Extensions.Logging.Abstractions": "7.0.0"
@@ -166,20 +166,20 @@
           }
         }
       },
-      "AWSSDK.S3/3.7.304": {
+      "AWSSDK.S3/3.7.405.11": {
         "dependencies": {
-          "AWSSDK.Core": "3.7.400.13"
+          "AWSSDK.Core": "3.7.400.47"
         },
         "runtime": {
           "lib/netcoreapp3.1/AWSSDK.S3.dll": {
             "assemblyVersion": "3.3.0.0",
-            "fileVersion": "3.7.304.0"
+            "fileVersion": "3.7.405.11"
           }
         }
       },
       "AWSSDK.SecretsManager/3.7.302.11": {
         "dependencies": {
-          "AWSSDK.Core": "3.7.400.13"
+          "AWSSDK.Core": "3.7.400.47"
         },
         "runtime": {
           "lib/netcoreapp3.1/AWSSDK.SecretsManager.dll": {
@@ -202,7 +202,7 @@
       },
       "AWSSDK.SecurityToken/3.7.0.3": {
         "dependencies": {
-          "AWSSDK.Core": "3.7.400.13"
+          "AWSSDK.Core": "3.7.400.47"
         },
         "runtime": {
           "lib/netcoreapp3.1/AWSSDK.SecurityToken.dll": {
@@ -213,7 +213,7 @@
       },
       "AWSSDK.SimpleEmail/3.7.300.7": {
         "dependencies": {
-          "AWSSDK.Core": "3.7.400.13"
+          "AWSSDK.Core": "3.7.400.47"
         },
         "runtime": {
           "lib/netcoreapp3.1/AWSSDK.SimpleEmail.dll": {
@@ -224,7 +224,7 @@
       },
       "AWSSDK.SQS/3.7.400.13": {
         "dependencies": {
-          "AWSSDK.Core": "3.7.400.13"
+          "AWSSDK.Core": "3.7.400.47"
         },
         "runtime": {
           "lib/netcoreapp3.1/AWSSDK.SQS.dll": {
@@ -723,26 +723,26 @@
       "path": "awssdk.cognitoidentityprovider/3.7.300.6",
       "hashPath": "awssdk.cognitoidentityprovider.3.7.300.6.nupkg.sha512"
     },
-    "AWSSDK.Core/3.7.400.13": {
+    "AWSSDK.Core/3.7.400.47": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-hEW5F8dMLyVRJ+LrTJVwpaOSVIsfG0Yvo2IMTDB9gxbDRzHv/iu/fzUhwNLlLuV+vel6Z3yq3AGaTFbA0Khj5w==",
-      "path": "awssdk.core/3.7.400.13",
-      "hashPath": "awssdk.core.3.7.400.13.nupkg.sha512"
+      "sha512": "sha512-1Twrreb+XofwuK5RfFbhPmiXmzYGmyZSQLPnHErHPSWKjLjOf5hLNOYvSJFa4icK6bWjVSHQspLK2OmBukU6oQ==",
+      "path": "awssdk.core/3.7.400.47",
+      "hashPath": "awssdk.core.3.7.400.47.nupkg.sha512"
     },
-    "AWSSDK.Extensions.NETCore.Setup/3.7.300": {
+    "AWSSDK.Extensions.NETCore.Setup/3.7.301": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-zMxAHFYSAWHsVV9Cn96nE+V40agRCjT0etF10f0d/nFMMb1z7lecVwNadq9JYyqlDj+jsVRH9ydk4Al4v/1+jg==",
-      "path": "awssdk.extensions.netcore.setup/3.7.300",
-      "hashPath": "awssdk.extensions.netcore.setup.3.7.300.nupkg.sha512"
+      "sha512": "sha512-hXejqa+G72kVCSmpKlNVWDEqa8KVWOFL/asgoE2mairQOnmTCv6vMxaXjJ0nQaad5/21zTdKDIfDiki5YTne1Q==",
+      "path": "awssdk.extensions.netcore.setup/3.7.301",
+      "hashPath": "awssdk.extensions.netcore.setup.3.7.301.nupkg.sha512"
     },
-    "AWSSDK.S3/3.7.304": {
+    "AWSSDK.S3/3.7.405.11": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-VsvQa0+1xI0CfGkBLWTLPsVlEolPwH68I8n6ud8BAl57kiEEgAdGtaJTpp9f+XvWADVTzlNdB738Ooz7mpDWpA==",
-      "path": "awssdk.s3/3.7.304",
-      "hashPath": "awssdk.s3.3.7.304.nupkg.sha512"
+      "sha512": "sha512-iDllwqtRIPVDEBDtRM60/qxWID8srJYUQsg+4IVTBD6TFsj5tdHlf5Be8RgWQJnacxmGsyJEW/xcIXYGBSbUVg==",
+      "path": "awssdk.s3/3.7.405.11",
+      "hashPath": "awssdk.s3.3.7.405.11.nupkg.sha512"
     },
     "AWSSDK.SecretsManager/3.7.302.11": {
       "type": "package",

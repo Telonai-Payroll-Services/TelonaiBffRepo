@@ -23,7 +23,8 @@ public interface IPayStubService
     Task<Stream> GetDocumentByDocumentId(Guid documentId);
     void Create(PayStubModel model);
     void Update(int id, PayStubModel model);
-    bool Delete(int id);
+    void Delete(int id);
+    Task<List<PayStubModel>> GetCurrentOwnPayStubByCompanyId(int companyId, int count, int skip);
 }
 
 public class PayStubService : IPayStubService
@@ -36,12 +37,15 @@ public class PayStubService : IPayStubService
     private int _countryId;
     private int _stateId;
     private int _currentYear;
+    private readonly IPersonService<PersonModel, Person> _personService;
 
-    public PayStubService(DataContext context, IMapper mapper, IStaticDataService staticDataService)
+    public PayStubService(DataContext context, IMapper mapper, IStaticDataService staticDataService
+        , IPersonService<PersonModel, Person> personService)
     {
         _context = context;
         _mapper = mapper;
         _staticDataService = staticDataService;
+        _personService = personService;
     }
 
     public List<PayStubModel> GetCurrentByCompanyId(int CompanyId)
@@ -61,6 +65,16 @@ public class PayStubService : IPayStubService
         .Where(c => c.Employment.Job.CompanyId == companyId && c.Employment.PersonId == personId)
         .GroupBy(c => c.PayrollId)
         .Select(g => g.OrderByDescending(c => c.PayrollId).First()).ToList();
+
+        var result = _mapper.Map<List<PayStubModel>>(obj);
+        return result;
+    }
+    public async Task<List<PayStubModel>> GetCurrentOwnPayStubByCompanyId(int companyId,int count ,int skip)
+    {
+        var person = await _personService.GetCurrentUserAsync();
+        var obj = _context.PayStub.OrderByDescending(c => c.Id)
+        .Where(c => c.Employment.Job.CompanyId == companyId && c.Employment.PersonId == person.Id)
+        .Skip(skip).Take(count).ToList();
 
         var result = _mapper.Map<List<PayStubModel>>(obj);
         return result;

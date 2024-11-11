@@ -180,4 +180,11 @@ public class DocumentsController : ControllerBase
         return File(fileBytes, "application/pdf", "signed_fw4.pdf");
 
     }
+
+    [HttpPost("{id}/confirm")]
+    public async Task<IActionResult> Confirm(Guid id)
+    {
+        await _documentService.Confirm(id);
+        return Ok(new { message = "Document Signature Confirmed." });
+    }
 }
