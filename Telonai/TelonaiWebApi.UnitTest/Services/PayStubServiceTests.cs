@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Services;
@@ -8,9 +6,6 @@ using TelonaiWebApi.Models;
 using TelonaiWebApi.Helpers;
 using Moq;
 using Xunit;
-using System.Net.Sockets;
-using System;
-using Amazon.Runtime.SharedInterfaces;
 
 namespace TelonaiWebAPI.UnitTest.Services
 {
@@ -1886,7 +1881,8 @@ namespace TelonaiWebAPI.UnitTest.Services
 
         #endregion
 
-        #region 
+        #region  Delete PayStub
+
 
         [Fact]
         public async void DeletePayStub_WhenPassingExistingPayStubID_ReturnListThatExcludeTheDeletedPayStub()
