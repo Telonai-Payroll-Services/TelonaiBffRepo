@@ -287,8 +287,7 @@ public class DocumentService : IDocumentService
 
         var dto = await _context.Document.FindAsync(id);
         if (dto == null)
-            return null;
-        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, dto.PersonId);
+            return null;      
 
         var document = await _documentManager.GetDocumentByTypeAndIdAsync(documentType.ToString(), dto.Id.ToString());
 
@@ -314,7 +313,7 @@ public class DocumentService : IDocumentService
     
         return dto.Id;
     }
-    private async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus)
+    private async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus,Employment employer)
     {
         var firstName = _person?.FirstName ;
         var middeName= _person?.LastName ;
@@ -339,10 +338,12 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.Step1a_Address, address);
                 formFields.SetField(PdfFields.Step1a_City_Or_Town_State_ZIPCode, $"{cityOrTown} {state} {zipCode}");
                 formFields.SetField(PdfFields.Step1b_SocialSecurityNumber, ssn);
-                formFields.SetField(filingStatus, "1");
+
+                formFields.SetField(filingStatus, "On");
+               
                 var multipleJobsOrSpouseWorks = model.MultipleJobs || model.SpouseWorks;
 
-                formFields.SetField(PdfFields.Step2_MultipleJobsOrSpouseWorks, multipleJobsOrSpouseWorks ? "1" : "");
+                formFields.SetField(PdfFields.Step2_MultipleJobsOrSpouseWorks, multipleJobsOrSpouseWorks ? "On" : "");
                 var totalClaimedAmount = model.NumberOfChildrenUnder17 * 2000 + model.OtherDependents * 500;
 
                 formFields.SetField(PdfFields.Step3_Dependents_NumberOfChildrenUnder17, model.NumberOfChildrenUnder17.ToString());
@@ -352,9 +353,12 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.Step4a_OtherIncome, model.OtherIncome.ToString());
                 formFields.SetField(PdfFields.Step4b_Deductions, model.Deductions.ToString());
                 formFields.SetField(PdfFields.Step4c_ExtraWithholding, model.ExtraWithholding.ToString());
-                             
 
-                pdfStamper.FormFlattening = true;
+                formFields.SetField(PdfFields.EmployerNameAndAddress, employer.Person.FirstName+""+employer.Person.MiddleName+""+ employer.Person.LastName+ "" + employer.Person.AddressLine1);
+                formFields.SetField(PdfFields.EmployerFirstDateOfEmployement, employer.CreatedDate.ToShortDateString());
+                //TODO Replace with EmployerIdentificationNumber
+                //formFields.SetField(PdfFields.EmployerIdentificationNumber, "");
+                pdfStamper.FormFlattening = false;
                 pdfStamper.Close();
                 pdfReader.Close();
             }
@@ -464,10 +468,8 @@ public class DocumentService : IDocumentService
             using (PdfStamper pdfStamper = new PdfStamper(pdfReader, workStream))
             {
                 AcroFields formFields = pdfStamper.AcroFields;
-                //Todo
-                //Replace the Signature and Date fields from with Editable W4 PDF Fields
                 formFields.SetField(PdfFields.Signature, signature.Signature);
-                formFields.SetField(PdfFields.Date, signature.SignatureDate.ToString());
+                formFields.SetField(PdfFields.Date, DateTime.Now.ToShortDateString());
 
                 pdfStamper.FormFlattening = true;
                 pdfStamper.Close();
@@ -493,7 +495,8 @@ public class DocumentService : IDocumentService
 
         _person = emp.Person;
         var documentTypeId = (int)DocumentTypeModel.WFourUnsigned;
-        var document = _context.Document.FirstOrDefault(e => e.DocumentTypeId == documentTypeId && !e.IsDeleted);
+        var document = _context.Document.FirstOrDefault(e => e.DocumentTypeId == documentTypeId && !e.IsDeleted && e.FileName== DocumentTypeModel.WFourUnsigned.GetDisplayName());
+        var employer = _context.Employment.Include(e => e.Person).FirstOrDefault(e => e.JobId == emp.JobId && e.IsPayrollAdmin);
 
         if (document == null)
         {
@@ -509,7 +512,7 @@ public class DocumentService : IDocumentService
          var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.WFourUnsigned.ToString(),
              document.Id.ToString());
         
-        var fileBytes = await SetPdfFormFilds(model, documentResult, filingStatus.Item1);
+        var fileBytes = await SetPdfFormFilds(model, documentResult, filingStatus.Item1, employer);
 
         var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes);
         var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
