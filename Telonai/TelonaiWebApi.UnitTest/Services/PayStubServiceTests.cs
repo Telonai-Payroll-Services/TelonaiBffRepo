@@ -1584,12 +1584,46 @@ namespace TelonaiWebAPI.UnitTest.Services
         [Fact]
         public async void GetPayStub_WhenThereIsExistingPayStub_ReturnsPayStubDetailInfo()
         {
+            var companyId = 1;
+            var personId = 21;
+            var jobId = 20;
+            var payroll = new Payroll()
+            {
+                Id = 112,
+                CompanyId = companyId,
+                PayrollScheduleId = 2,
+                ScheduledRunDate = DateOnly.FromDateTime(DateTime.Today),
+                StartDate = DateOnly.FromDateTime(DateTime.Now),
+                TrueRunDate = DateTime.Now
+            };
+
+            var employment = new Employment()
+            {
+                Id = 20,
+                PersonId = personId,
+                JobId = jobId,
+                PayRateBasisId = 11,
+                PayRate = 90,
+                IsPayrollAdmin = false,
+                IsSalariedOvertimeExempt = false,
+                IsTenNinetyNine = false,
+                StartDate = DateOnly.FromDateTime(DateTime.Now),
+                Job = new Job()
+                {
+                    Id = jobId,
+                    CompanyId = companyId,
+                    AddressLine1 = "Bole Getu Commercial Center",
+                    AddressLine2 = "Kebede Building",
+                    AddressLine3 = "Second Floor",
+                    ZipcodeId = 232
+                }
+            };
             //Arrange
             var payStub = new PayStub()
             {
                 Id = 1,
-                PayrollId = 12,
-                EmploymentId = 13,
+                PayrollId = 112,
+                EmploymentId = 20,
                 OtherMoneyReceivedId = 25,
                 RegularHoursWorked = 160,
                 OverTimeHoursWorked = 64,
@@ -1603,6 +1637,8 @@ namespace TelonaiWebAPI.UnitTest.Services
                 YtdOverTimePay = 0,
                 YtdRegularPay = 20500,
                 IsCancelled = false,
+                Payroll = payroll,
+                Employment = employment,
             };
             var mockSet = new Mock<DbSet<PayStub>>();
             _mockDataContext.Setup(c => c.PayStub).Returns(mockSet.Object);

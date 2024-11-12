@@ -21,7 +21,7 @@ namespace TelonaiWebAPI.UnitTest.Services
         private readonly Mock<IMapper> _mockMapper;
         private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
         private readonly Mock<IScopedAuthorization> _mockScopedAuthorization;
-        private readonly OtherMoneyReceivedService _mockOtherMoneyReceivedService;
+        private readonly OtherMoneyReceivedService _OtherMoneyReceivedService;
 
         public OtherMoneyReceivedServiceTest()
         {
@@ -29,7 +29,7 @@ namespace TelonaiWebAPI.UnitTest.Services
             _mockMapper = new Mock<IMapper>();
             _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
             _mockScopedAuthorization = new Mock<IScopedAuthorization>();
-            _mockOtherMoneyReceivedService = new OtherMoneyReceivedService(_mockDataContext.Object, _mockMapper.Object, _mockHttpContextAccessor.Object, _mockScopedAuthorization.Object);
+            _OtherMoneyReceivedService = new OtherMoneyReceivedService(_mockDataContext.Object, _mockMapper.Object, _mockHttpContextAccessor.Object, _mockScopedAuthorization.Object);
         }
 
         #region Get Other Money Received By Id
@@ -65,10 +65,10 @@ namespace TelonaiWebAPI.UnitTest.Services
                 YtdCashTips = 200,
                 Reimbursement = 100,
                 YtdReimbursement = 100,
-                AdditionalOtherMoneyReceived = new List<AdditionalOtherMoneyReceived>()
-                {
-                    It.IsAny<AdditionalOtherMoneyReceived>()
-                }
+                //AdditionalOtherMoneyReceived = new List<AdditionalOtherMoneyReceived>()
+                //{
+                //    It.IsAny<AdditionalOtherMoneyReceived>()
+                //}
             };
 
             var mockSet = new Mock<DbSet<OtherMoneyReceived>>();
@@ -76,12 +76,11 @@ namespace TelonaiWebAPI.UnitTest.Services
             mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.Expression).Returns(otherIncomeList.Expression);
             mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.ElementType).Returns(otherIncomeList.ElementType);
             mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.GetEnumerator()).Returns(otherIncomeList.GetEnumerator());
-
-            _mockDataContext.Setup(c => c.OtherMoneyReceived).Returns(mockSet.Object);
             _mockMapper.Setup(m => m.Map<OtherMoneyReceivedModel>(It.IsAny<OtherMoneyReceived>())).Returns(otherIncomeModel);
-            
+            _mockDataContext.Setup(c => c.OtherMoneyReceived).Returns(mockSet.Object);
+                       
             // Act
-            var result = _mockOtherMoneyReceivedService.GetById(otherIncomeId);
+            var result = _OtherMoneyReceivedService.GetById(otherIncomeId);
 
             // Assert
             Assert.NotNull(result);
@@ -119,10 +118,10 @@ namespace TelonaiWebAPI.UnitTest.Services
                 YtdCashTips = 200,
                 Reimbursement = 100,
                 YtdReimbursement = 100,
-                AdditionalOtherMoneyReceived = new List<AdditionalOtherMoneyReceived>()
-                {
-                    It.IsAny<AdditionalOtherMoneyReceived>()
-                }
+                //AdditionalOtherMoneyReceived = new List<AdditionalOtherMoneyReceived>()
+                //{
+                //    It.IsAny<AdditionalOtherMoneyReceived>()
+                //}
             };
 
             var mockSet = new Mock<DbSet<OtherMoneyReceived>>();
@@ -135,12 +134,197 @@ namespace TelonaiWebAPI.UnitTest.Services
             _mockMapper.Setup(m => m.Map<OtherMoneyReceivedModel>(It.IsAny<OtherMoneyReceived>())).Returns(otherIncomeModel);
 
             // Act
-            var result = _mockOtherMoneyReceivedService.GetById(12);
+            var result = _OtherMoneyReceivedService.GetById(12);
 
             // Assert
             Assert.Null(result);
         }
+
+        public async void GetByPayStubId_WhenPassingCorrectCompanyIdAndPaysStubId_ReturnOtherIncomeDetail()
+        {
+            var otherIncomeId = 12;
+            var companyId = 1;
+            var payroll = new Payroll()
+            {
+                Id = 112,
+                CompanyId = companyId,
+                PayrollScheduleId = 2,
+                ScheduledRunDate = DateOnly.FromDateTime(DateTime.Now),
+                StartDate = DateOnly.FromDateTime(DateTime.Now),
+                TrueRunDate = DateTime.Now
+            };
+            var payStubs = new List<PayStub>()
+            {
+                new PayStub()
+                {
+                    Id = 1,
+                    PayrollId = 12,
+                    EmploymentId = 13,
+                    OtherMoneyReceivedId = 25,
+                    RegularHoursWorked = 160,
+                    OverTimeHoursWorked = 64,
+                    GrossPay = 2500,
+                    RegularPay = 2250,
+                    AmountSubjectToAdditionalMedicareTax = 120,
+                    YtdRegularHoursWorked = 1920,
+                    YtdOverTimeHoursWorked = 768,
+                    YtdGrossPay = 27000,
+                    YtdNetPay = 20500,
+                    YtdOverTimePay = 0,
+                    YtdRegularPay = 20500,
+                    IsCancelled = false,
+                    Payroll = payroll,
+                },
+                new PayStub()
+                {
+                    Id = 2,
+                    PayrollId = 12,
+                    EmploymentId = 14,
+                    OtherMoneyReceivedId = 25,
+                    RegularHoursWorked = 160,
+                    OverTimeHoursWorked = 64,
+                    GrossPay = 2500,
+                    RegularPay = 2250,
+                    AmountSubjectToAdditionalMedicareTax = 120,
+                    YtdRegularHoursWorked = 1920,
+                    YtdOverTimeHoursWorked = 768,
+                    YtdGrossPay = 27000,
+                    YtdNetPay = 20500,
+                    YtdOverTimePay = 0,
+                    YtdRegularPay = 20500,
+                    IsCancelled = false,
+                    Payroll = payroll,
+                },
+                new PayStub()
+                {
+                    Id = 3,
+                    PayrollId = 12,
+                    EmploymentId = 15,
+                    OtherMoneyReceivedId = 25,
+                    RegularHoursWorked = 160,
+                    OverTimeHoursWorked = 64,
+                    GrossPay = 2500,
+                    RegularPay = 2250,
+                    AmountSubjectToAdditionalMedicareTax = 120,
+                    YtdRegularHoursWorked = 1920,
+                    YtdOverTimeHoursWorked = 768,
+                    YtdGrossPay = 27000,
+                    YtdNetPay = 20500,
+                    YtdOverTimePay = 0,
+                    YtdRegularPay = 20500,
+                    IsCancelled = false,
+                    Payroll = payroll,
+                },
+            }.AsQueryable();
+            var otherRecivedMoney = new OtherMoneyReceived()
+            {
+                Id = otherIncomeId,
+                IsCancelled = false,
+                CreditCardTips = 0,
+                YtdCreditCardTips = 32,
+                AdditionalOtherMoneyReceivedId = new[] { 12, 67, 300 },
+                CashTips = 200,
+                YtdCashTips = 200,
+                Reimbursement = 100,
+                YtdReimbursement = 100,
+            };
+        }
+
+        #endregion
         
+        #region Delete Other Money Received
+        [Fact]
+        public async void DeleteOtherIncome_WhenPassingExistingId_ReturnsOtherIncomeListWithOutDeletedIncome()
+        {
+            var otherIncomeList = new List<OtherMoneyReceived>()
+            {
+                new OtherMoneyReceived()
+                {
+                    Id = 1,
+                    IsCancelled = false,
+                    CreditCardTips = 0,
+                    YtdCreditCardTips = 32,
+                    AdditionalOtherMoneyReceivedId = new[] { 12, 67, 300 },
+                    CashTips = 200,
+                    YtdCashTips = 200,
+                    Reimbursement = 100,
+                    YtdReimbursement = 100,
+                },
+                new OtherMoneyReceived()
+                {
+                    Id = 2,
+                    IsCancelled = false,
+                    CreditCardTips = 0,
+                    YtdCreditCardTips = 32,
+                    AdditionalOtherMoneyReceivedId = new[] { 12, 67, 300 },
+                    CashTips = 200,
+                    YtdCashTips = 200,
+                    Reimbursement = 100,
+                    YtdReimbursement = 100,
+                }
+            }.AsQueryable();
+            var mockSet = new Mock<DbSet<OtherMoneyReceived>>();
+            mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.Provider).Returns(otherIncomeList.Provider);
+            mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.Expression).Returns(otherIncomeList.Expression);
+            mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.ElementType).Returns(otherIncomeList.ElementType);
+            mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.GetEnumerator()).Returns(otherIncomeList.GetEnumerator());
+            _mockDataContext.Setup(c => c.OtherMoneyReceived).Returns(mockSet.Object);
+            _mockDataContext.Setup(c => c.OtherMoneyReceived.Find(1)).Returns(otherIncomeList.First());
+
+            //Act
+            _OtherMoneyReceivedService.Delete(1);
+
+
+            //Assert
+            mockSet.Verify(m => m.Remove(It.Is<OtherMoneyReceived>(p => p.Id == 1)), Times.Once);
+            _mockDataContext.Verify(m => m.SaveChanges(), Times.Once);
+        }
+        [Fact]
+        public async void DeleteOtherIncome_WhenPassingExistingId_ReturnsAllOtherIncomeLists()
+        {
+            var otherIncomeList = new List<OtherMoneyReceived>()
+            {
+                new OtherMoneyReceived()
+                {
+                    Id = 1,
+                    IsCancelled = false,
+                    CreditCardTips = 0,
+                    YtdCreditCardTips = 32,
+                    AdditionalOtherMoneyReceivedId = new[] { 12, 67, 300 },
+                    CashTips = 200,
+                    YtdCashTips = 200,
+                    Reimbursement = 100,
+                    YtdReimbursement = 100,
+                },
+                new OtherMoneyReceived()
+                {
+                    Id = 2,
+                    IsCancelled = false,
+                    CreditCardTips = 0,
+                    YtdCreditCardTips = 32,
+                    AdditionalOtherMoneyReceivedId = new[] { 12, 67, 300 },
+                    CashTips = 200,
+                    YtdCashTips = 200,
+                    Reimbursement = 100,
+                    YtdReimbursement = 100,
+                }
+            }.AsQueryable();
+            var mockSet = new Mock<DbSet<OtherMoneyReceived>>();
+            mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.Provider).Returns(otherIncomeList.Provider);
+            mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.Expression).Returns(otherIncomeList.Expression);
+            mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.ElementType).Returns(otherIncomeList.ElementType);
+            mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.GetEnumerator()).Returns(otherIncomeList.GetEnumerator());
+            _mockDataContext.Setup(c => c.OtherMoneyReceived).Returns(mockSet.Object);
+            _mockDataContext.Setup(c => c.OtherMoneyReceived.Find(12)).Returns((OtherMoneyReceived)null);
+
+            //Act
+            _OtherMoneyReceivedService.Delete(12);
+
+
+            //Assert
+            Assert.Equal(otherIncomeList.Count(), 2);
+        }
+
         #endregion
     }
 }
