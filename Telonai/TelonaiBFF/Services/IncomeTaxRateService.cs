@@ -44,7 +44,7 @@ public class IncomeTaxRateService : IIncomeTaxRateService<IncomeTaxRateModel, In
     {
         try
         {
-            var dto = _context.IncomeTaxRate.Where(e => e.IncomeTaxType.CountryId == countryId && e.EffectiveDate.Year <= DateTime.Now.Year).ToList();
+            var dto = _context.IncomeTaxRate.Where(e => e.IncomeTaxType.CountryId == countryId && e.EffectiveYear == DateTime.Now.Year).ToList();
 
             return dto;
         }
