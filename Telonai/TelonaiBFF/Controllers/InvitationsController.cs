@@ -83,7 +83,7 @@ public class InvitationsController : ControllerBase
     }
 
     [HttpPost("employer")]
-    public IActionResult InviteEmployer([FromBody] EmployerInvitationModel model)
+    public IActionResult InviteEmployer([FromForm] EmployerInvitationModel model)
     {
         //_service.CreateAsync(model,false);
         return Ok(new { message = $"Employer Invited {model.FirstName}" });
