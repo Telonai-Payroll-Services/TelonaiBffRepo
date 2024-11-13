@@ -187,4 +187,26 @@ public class DocumentsController : ControllerBase
         await _documentService.Confirm(id);
         return Ok(new { message = "Document Signature Confirmed." });
     }
+
+    [HttpPost("employments/{employmentId}/generateNC4pdf")]
+    public async Task<IActionResult> GenerateNC4pdf(int employmentId, [FromBody] NC4Form model)
+    {
+
+        var result = await _documentService.GenerateNC4pdf(employmentId, model);
+
+        var response = new
+        {
+            DocumentId = result.DocumentId,
+            File = File(result.FileBytes, "application/pdf", "edited_nc4.pdf")
+        };
+        return Ok(response);
+    }
+    [HttpPost("{id}/employments/{employmentId}/signNC4pdf")]
+    public async Task<IActionResult> SignNC4Doument(Guid id, int employmentId, SignatureModel signature)
+    {
+        var fileBytes = await _documentService.SignNC4DoumentAsync(id, employmentId, signature);
+
+        return File(fileBytes, "application/pdf", "signed_nc4.pdf");
+
+    }
 }
