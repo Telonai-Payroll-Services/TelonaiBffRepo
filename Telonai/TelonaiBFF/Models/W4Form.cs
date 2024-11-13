@@ -28,7 +28,11 @@
         public Guid DocumentId { get; set; }
     }
 
+    public class NC4Form
+    {
+        public FilingStatus FilingStatus { get; set; }
+        public int NumberOfAllowance { get; set; }
+        public decimal AdditionalAmt { get; set; }
 
-
-
+    }
     }
