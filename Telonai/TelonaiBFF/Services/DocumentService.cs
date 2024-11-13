@@ -642,12 +642,7 @@ public class DocumentService : IDocumentService
         string prefix = "Step1c_FilingStatus_";
         string result = filingStatus.Item2.Substring(prefix.Length);
         var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(doumentId, 1, result, doumentModel);
-        await CreateEmployeeWithholdingAsync(employeeWithHodingModel1C);
-        /*var employeeWithhodingModelList = await CreatemployeeWithholdingModels(doumentId, result, model, doumentModel);
-        foreach (EmployeeWithholdingModel employee in employeeWithhodingModelList)
-        {
-            await CreateEmployeeWithholdingAsync(employee);
-        }*/
+        await CreateEmployeeWithholdingAsync(employeeWithHodingModel1C);   
 
         emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserStartedSubmittingWFour;
         _context.Employment.Update(emp);
@@ -671,8 +666,7 @@ public class DocumentService : IDocumentService
         var country = _person?.Zipcode?.City?.State?.Country.Name;
 
         //TODO AddCounty
-        //var county
-        //var company = _context.Company.FirstOrDefault(e => e.Id == employee.Person.CompanyId);
+        //var county       
         string firstPart = ssn.Substring(0, 3);
         string secondPart = ssn.Substring(3, 2);
         string thirdPart = ssn.Substring(5, 4);
@@ -706,9 +700,6 @@ public class DocumentService : IDocumentService
                 formFields.SetField(NC4PdfFields.Country, $"{country}");
                 formFields.SetField(NC4PdfFields.City, $"{city}");
                 formFields.SetField(NC4PdfFields.State, $"{state}");
-                //formFields.SetField(NC4PdfFields.Date ,
-                //formFields.SetField(NC4PdfFields.CountyFirstFiveLetters
-                //formFields.SetField(NC4PdfFields.Signature 
                 formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus2, "On");
                 formFields.SetField(NC4PdfFields.SocialSecurity2ndPart,secondPart);
                 formFields.SetField(NC4PdfFields.SocialSecurity3rdPart ,thirdPart);
