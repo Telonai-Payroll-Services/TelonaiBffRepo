@@ -15,6 +15,7 @@ public class EmployerInvitationModel : BaseTracker
     public int CountryId { get; set; }
     public int NumberOfEmployees { get; set; }
     public int RoutingNumber { get; set; }
-    public int BankAccountNumber { get; set; }
+    public int AccountNumber { get; set; }
+    public int AccountNumber2 { get; set; }
 
 }
