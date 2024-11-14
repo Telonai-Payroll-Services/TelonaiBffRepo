@@ -13,6 +13,7 @@ using TelonaiWebApi.Helpers;
 public class CompaniesController : ControllerBase
 {
     private readonly ICompanyService<CompanyModel,Company> _service;  
+    private readonly ICompanyContactService _companyContactService;
     private readonly IUserService _userService;
     private readonly IPersonService<PersonModel, Person> _personService;
     private readonly IInvitationService<InvitationModel, Invitation> _invitationService;
@@ -22,7 +23,7 @@ public class CompaniesController : ControllerBase
 
     public CompaniesController(ICompanyService<CompanyModel, Company> companyService, IUserService userService, IPersonService<PersonModel, Person> personService
         , IInvitationService<InvitationModel, Invitation> invitationService, IEmploymentService<EmploymentModel, 
-            Employment> employmentService, IJobService<JobModel, Job> jobService, IScopedAuthorization scopedAuthorization)
+            Employment> employmentService, IJobService<JobModel, Job> jobService, IScopedAuthorization scopedAuthorization, ICompanyContactService companyContactService)
     {
         _service = companyService;
         _userService = userService;
@@ -31,6 +32,7 @@ public class CompaniesController : ControllerBase
         _employmentService = employmentService;
         _jobService = jobService;
         _scopedAuthorization = scopedAuthorization;
+        _companyContactService = companyContactService;
     }
 
     [HttpGet]
@@ -91,6 +93,16 @@ public class CompaniesController : ControllerBase
                 Employments = new List<EmploymentModel> { emp },
                 FullName = $"{person.FirstName} {person.LastName}"
             };
+
+
+            var companyContact = new CompanyContactModel()
+            {
+                CompanyId = company.Id,
+                PersonId = person.Id,
+                ContactType = ContactTypeModel.FirstContact.ToString()
+
+            };
+            await _companyContactService.SaveCompanyContact(companyContact);
 
             return Ok(loginResult);
         }

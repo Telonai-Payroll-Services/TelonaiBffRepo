@@ -14,7 +14,7 @@ public class CompanyModel
     public int CityId { get; set; }
     public string City { get; set; }
     public int ZipcodeId { get; set; }
-    public string Code { get; set; }
+    public string ZipCode { get; set; }
     public string State { get; set; }
     public int StateId { get; set; }
     public string Country { get; set; }

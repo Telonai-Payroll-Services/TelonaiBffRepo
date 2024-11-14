@@ -164,7 +164,8 @@ public class AutoMapperProfile : Profile
            .ForMember(dest => dest.BusinessType, opt => opt.MapFrom(src => (BusinessTypeModel)src.BusinessTypeId))
            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Zipcode.City.Name))
            .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.Zipcode.City.State.Name))
-           .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId));
+           .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
+           .ForMember(dest => dest.ZipCode, opt => opt.MapFrom(src => src.Zipcode.Code));
 
         CreateMap<CompanyModel, Company>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -332,6 +333,10 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.CheckedBoxSixteenType, opt => opt.MapFrom(src => (CheckedBoxSixteenTypeModel)src.CheckedBoxSixteenTypeId));
 
         CreateMap<CompanyContact, CompanyContactModel>()
-            .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src.Person));
+            .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src.Person))
+            .ForMember(dest => dest.ContactType, opt => opt.MapFrom(src => (ContactTypeModel)src.ContacttypeId));
+
+        CreateMap<CompanyContactModel, CompanyContact>()
+            .ForMember(dest => dest.ContacttypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.ContactType)));
     }
 }

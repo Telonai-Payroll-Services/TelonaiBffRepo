@@ -89,22 +89,36 @@ public class PayStubController : ControllerBase
     public async Task<IActionResult> GetDocumentByPayStubId(int id)
     {
         var payStub = _PayStubService.GetById(id);
-        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, payStub.Payroll.CompanyId);
-        var userInfo = Request.HttpContext.User;
-        var email = userInfo.Claims.First(e => e.Type == "email").Value;
-        var person = await _personService.GetByEmailAsync(email);    
-        if (payStub.Employment.PersonId == person.Id)
+        if (payStub != null)
         {
-            var stream = _PayStubService.GetDocumentByDocumentId(payStub.DocumentId.Value).Result;
-            using (MemoryStream ms = new())
+            _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, payStub.Payroll.CompanyId);
+            var userInfo = Request.HttpContext.User;
+            var email = userInfo.Claims.First(e => e.Type == "email").Value;
+            var person = await _personService.GetByEmailAsync(email);
+            if (person != null)
             {
-                stream.CopyTo(ms);
-                return File(ms.ToArray(), "application/pdf", "mypdf.pdf");
+                if (payStub.Employment.PersonId == person.Id)
+                {
+                    var stream = _PayStubService.GetDocumentByDocumentId(payStub.DocumentId.Value).Result;
+                    using (MemoryStream ms = new())
+                    {
+                        stream.CopyTo(ms);
+                        return File(ms.ToArray(), "application/pdf", "mypdf.pdf");
+                    }
+                }
+                else
+                {
+                    return NotFound("Paystub cannot be found");
+                }
+            }
+            else
+            {
+                return NotFound("Paystub cannot be found");
             }
         }
         else
         {
-            return NotFound("There is no paystub associated with your person id");
+            return NotFound("Paystub does not exist");
         }
     }
 
