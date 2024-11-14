@@ -11,6 +11,7 @@ using iTextSharp.text.pdf;
 using System.Text;
 using Microsoft.OpenApi.Extensions;
 using Document = Entities.Document;
+using FilingStatus = Models.FilingStatus;
 
 public interface IDocumentService
 {
@@ -31,10 +32,12 @@ public interface IDocumentService
     Task Delete(Guid id);
     Tuple<string, string> GetSelectedFilingStatus(Models.FilingStatus filingStatus);
     DateTime GetInvitationDateForEmployee(int id);
-    Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file);
+    Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file, DocumentTypeModel document);
     Task<W4PdfResult> GenerateW4pdf(int employmentId, W4Form model);
     Task<byte[]> SignW4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
     Task<Guid> Confirm(Guid id);
+    Task<W4PdfResult> GenerateNC4pdf(int employmentId, NC4Form model);
+    Task<byte[]> SignNC4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
 }
 
 public class DocumentService : IDocumentService
@@ -293,14 +296,14 @@ public class DocumentService : IDocumentService
 
         return Tuple.Create(document, dto.FileName,dto.EffectiveDate);
     }
-    private async Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[] file) 
+    private async Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[] file, DocumentTypeModel documentType) 
     {
 
         var fileBytes = file;
         var documentModel = new DocumentModel
         {
             FileName = _person.FirstName+ _person.MiddleName+ _person.LastName+fileName,
-            DocumentType = DocumentTypeModel.WFourUnsigned,
+            DocumentType = documentType,
             PersonId = _person.Id
         };
         using Stream stream = new MemoryStream(fileBytes);
@@ -313,7 +316,7 @@ public class DocumentService : IDocumentService
     
         return dto.Id;
     }
-    private async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus,Employment employer)
+    private async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus,Employment employee)
     {
         var firstName = _person?.FirstName ;
         var middeName= _person?.LastName ;
@@ -324,6 +327,7 @@ public class DocumentService : IDocumentService
         var zipCode = _person?.Zipcode?.Code;
         var cityOrTown = _person?.Zipcode?.City?.Name ;
         var state=_person?.Zipcode?.City?.State.Name ;
+        var company = _context.Company.FirstOrDefault(e => e.Id == employee.Person.CompanyId);
 
         using (var workStream = new MemoryStream())
         {
@@ -354,10 +358,9 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.Step4b_Deductions, model.Deductions.ToString());
                 formFields.SetField(PdfFields.Step4c_ExtraWithholding, model.ExtraWithholding.ToString());
 
-                formFields.SetField(PdfFields.EmployerNameAndAddress, employer.Person.FirstName+""+employer.Person.MiddleName+""+ employer.Person.LastName+ "" + employer.Person.AddressLine1);
-                formFields.SetField(PdfFields.EmployerFirstDateOfEmployement, employer.CreatedDate.ToShortDateString());
-                //TODO Replace with EmployerIdentificationNumber
-                //formFields.SetField(PdfFields.EmployerIdentificationNumber, "");
+                formFields.SetField(PdfFields.EmployerNameAndAddress, company.Name+""+company.Zipcode+""+ company.AddressLine1);
+                formFields.SetField(PdfFields.EmployerFirstDateOfEmployement, employee.CreatedDate.ToShortDateString());              
+                formFields.SetField(PdfFields.EmployerIdentificationNumber, company.TaxId);
                 pdfStamper.FormFlattening = false;
                 pdfStamper.Close();
                 pdfReader.Close();
@@ -478,7 +481,7 @@ public class DocumentService : IDocumentService
 
             var fileBytes = workStream.ToArray();
 
-            await UpdateW4PdfWithSignature(id, fileBytes);
+            await UpdateW4PdfWithSignature(id, fileBytes, DocumentTypeModel.WFour);
 
             emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserCompletedSubmittingWFour;
             _context.Employment.Update(emp);
@@ -495,8 +498,7 @@ public class DocumentService : IDocumentService
 
         _person = emp.Person;
         var documentTypeId = (int)DocumentTypeModel.WFourUnsigned;
-        var document = _context.Document.FirstOrDefault(e => e.DocumentTypeId == documentTypeId && !e.IsDeleted && e.FileName== DocumentTypeModel.WFourUnsigned.GetDisplayName());
-        var employer = _context.Employment.Include(e => e.Person).FirstOrDefault(e => e.JobId == emp.JobId && e.IsPayrollAdmin);
+        var document = _context.Document.FirstOrDefault(e => e.DocumentTypeId == documentTypeId && !e.IsDeleted && e.FileName== DocumentTypeModel.WFourUnsigned.GetDisplayName());             
 
         if (document == null)
         {
@@ -512,9 +514,9 @@ public class DocumentService : IDocumentService
          var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.WFourUnsigned.ToString(),
              document.Id.ToString());
         
-        var fileBytes = await SetPdfFormFilds(model, documentResult, filingStatus.Item1, employer);
+        var fileBytes = await SetPdfFormFilds(model, documentResult, filingStatus.Item1, emp);
 
-        var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes);
+        var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes, DocumentTypeModel.WFourUnsigned);
         var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
 
         string prefix = "Step1c_FilingStatus_";
@@ -534,13 +536,13 @@ public class DocumentService : IDocumentService
 
     }
 
-    public async Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file)
+    public async Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file, DocumentTypeModel documentType)
     {
-
+        //DocumentTypeModel.WFour
         var documentModel = new DocumentModel
         {
-            FileName = _person.FirstName + _person.MiddleName + _person.LastName + DocumentTypeModel.WFour.GetDisplayName(),
-            DocumentType = DocumentTypeModel.WFour,
+            FileName = _person.FirstName + _person.MiddleName + _person.LastName + documentType.GetDisplayName(),
+            DocumentType = documentType,
             PersonId =  _person.Id
         };
         using Stream stream = new MemoryStream(file);
@@ -606,6 +608,151 @@ public class DocumentService : IDocumentService
         _context.Document.Update(document);
         await _context.SaveChangesAsync();
         return document.Id;
+    }
+   
+    public async Task<W4PdfResult> GenerateNC4pdf(int empId, NC4Form model)
+    {
+        var emp = _context.Employment.Include(e => e.Person).FirstOrDefault(e => e.Id == empId);
+
+        _scopedAuthorization.ValidateByJobId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, emp.JobId);
+
+        _person = emp.Person;
+        var documentTypeId = (int)DocumentTypeModel.NCFourUnsigned;
+        var document = _context.Document.FirstOrDefault(e => e.DocumentTypeId == documentTypeId && !e.IsDeleted && e.FileName == DocumentTypeModel.NCFourUnsigned.GetDisplayName());
+
+        if (document == null)
+        {
+            throw new KeyNotFoundException();
+        };
+
+        var filingStatus = GetSelectedFilingStatus(model.FilingStatus);
+        if (string.IsNullOrEmpty(filingStatus.Item1))
+        {
+            throw new InvalidOperationException("No filing status selected or more than one status selected.");
+        }
+
+        var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.NCFourUnsigned.ToString(),
+            document.Id.ToString());
+
+        var fileBytes = await SetNC4PdfFormFilds(model, documentResult, filingStatus.Item1, emp);
+
+        var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes, DocumentTypeModel.NCFourUnsigned);
+        var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
+
+        string prefix = "Step1c_FilingStatus_";
+        string result = filingStatus.Item2.Substring(prefix.Length);
+        var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(doumentId, 1, result, doumentModel);
+        await CreateEmployeeWithholdingAsync(employeeWithHodingModel1C);   
+
+        emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserStartedSubmittingWFour;
+        _context.Employment.Update(emp);
+        await _context.SaveChangesAsync();
+        
+
+        return new W4PdfResult { FileBytes = fileBytes, DocumentId = doumentId };
+
+    }
+    private async Task<byte[]> SetNC4PdfFormFilds(NC4Form model, Stream documentStream, string filingStatus, Employment employee)
+    {
+        var firstName = _person?.FirstName;
+        var middeName = _person?.LastName;
+        var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
+        var lastName = _person?.LastName;
+        var ssn = _person?.Ssn;
+        var address = _person?.AddressLine1;
+        var zipCode = _person?.Zipcode?.Code;
+        var city = _person?.Zipcode?.City?.Name;
+        var state = _person?.Zipcode?.City?.State.Name;
+        var country = _person?.Zipcode?.City?.State?.Country.Name;
+
+        //TODO AddCounty
+        //var county       
+        string firstPart = ssn.Substring(0, 3);
+        string secondPart = ssn.Substring(3, 2);
+        string thirdPart = ssn.Substring(5, 4);
+
+        using (var workStream = new MemoryStream())
+        {
+
+            using (PdfReader pdfReader = new PdfReader(documentStream))
+            using (PdfStamper pdfStamper = new PdfStamper(pdfReader, workStream))
+            {
+                AcroFields formFields = pdfStamper.AcroFields;
+
+                
+                foreach (var field in formFields.Fields)
+                {
+                    Console.WriteLine(field.Key);
+                }
+                formFields.SetField(PdfFields.Step1a_FirstName_MiddleInitial, $"{firstName} {middeNameInitial}");
+                formFields.SetField(NC4PdfFields.NumberOfAllowance, model.NumberOfAllowance.ToString());
+                formFields.SetField(NC4PdfFields.AdditionalAmt, model.AdditionalAmt.ToString());
+
+                formFields.SetField(NC4PdfFields.SocialSecurity1stPart, firstPart);
+                formFields.SetField(NC4PdfFields.LastName, lastName);
+                formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus1, "On");
+                formFields.SetField(NC4PdfFields.FirstName, firstName.ToUpper());
+                formFields.SetField(NC4PdfFields.FilingStatus_undefined_4, "On");
+                formFields.SetField(NC4PdfFields.FilingStatus_undefined_5, "On");
+                formFields.SetField(NC4PdfFields.MI, middeNameInitial);
+                formFields.SetField(NC4PdfFields.Address, address.ToUpper());
+                formFields.SetField(NC4PdfFields.ZipCode, $"{zipCode}");
+                formFields.SetField(NC4PdfFields.Country, $"{country}");
+                formFields.SetField(NC4PdfFields.City, $"{city}");
+                formFields.SetField(NC4PdfFields.State, $"{state}");
+                formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus2, "On");
+                formFields.SetField(NC4PdfFields.SocialSecurity2ndPart,secondPart);
+                formFields.SetField(NC4PdfFields.SocialSecurity3rdPart ,thirdPart);
+
+
+                 pdfStamper.FormFlattening = false;
+                 pdfStamper.Close();
+                 pdfReader.Close();
+            }
+
+
+            var fileBytes = workStream.ToArray();
+            return fileBytes;
+        }
+
+    }
+    public async Task<byte[]> SignNC4DoumentAsync(Guid id, int employmentId, SignatureModel signature)
+    {
+        var emp = _context.Employment.Include(e => e.Person).FirstOrDefault(e => e.Id == employmentId);
+        _scopedAuthorization.ValidateByJobId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, emp.JobId);
+        _person = emp.Person;
+        var documentType = DocumentTypeModel.NCFourUnsigned;
+        var document = await GetDocumentByDocumentTypeAndIdAsync(documentType, id);
+        if (document == null)
+        {
+            throw new KeyNotFoundException();
+        };
+
+        using (var workStream = new MemoryStream())
+        {
+
+            using (PdfReader pdfReader = new PdfReader(document.Item1))
+            using (PdfStamper pdfStamper = new PdfStamper(pdfReader, workStream))
+            {
+                AcroFields formFields = pdfStamper.AcroFields;
+                formFields.SetField(NC4PdfFields.Signature, signature.Signature);
+                formFields.SetField(NC4PdfFields.Date, DateTime.Now.ToShortDateString());
+
+                pdfStamper.FormFlattening = true;
+                pdfStamper.Close();
+                pdfReader.Close();
+            }
+
+            var fileBytes = workStream.ToArray();
+
+            await UpdateW4PdfWithSignature(id, fileBytes, DocumentTypeModel.NCFour);
+
+            emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserCompletedSubmittingWFour;
+            _context.Employment.Update(emp);
+            await _context.SaveChangesAsync();
+
+            return fileBytes;
+        }
     }
 }
 

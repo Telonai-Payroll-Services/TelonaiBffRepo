@@ -82,12 +82,11 @@ public class InvitationsController : ControllerBase
         return Ok();
     }
 
-    [Authorize(Policy = "SystemAdmin")]
     [HttpPost("employer")]
-    public IActionResult InviteEmployer([FromBody] InvitationModel model)
+    public IActionResult InviteEmployer([FromForm] EmployerInvitationModel model)
     {
-        _service.CreateAsync(model,false);
-        return Ok(new { message = "Employer Invited" });
+        //_service.CreateAsync(model,false);
+        return Ok(new { message = $"Employer Invited {model.FirstName}" });
     }
 
     [Authorize(Policy = "SystemAdmin")]

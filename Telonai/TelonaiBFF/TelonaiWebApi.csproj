@@ -7,19 +7,7 @@
 		<OutputType>Exe</OutputType>
 	</PropertyGroup>
     <ItemGroup>
-      <None Remove="Resources\nc4.pdf" />
-      <None Remove="Resources\w4.pdf" />
-    </ItemGroup>
-    <ItemGroup>
       <Content Include="C:\Users\SamsonKassa\Documents\appsettings-dev.json" Link="appsettings-dev.json" />
-    </ItemGroup>
-    <ItemGroup>
-      <EmbeddedResource Include="Resources\nc4.pdf">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="Resources\w4.pdf">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Amazon.AspNetCore.Identity.Cognito" Version="3.0.1" />
@@ -43,5 +31,8 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
         <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.5.0" />
         <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Resources\" />
     </ItemGroup>
 </Project>
