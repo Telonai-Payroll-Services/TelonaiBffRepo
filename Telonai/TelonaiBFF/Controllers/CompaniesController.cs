@@ -49,14 +49,13 @@ public class CompaniesController : ControllerBase
         return Ok(job);
     }
 
-    [HttpGet("{id}/jobs")]
+    [HttpGet("jobs/{id}")]
     [Authorize()]
     public IActionResult GetJobsByCompanyId(int id)
     {
         var jobs = _service.GetJobsById(id);
         return Ok(jobs);
     }
-
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody]CompanyRegistrationRequestModel model)
@@ -117,7 +116,6 @@ public class CompaniesController : ControllerBase
         await _service.DeleteAsync(id);
         return Ok(new { message = "Account deleted" });
     }
-
 
     [HttpGet("{id}/summary")]
     public IActionResult GetSummary(int id)
