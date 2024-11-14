@@ -17,11 +17,13 @@ public class PayStubController : ControllerBase
 {
     private readonly IPayStubService _PayStubService;
     private readonly IScopedAuthorization _scopedAuthorization;
+    private readonly IPersonService<PersonModel, Person> _personService;
 
-    public PayStubController(IPayStubService PayStubService, IScopedAuthorization scopedAuthorization)
+    public PayStubController(IPayStubService PayStubService, IScopedAuthorization scopedAuthorization, IPersonService<PersonModel,Person> personService)
     {
         _PayStubService = PayStubService;
         _scopedAuthorization = scopedAuthorization;
+        _personService = personService;
     }
 
     [HttpGet("companies/{companies}")]
@@ -84,17 +86,26 @@ public class PayStubController : ControllerBase
     }
 
     [HttpGet("{id}/document")]
-    public IActionResult GetDocumentByPayStubId(int id)
+    public async Task<IActionResult> GetDocumentByPayStubId(int id)
     {
-        var item = _PayStubService.GetById(id);
-        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, item.Payroll.CompanyId);
-
-        var stream = _PayStubService.GetDocumentByDocumentId(item.DocumentId.Value).Result;
-        using (MemoryStream ms = new())
+        var payStub = _PayStubService.GetById(id);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, payStub.Payroll.CompanyId);
+        var userInfo = Request.HttpContext.User;
+        var email = userInfo.Claims.First(e => e.Type == "email").Value;
+        var person = await _personService.GetByEmailAsync(email);    
+        if (payStub.Employment.PersonId == person.Id)
         {
-            stream.CopyTo(ms);
-            return File(ms.ToArray(), "application/pdf", "mypdf.pdf");
-        }       
+            var stream = _PayStubService.GetDocumentByDocumentId(payStub.DocumentId.Value).Result;
+            using (MemoryStream ms = new())
+            {
+                stream.CopyTo(ms);
+                return File(ms.ToArray(), "application/pdf", "mypdf.pdf");
+            }
+        }
+        else
+        {
+            return NotFound("There is no paystub associated with your person id");
+        }
     }
 
     [HttpPost()]

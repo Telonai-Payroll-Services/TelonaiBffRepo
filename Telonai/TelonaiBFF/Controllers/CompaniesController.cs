@@ -12,7 +12,7 @@ using TelonaiWebApi.Helpers;
 [AllowAnonymous]
 public class CompaniesController : ControllerBase
 {
-    private readonly ICompanyService<CompanyModel,Company> _service;    
+    private readonly ICompanyService<CompanyModel,Company> _service;  
     private readonly IUserService _userService;
     private readonly IPersonService<PersonModel, Person> _personService;
     private readonly IInvitationService<InvitationModel, Invitation> _invitationService;
@@ -49,7 +49,7 @@ public class CompaniesController : ControllerBase
         return Ok(job);
     }
 
-    [HttpGet("jobs/{id}")]
+    [HttpGet("{id}/jobs")]
     [Authorize()]
     public IActionResult GetJobsByCompanyId(int id)
     {
