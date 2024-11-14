@@ -51,5 +51,9 @@ namespace TelonaiWebApi.Models
         public const string SocialSecurity2ndPart = "Social Security 2ndPart";
         public const string SocialSecurity3rdPart = "Social Security 3rdPart";
     }
+    public static class CursiveFont
+    {
+        public static Guid Id = Guid.Parse("6a909a84-e6ae-44e4-8439-85b1e12f66eb");
+    }
 
 }
