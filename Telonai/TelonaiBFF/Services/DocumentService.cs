@@ -12,7 +12,6 @@ using System.Text;
 using Microsoft.OpenApi.Extensions;
 using Document = Entities.Document;
 using FilingStatus = Models.FilingStatus;
-
 public interface IDocumentService
 {
     Task<DocumentModel> GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType);
@@ -463,6 +462,10 @@ public class DocumentService : IDocumentService
         {
             throw new KeyNotFoundException();
         };
+       
+        var font = await GetDocumentByDocumentTypeAndIdAsync(documentType, CursiveFont.Id);
+
+        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
         using (var workStream = new MemoryStream())
         {
@@ -471,9 +474,29 @@ public class DocumentService : IDocumentService
             using (PdfStamper pdfStamper = new PdfStamper(pdfReader, workStream))
             {
                 AcroFields formFields = pdfStamper.AcroFields;
-                formFields.SetField(PdfFields.Signature, signature.Signature);
+              
                 formFields.SetField(PdfFields.Date, DateTime.Now.ToShortDateString());
 
+                    using (var memoryStream = new MemoryStream())
+                {
+                    font.Item1.CopyTo(memoryStream); 
+                    memoryStream.Position = 0; 
+                    
+                    BaseFont cursiveFont = BaseFont.CreateFont("Pacifico-Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, true, memoryStream.ToArray(), null);
+                    var fieldPositions = formFields.GetFieldPositions(PdfFields.Signature);
+                    if (fieldPositions != null && fieldPositions.Count > 0) 
+                    { 
+                        var position = fieldPositions[0].position; 
+                        int pageNumber = fieldPositions[0].page; 
+                        PdfContentByte cb = pdfStamper.GetOverContent(pageNumber);
+                       
+                        cb.BeginText();
+                        cb.SetFontAndSize(cursiveFont, 12);
+                   
+                        cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, signature.Signature, position.Left, position.Bottom, 0);
+                        cb.EndText(); 
+                    } 
+                }
                 pdfStamper.FormFlattening = true;
                 pdfStamper.Close();
                 pdfReader.Close();
@@ -538,7 +561,7 @@ public class DocumentService : IDocumentService
 
     public async Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file, DocumentTypeModel documentType)
     {
-        //DocumentTypeModel.WFour
+
         var documentModel = new DocumentModel
         {
             FileName = _person.FirstName + _person.MiddleName + _person.LastName + documentType.GetDisplayName(),
@@ -680,11 +703,7 @@ public class DocumentService : IDocumentService
                 AcroFields formFields = pdfStamper.AcroFields;
 
                 
-                foreach (var field in formFields.Fields)
-                {
-                    Console.WriteLine(field.Key);
-                }
-                formFields.SetField(PdfFields.Step1a_FirstName_MiddleInitial, $"{firstName} {middeNameInitial}");
+                
                 formFields.SetField(NC4PdfFields.NumberOfAllowance, model.NumberOfAllowance.ToString());
                 formFields.SetField(NC4PdfFields.AdditionalAmt, model.AdditionalAmt.ToString());
 
@@ -727,7 +746,9 @@ public class DocumentService : IDocumentService
         {
             throw new KeyNotFoundException();
         };
+        var font = await GetDocumentByDocumentTypeAndIdAsync(DocumentTypeModel.WFourUnsigned, CursiveFont.Id);
 
+        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
         using (var workStream = new MemoryStream())
         {
 
@@ -735,9 +756,28 @@ public class DocumentService : IDocumentService
             using (PdfStamper pdfStamper = new PdfStamper(pdfReader, workStream))
             {
                 AcroFields formFields = pdfStamper.AcroFields;
-                formFields.SetField(NC4PdfFields.Signature, signature.Signature);
+               
                 formFields.SetField(NC4PdfFields.Date, DateTime.Now.ToShortDateString());
+                using (var memoryStream = new MemoryStream())
+                {
+                    font.Item1.CopyTo(memoryStream);
+                    memoryStream.Position = 0;
 
+                    BaseFont cursiveFont = BaseFont.CreateFont("Pacifico-Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, true, memoryStream.ToArray(), null);
+                    var fieldPositions = formFields.GetFieldPositions(NC4PdfFields.Signature);
+                    if (fieldPositions != null && fieldPositions.Count > 0)
+                    {
+                        var position = fieldPositions[0].position;
+                        int pageNumber = fieldPositions[0].page;
+                        PdfContentByte cb = pdfStamper.GetOverContent(pageNumber);
+
+                        cb.BeginText();
+                        cb.SetFontAndSize(cursiveFont, 12);
+
+                        cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, signature.Signature, position.Left, position.Bottom, 0);
+                        cb.EndText();
+                    }
+                }
                 pdfStamper.FormFlattening = true;
                 pdfStamper.Close();
                 pdfReader.Close();
