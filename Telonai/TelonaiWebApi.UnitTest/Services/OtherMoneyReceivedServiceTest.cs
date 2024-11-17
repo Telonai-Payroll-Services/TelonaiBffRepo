@@ -77,7 +77,8 @@ namespace TelonaiWebAPI.UnitTest.Services
             mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.Expression).Returns(otherIncomeList.Expression);
             mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.ElementType).Returns(otherIncomeList.ElementType);
             mockSet.As<IQueryable<OtherMoneyReceived>>().Setup(m => m.GetEnumerator()).Returns(otherIncomeList.GetEnumerator());
-            _mockMapper.Setup(m => m.Map<OtherMoneyReceivedModel>(It.IsAny<OtherMoneyReceived>())).Returns(otherIncomeModel);
+            
+            _mockMapper.Setup(m => m.Map<OtherMoneyReceivedModel>(otherIncome)).Returns(otherIncomeModel);
             _mockDataContext.Setup(c => c.OtherMoneyReceived).Returns(mockSet.Object);
                        
             // Act
