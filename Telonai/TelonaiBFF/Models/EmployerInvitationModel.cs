@@ -11,9 +11,9 @@ public class EmployerInvitationModel : BaseTracker
     public string Zip { get; set; }
     public string City { get; set; }
     public string State { get; set; }
-    public int NumberOfEmployees { get; set; }
-    public int RoutingNumber { get; set; }
-    public int AccountNumber { get; set; }
-    public int AccountNumber2 { get; set; }
+    public ushort NumberOfEmployees { get; set; }
+    public ulong RoutingNumber { get; set; }
+    public ulong AccountNumber { get; set; }
+    public ulong AccountNumber2 { get; set; }
 
 }
