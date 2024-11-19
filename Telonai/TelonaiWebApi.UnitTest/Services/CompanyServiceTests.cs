@@ -14,13 +14,17 @@ public class CompanyServiceTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly CompanyService _service;
     private readonly Mock<IPayrollService> _mockPayrollService;
+    private readonly Mock<ICompanyContactService> _mockCompanyContactService;
+    private readonly Mock<IPersonService<PersonModel, Person>> _mockPersonService;
 
     public CompanyServiceTests()
     {
         _mockContext = new Mock<DataContext>(MockBehavior.Default, new object[] { new Mock<IHttpContextAccessor>().Object });
         _mockMapper = new Mock<IMapper>();
         _mockPayrollService = new Mock<IPayrollService>();
-        _service = new CompanyService(_mockContext.Object, _mockMapper.Object, null, _mockPayrollService.Object);
+        _mockCompanyContactService = new Mock<ICompanyContactService>();    
+        _service = new CompanyService(_mockContext.Object, _mockMapper.Object, null, _mockPayrollService.Object,
+                                      _mockCompanyContactService.Object,_mockPersonService.Object);
     }
 
     [Fact]

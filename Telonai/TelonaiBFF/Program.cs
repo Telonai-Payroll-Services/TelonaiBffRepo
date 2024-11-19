@@ -92,6 +92,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IFormNineFortyOneService, FormNineFortyOneService>();
     services.AddScoped<IFormNineFortyFourService, FormNineFortyFourService>();
     services.AddScoped<IFormNineFortyService, FormNineFortyService>();
+    services.AddScoped<ICompanyContactService, CompanyContactService>();
 
 
     services.AddEndpointsApiExplorer();
@@ -166,5 +167,5 @@ var app = builder.Build();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
 
-//app.Run("http://localhost:5000");
-app.Run();
+app.Run("http://localhost:5000");
+//app.Run();

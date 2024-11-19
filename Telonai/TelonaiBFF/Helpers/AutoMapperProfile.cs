@@ -126,7 +126,8 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (INineVerificationStatusModel)src.INineVerificationStatusId))
             .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.MapFrom(src => (StateWithholdingDocumentStatusModel)src.StateWithholdingDocumentStatusId))
             .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
-            .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId));
+            .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
+            .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.Zipcode.City.StateId));
 
         CreateMap<PersonModel, Person>()
              .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -164,7 +165,10 @@ public class AutoMapperProfile : Profile
            .ForMember(dest => dest.BusinessType, opt => opt.MapFrom(src => (BusinessTypeModel)src.BusinessTypeId))
            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Zipcode.City.Name))
            .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.Zipcode.City.State.Name))
-           .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId));
+           .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
+           .ForMember(dest => dest.ZipCode, opt => opt.MapFrom(src => src.Zipcode.Code))
+           .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.Zipcode.City.StateId));
+
 
         CreateMap<CompanyModel, Company>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -330,5 +334,12 @@ public class AutoMapperProfile : Profile
 
         CreateMap<FormNineFortyOne, FormNineFortyOneModel>()
             .ForMember(dest => dest.CheckedBoxSixteenType, opt => opt.MapFrom(src => (CheckedBoxSixteenTypeModel)src.CheckedBoxSixteenTypeId));
+
+        CreateMap<CompanyContact, CompanyContactModel>()
+            .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src.Person))
+            .ForMember(dest => dest.ContactType, opt => opt.MapFrom(src => (ContactTypeModel)src.ContacttypeId));
+
+        CreateMap<CompanyContactModel, CompanyContact>()
+            .ForMember(dest => dest.ContacttypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.ContactType)));
     }
 }

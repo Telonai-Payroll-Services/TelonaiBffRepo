@@ -120,6 +120,7 @@ public class PayStubService : IPayStubService
     public async Task<Stream> GetDocumentByDocumentId(Guid documentId)
     {
         var pdfManager = new DocumentManager();
+        
         var result = await pdfManager.GetPayStubByIdAsync(documentId.ToString());
         return result;
     }

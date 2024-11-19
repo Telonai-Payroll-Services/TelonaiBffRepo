@@ -37,7 +37,7 @@ public class PersonsController : ControllerBase
         var profiles = _service.Get();
         return Ok(profiles);
     }
-    [HttpGet("{email}")]
+    [HttpGet("email/{email}")]
     public IActionResult GetByEmail(string email)
     {
         var user = _service.GetByEmailAsync(email)?.Result;

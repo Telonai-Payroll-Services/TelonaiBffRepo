@@ -117,28 +117,32 @@ public class PersonService : IPersonService<PersonModel,Person>
 
     public void Update(int id, PersonModel model)
     {
-        var user = GetPerson(id) ?? throw new AppException("Account not found.");
-
-        user.FirstName = string.IsNullOrWhiteSpace(model.FirstName) ? user.FirstName : model.FirstName;
-        user.LastName = string.IsNullOrWhiteSpace(model.LastName) ? user.LastName : model.LastName;
-        user.AddressLine1 = string.IsNullOrWhiteSpace(model.AddressLine1) ? user.AddressLine1 : model.AddressLine1;
-        user.AddressLine2 = string.IsNullOrWhiteSpace(model.AddressLine2) ? user.AddressLine2 : model.AddressLine2;
-        user.AddressLine3 = string.IsNullOrWhiteSpace(model.AddressLine3) ? user.AddressLine3 : model.AddressLine3;
-        user.Ssn = string.IsNullOrWhiteSpace(model.Ssn) ? user.Ssn : model.Ssn;
-        user.ZipcodeId = model.ZipcodeId == 0 ? user.ZipcodeId : model.ZipcodeId;
-
-        _context.Person.Update(user);
-
-        if (model.Ssn != null)
+        var person = GetPerson(id) ?? throw new AppException("Account not found.");
+        if (person != null)
         {
-            var emp = _context.Employment.FirstOrDefault(e => e.PersonId == id);
-            if (emp != null && (emp.SignUpStatusTypeId==null || emp.SignUpStatusTypeId < (int)SignUpStatusTypeModel.UserProfileCreationCompleted))
+            person.FirstName = string.IsNullOrWhiteSpace(model.FirstName) ? person.FirstName : model.FirstName;
+            person.LastName = string.IsNullOrWhiteSpace(model.LastName) ? person.LastName : model.LastName;
+            person.AddressLine1 = string.IsNullOrWhiteSpace(model.AddressLine1) ? person.AddressLine1 : model.AddressLine1;
+            person.AddressLine2 = string.IsNullOrWhiteSpace(model.AddressLine2) ? person.AddressLine2 : model.AddressLine2;
+            person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
+            person.Ssn = string.IsNullOrWhiteSpace(model.Ssn) ? person.Ssn : model.Ssn;
+            person.ZipcodeId = model.ZipcodeId == 0 ? person.ZipcodeId : model.ZipcodeId;
+            person.Zipcode.CityId = model.CityId == 0 ? person.Zipcode.CityId : model.CityId;
+            person.Zipcode.City.StateId = model.StateId == 0 ? person.Zipcode.City.StateId : model.StateId;
+
+            _context.Person.Update(person);
+
+            if (model.Ssn != null)
             {
-                emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserProfileCreationCompleted;
-                _context.Employment.Update(emp);
-            }               
+                var emp = _context.Employment.FirstOrDefault(e => e.PersonId == id);
+                if (emp != null && (emp.SignUpStatusTypeId == null || emp.SignUpStatusTypeId < (int)SignUpStatusTypeModel.UserProfileCreationCompleted))
+                {
+                    emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserProfileCreationCompleted;
+                    _context.Employment.Update(emp);
+                }
+            }
+            _context.SaveChanges();
         }
-        _context.SaveChanges();
     }
 
     public async Task DeleteAsync(int id)
@@ -153,7 +157,7 @@ public class PersonService : IPersonService<PersonModel,Person>
 
     private Person GetPerson(int id)
     {
-        return _context.Person.Find(id);       
+        return _context.Person.Include(z=>z.Zipcode).Include(c=>c.Zipcode.City).FirstOrDefault(p=>p.Id == id);       
     }
 
     public async Task<Person> GetCurrentUserAsync()
