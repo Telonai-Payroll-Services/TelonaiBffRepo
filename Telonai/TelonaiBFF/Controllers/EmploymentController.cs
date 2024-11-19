@@ -39,7 +39,7 @@ public class EmploymentController : ControllerBase
         _service.CompleteAddingEmployees(currentUserEmail,companyId);        
         return Ok(new { message = "Employee Invited" });
     }
-    [HttpPut("{id}/companies/{companyid}/terminate")]
+    [HttpPut("{id}/companies/{companyId}/terminate")]
     public IActionResult TerminateEmployee(int id, int companyId)
     {
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
