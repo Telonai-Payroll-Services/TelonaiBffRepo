@@ -316,7 +316,7 @@ public class DocumentService : IDocumentService
     
         return dto.Id;
     }
-    private async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus,Employment employee)
+    private async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus,Employment employee,bool formFlattening)
     {
         var firstName = _person?.FirstName ;
         var middeName= _person?.LastName ;
@@ -361,7 +361,7 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.EmployerNameAndAddress, company.Name+""+company.Zipcode+""+ company.AddressLine1);
                 formFields.SetField(PdfFields.EmployerFirstDateOfEmployement, employee.CreatedDate.ToShortDateString());              
                 formFields.SetField(PdfFields.EmployerIdentificationNumber, company.TaxId);
-                pdfStamper.FormFlattening = false;
+                pdfStamper.FormFlattening = formFlattening;
                 pdfStamper.Close();
                 pdfReader.Close();
             }
@@ -538,8 +538,10 @@ public class DocumentService : IDocumentService
          var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.WFourUnsigned.ToString(),
              document.Id.ToString());
         
-        var fileBytes = await SetPdfFormFilds(model, documentResult, filingStatus.Item1, emp);
-
+        var fileBytes = await SetPdfFormFilds(model, documentResult, filingStatus.Item1, emp,false);
+        var documentForDisplay = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.WFourUnsigned.ToString(),
+            document.Id.ToString());
+        var fileForDisplay = await SetPdfFormFilds(model, documentForDisplay, filingStatus.Item1, emp,true);
         var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes, DocumentTypeModel.WFourUnsigned);
         var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
 
@@ -556,7 +558,7 @@ public class DocumentService : IDocumentService
         _context.Employment.Update(emp);
         await _context.SaveChangesAsync();
 
-        return new W4PdfResult { FileBytes = fileBytes, DocumentId = doumentId };
+        return new W4PdfResult { FileBytes = fileForDisplay, DocumentId = doumentId };
 
     }
 
@@ -658,9 +660,12 @@ public class DocumentService : IDocumentService
         var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.NCFourUnsigned.ToString(),
             document.Id.ToString());
 
-        var fileBytes = await SetNC4PdfFormFilds(model, documentResult, filingStatus.Item1, emp);
+        var fileBytes = await SetNC4PdfFormFilds(model, documentResult, filingStatus.Item1, emp,false);
 
         var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes, DocumentTypeModel.NCFourUnsigned);
+        var documentForDisplay = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.NCFourUnsigned.ToString(),
+            document.Id.ToString());
+        var fileForDisplay = await SetNC4PdfFormFilds(model, documentForDisplay, filingStatus.Item1, emp,true);
         var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
 
         string prefix = "Step1c_FilingStatus_";
@@ -673,10 +678,10 @@ public class DocumentService : IDocumentService
         await _context.SaveChangesAsync();
         
 
-        return new W4PdfResult { FileBytes = fileBytes, DocumentId = doumentId };
+        return new W4PdfResult { FileBytes = fileForDisplay, DocumentId = doumentId };
 
     }
-    private async Task<byte[]> SetNC4PdfFormFilds(NC4Form model, Stream documentStream, string filingStatus, Employment employee)
+    private async Task<byte[]> SetNC4PdfFormFilds(NC4Form model, Stream documentStream, string filingStatus, Employment employee,bool formFlattening)
     {
         var firstName = _person?.FirstName;
         var middeName = _person?.LastName;
@@ -725,7 +730,7 @@ public class DocumentService : IDocumentService
                 formFields.SetField(NC4PdfFields.SocialSecurity3rdPart ,thirdPart);
 
 
-                 pdfStamper.FormFlattening = false;
+                 pdfStamper.FormFlattening = formFlattening;
                  pdfStamper.Close();
                  pdfReader.Close();
             }
