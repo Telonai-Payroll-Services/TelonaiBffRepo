@@ -210,10 +210,17 @@ public class DocumentsController : ControllerBase
 
     }
 
-    [HttpGet("types")]
-    public async Task<IActionResult> GetDocumentTypes()
+    [HttpGet("documentTypes/employee")]
+    public async Task<IActionResult> GetDocumentTypesEmployee()
     {
-        var documentTypes = await _documentService.GetDocumentTypes();
+        var documentTypes = _documentService.GetDocumentTypesEmployee();
+        return Ok(documentTypes);
+    }
+
+    [HttpGet("documentTypes/employer")]
+    public async Task<IActionResult> GetDocumentTypesEmployer()
+    {
+        var documentTypes = _documentService.GetDocumentTypesEmployer();
         return Ok(documentTypes);
     }
 }

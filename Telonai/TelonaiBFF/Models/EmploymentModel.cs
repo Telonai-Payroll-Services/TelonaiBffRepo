@@ -23,5 +23,6 @@ public class EmploymentModel:BaseTracker
     public bool IsTenNinetyNine { get; set; }
     public SignUpStatusTypeModel SignUpStatusType { get; set; }
     public bool Deactivated { get; set; }
+    public int WithholdingDueInDays { get; set; } = 3;
 
 }
