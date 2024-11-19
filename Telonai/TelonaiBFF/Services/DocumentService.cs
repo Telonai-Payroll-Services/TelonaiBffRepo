@@ -37,6 +37,7 @@ public interface IDocumentService
     Task<Guid> Confirm(Guid id);
     Task<W4PdfResult> GenerateNC4pdf(int employmentId, NC4Form model);
     Task<byte[]> SignNC4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
+    Task<List<DocumentType>> GetDocumentTypes();
 }
 
 public class DocumentService : IDocumentService
@@ -798,6 +799,12 @@ public class DocumentService : IDocumentService
 
             return fileBytes;
         }
+    }
+
+    public async Task<List<DocumentType>> GetDocumentTypes()
+    {
+        var docTypes = await _context.DocumentType.ToListAsync();
+        return docTypes;
     }
 }
 
