@@ -164,5 +164,5 @@ public class DataContext : DbContext
     public DbSet<StateSpecificFieldValue> StateSpecificFieldValue { get; set; }
     public DbSet<FormNineFortyFour> FormNineFortyFour { get; set; }
     public DbSet<AdditionalOtherMoneyReceived> AdditionalOtherMoneyReceived { get; set; }
-
+    public DbSet<DocumentType> DocumentType { get; set; }
 }

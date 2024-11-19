@@ -209,4 +209,11 @@ public class DocumentsController : ControllerBase
         return File(fileBytes, "application/pdf", "signed_nc4.pdf");
 
     }
+
+    [HttpGet("types")]
+    public async Task<IActionResult> GetDocumentTypes()
+    {
+        var documentTypes = await _documentService.GetDocumentTypes();
+        return Ok(documentTypes);
+    }
 }
