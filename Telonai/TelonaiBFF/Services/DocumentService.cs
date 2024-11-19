@@ -37,7 +37,8 @@ public interface IDocumentService
     Task<Guid> Confirm(Guid id);
     Task<W4PdfResult> GenerateNC4pdf(int employmentId, NC4Form model);
     Task<byte[]> SignNC4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
-    Task<List<DocumentType>> GetDocumentTypes();
+    Dictionary<string,string> GetDocumentTypesEmployer();
+    Dictionary<string, string> GetDocumentTypesEmployee();
 }
 
 public class DocumentService : IDocumentService
@@ -801,10 +802,34 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public async Task<List<DocumentType>> GetDocumentTypes()
+    public Dictionary<string, string> GetDocumentTypesEmployee()
     {
-        var docTypes = await _context.DocumentType.ToListAsync();
-        return docTypes;
+        //var docTypes = await _context.DocumentType.ToListAsync();
+
+        return new Dictionary<string, string>
+        {
+            { "PayStub", "Most Recent Pay Stub" },
+            { "INineUnsigned", "Form I-9" },
+            { "INine", "Signed Form I - 9" },
+            { "WFour", "Signed W-4" },
+            { "NCFour", "Signed NC-4" }
+        };
     }
+
+    public Dictionary<string, string> GetDocumentTypesEmployer()
+    {
+        return new Dictionary<string, string>
+        {
+            { "INineUnsigned", "Form I-9" },
+            { "INine", "Signed Form I-9" },
+            { "EightyEiightSeventyNineEmpUnsigned", "Form 8879-EMP" },
+            { "EightyEiightSeventyNineEmp", "Signed Form 8879-EMP" },
+            { "NineForty", "Form 940" },
+            { "NineFortyOne", "Form 941" },
+            { "NineFortyFour", "Form 944" }
+        };
+
+    }
+
 }
 
