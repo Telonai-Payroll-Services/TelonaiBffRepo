@@ -166,7 +166,9 @@ public class AutoMapperProfile : Profile
            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Zipcode.City.Name))
            .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.Zipcode.City.State.Name))
            .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
-           .ForMember(dest => dest.ZipCode, opt => opt.MapFrom(src => src.Zipcode.Code));
+           .ForMember(dest => dest.ZipCode, opt => opt.MapFrom(src => src.Zipcode.Code))
+           .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.Zipcode.City.StateId));
+
 
         CreateMap<CompanyModel, Company>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
