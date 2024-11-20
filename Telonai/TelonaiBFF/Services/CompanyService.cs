@@ -88,7 +88,6 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
         {
             var company = GetCompany(id) ?? throw new AppException("Company not found");
             var companyContact = await _companyContactService.GetByCompanyId(id);
-            var person = new Person();
             if (company != null)
             {
                 company.Name = string.IsNullOrEmpty(model.Name) ? company.Name : model.Name;
@@ -97,18 +96,17 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
                 company.ZipcodeId = model.ZipcodeId == 0 ? company.ZipcodeId : model.ZipcodeId;
                 company.Zipcode.CityId = model.CityId == 0 ? company.Zipcode.CityId : model.CityId;
                 company.Zipcode.City.StateId = model.StateId == 0 ? company.Zipcode.City.StateId : model.StateId;
-                var personModel = _personService.GetById(companyContact.PersonId);
-                if (personModel != null)
+                var person = await _personService.GetPersonById(companyContact.PersonId);
+                if (person != null)
                 {
-                    person = _mapper.Map<Person>(personModel);
+                    person.FirstName = string.IsNullOrEmpty(model.ReprsentativeFirstName) ? person.FirstName : model.ReprsentativeFirstName;
+                    person.LastName = string.IsNullOrEmpty(model.ReprsentativeLastName) ? person.LastName : model.ReprsentativeLastName;
+                    person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
+                    _context.Person.Update(person);
                 }
-                personModel.FirstName = string.IsNullOrEmpty(model.ReprsentativeFirstName) ? person.FirstName : model.ReprsentativeFirstName;
-                person.LastName = string.IsNullOrEmpty(model.ReprsentativeLastName) ? person.LastName : model.ReprsentativeLastName;
-                person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
+                _context.Company.Update(company);
+                await _context.SaveChangesAsync();
             }
-            _context.Company.Update(company);
-            _context.Person.Update(person);
-            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)

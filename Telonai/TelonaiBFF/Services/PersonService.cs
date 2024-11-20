@@ -16,6 +16,7 @@ public interface IPersonService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     IList<PersonModel> GetByCompanyId(int companyId);
     Task<PersonModel> GetByEmailAndCompanyIdAsync(string email, int companyId);
     Task<Person> GetCurrentUserAsync();
+    Task<Person> GetPersonById(int Id);
 
 }
 
@@ -153,6 +154,12 @@ public class PersonService : IPersonService<PersonModel,Person>
         await _context.SaveChangesAsync();
     }
 
+    public async Task<Person> GetPersonById(int Id)
+    {
+        var result = await _context.Person.Include(z => z.Zipcode).Include(c => c.Zipcode.City).FirstOrDefaultAsync(p => p.Id == Id);
+        return result;
+    }
+
     // helper methods
 
     private Person GetPerson(int id)
@@ -167,4 +174,6 @@ public class PersonService : IPersonService<PersonModel,Person>
             return person;       
         
     }
+
+    
 }
