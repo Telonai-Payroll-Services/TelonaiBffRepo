@@ -26,7 +26,7 @@ public interface IDocumentService
     Task<DocumentModel> GetOwnDocumentDetailsByDocumentIdAsync(Guid documentId);
     Task<DocumentModel> GetDocumentDetailsByDocumentIdAsync(Guid documentId);
     Task<Document> GetDocument(Guid id);
-    Task UploadInternalDocumentAsync(DocumentTypeModel documentType);
+    Task<bool> UploadInternalDocumentAsync(DocumentTypeModel documentType, string email, Stream file);
     Task CreateAsync(DocumentModel model, Stream file);
     Task AddGovernmentDocumentAsync(Stream file, DocumentTypeModel documentType);
     Task Update(Guid id, DocumentModel model);
@@ -245,27 +245,39 @@ public class DocumentService : IDocumentService
         return dto;
     }
 
-    public async Task UploadInternalDocumentAsync(DocumentTypeModel documentType)
+    public async Task<bool> UploadInternalDocumentAsync(DocumentTypeModel documentType, string email, Stream stream)
     {
-        string fileName;
-        switch (documentType)
+        var person = _context.Person.First(e => e.Email == email && !e.Deactivated);
+        var employment = _context.Employment.FirstOrDefault(e => e.PersonId == person.Id);
+        if (employment == null)
+            return false;
+        
+        //var docTypes = await _context.DocumentType.ToListAsync();
+
+        if (employment.IsPayrollAdmin)
         {
-            case DocumentTypeModel.WFourUnsigned:
-                fileName = "Resources/w4.pdf";
-                break;
-            case DocumentTypeModel.NCFourUnsigned:
-                fileName = "Resources/nc4.pdf";
-                break;
-            case DocumentTypeModel.INineUnsigned:
-                fileName = "Resources/i-9.pdf";
-                break;
-            default: throw new KeyNotFoundException();
+            if (!Enum.GetNames(typeof(EmployerDocumentTypes))
+                .Contains(documentType.ToString())) {
+                return false;
+            }
         }
-        if (File.Exists(fileName))
+        else
         {
-            using Stream stream = new MemoryStream(System.IO.File.ReadAllBytes(fileName));
-            await AddGovernmentDocumentAsync(stream, documentType);
+            if (!Enum.GetNames(typeof(EmployeeDocumentTypes))
+                .Contains(documentType.ToString())) {
+                return false;
+            }
         }
+
+        var dto = new Entities.Document {
+            Id = Guid.NewGuid(),
+            DocumentTypeId = (int)documentType,
+            FileName = documentType.ToString()
+        };
+        _context.Document.Add(dto);
+        await _context.SaveChangesAsync();
+        await _documentManager.UploadDocumentAsync(dto.Id, stream, documentType);
+        return true;
     }
     private void ReadPdfDocument(string fileName)
     {
