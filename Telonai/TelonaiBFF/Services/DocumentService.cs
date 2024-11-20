@@ -12,6 +12,8 @@ using System.Text;
 using Microsoft.OpenApi.Extensions;
 using Document = Entities.Document;
 using FilingStatus = Models.FilingStatus;
+using System.Security.Cryptography;
+
 public interface IDocumentService
 {
     Task<DocumentModel> GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType);
@@ -37,8 +39,7 @@ public interface IDocumentService
     Task<Guid> Confirm(Guid id);
     Task<W4PdfResult> GenerateNC4pdf(int employmentId, NC4Form model);
     Task<byte[]> SignNC4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
-    Dictionary<string,string> GetDocumentTypesEmployer();
-    Dictionary<string, string> GetDocumentTypesEmployee();
+    Dictionary<string,string> GetDocumentTypes(string email);
 }
 
 public class DocumentService : IDocumentService
@@ -802,33 +803,64 @@ public class DocumentService : IDocumentService
         }
     }
 
-    public Dictionary<string, string> GetDocumentTypesEmployee()
+    public Dictionary<string, string> GetDocumentTypes(string email)
     {
+        var person = _context.Person.First(e => e.Email == email && !e.Deactivated);
+        var employment = _context.Employment.FirstOrDefault(e => e.PersonId == person.Id);
+        if (employment == null) {
+            return new Dictionary<string, string>
+            {
+                { "error", "Employment not found" },
+            };
+        }
+        
         //var docTypes = await _context.DocumentType.ToListAsync();
-
-        return new Dictionary<string, string>
+        if (employment.IsPayrollAdmin)
         {
-            { "PayStub", "Most Recent Pay Stub" },
-            { "INineUnsigned", "Form I-9" },
-            { "INine", "Signed Form I - 9" },
-            { "WFour", "Signed W-4" },
-            { "NCFour", "Signed NC-4" }
-        };
-    }
-
-    public Dictionary<string, string> GetDocumentTypesEmployer()
-    {
-        return new Dictionary<string, string>
+            //employer
+            if(employment.PayRateBasis == null)
+            {
+                return new Dictionary<string, string>
+                {
+                    { "INineUnsigned", "Form I-9" },
+                    { "INine", "Signed Form I-9" },
+                    { "EightyEightSeventyNineEmpUnsigned", "Form 8879-EMP" },
+                    { "EightyEiightSeventyNineEmp", "Signed Form 8879-EMP" },
+                    { "NineForty", "Form 940" },
+                    { "NineFortyOne", "Form 941" },
+                    { "NineFortyFour", "Form 944" }
+                };
+            }
+            else
+            {
+                //employer and employee
+                return new Dictionary<string, string>
+                {
+                    { "INineUnsigned", "Form I-9" },
+                    { "INine", "Signed Form I-9" },
+                    { "EightyEightSeventyNineEmpUnsigned", "Form 8879-EMP" },
+                    { "EightyEiightSeventyNineEmp", "Signed Form 8879-EMP" },
+                    { "NineForty", "Form 940" },
+                    { "NineFortyOne", "Form 941" },
+                    { "NineFortyFour", "Form 944" },
+                    { "PayStub", "Most Recent Pay Stub" },
+                    { "WFour", "Signed W-4" },
+                    { "NCFour", "Signed NC-4" }
+                };
+            }
+        }
+        else
         {
-            { "INineUnsigned", "Form I-9" },
-            { "INine", "Signed Form I-9" },
-            { "EightyEiightSeventyNineEmpUnsigned", "Form 8879-EMP" },
-            { "EightyEiightSeventyNineEmp", "Signed Form 8879-EMP" },
-            { "NineForty", "Form 940" },
-            { "NineFortyOne", "Form 941" },
-            { "NineFortyFour", "Form 944" }
-        };
-
+            //employee
+            return new Dictionary<string, string>
+            {
+                { "PayStub", "Most Recent Pay Stub" },
+                { "INineUnsigned", "Form I-9" },
+                { "INine", "Signed Form I-9" },
+                { "WFour", "Signed W-4" },
+                { "NCFour", "Signed NC-4" }
+            };
+        }
     }
 
 }

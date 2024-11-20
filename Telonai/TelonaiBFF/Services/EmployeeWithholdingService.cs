@@ -1,6 +1,5 @@
 namespace TelonaiWebApi.Services;
 
-using Amazon.SimpleEmail.Model.Internal.MarshallTransformations;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using TelonaiWebApi.Entities;

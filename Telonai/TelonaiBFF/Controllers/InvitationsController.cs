@@ -2,7 +2,6 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using System.Text.RegularExpressions;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
@@ -17,11 +16,15 @@ public class InvitationsController : ControllerBase
     private readonly IInvitationService<InvitationModel, Invitation> _service;
     private readonly ILogger<InvitationsController> _logger;
     private readonly IScopedAuthorization _scopedAuthrorization;
-    public InvitationsController(IInvitationService<InvitationModel, Invitation> service, ILogger<InvitationsController> logger, IScopedAuthorization scopedAuthrorization)
+    private readonly IEmployerSubscriptionService _employerSubscriptionservice;
+
+    public InvitationsController(IInvitationService<InvitationModel, Invitation> service, 
+        ILogger<InvitationsController> logger, IScopedAuthorization scopedAuthrorization, IEmployerSubscriptionService employerSubscriptionservice)
     {
         _service = service;
         _logger = logger;
         _scopedAuthrorization = scopedAuthrorization;
+        _employerSubscriptionservice = employerSubscriptionservice;
     }
 
     [Authorize]
@@ -83,10 +86,41 @@ public class InvitationsController : ControllerBase
     }
 
     [HttpPost("employer")]
-    public IActionResult InviteEmployer([FromForm] EmployerInvitationModel model)
+    public async Task<IActionResult> InviteEmployer([FromForm] EmployerInvitationModel model)
     {
-        //_service.CreateAsync(model,false);
-        return Ok(new { message = $"Employer Invited {model.FirstName}" });
+
+        var invitationModel = new InvitationModel
+        {
+            Email = model.Email,
+            Company = model.Company,
+            CountryId = 2,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            PhoneCountryCode = "+1",
+            TaxId = model.TaxId
+        };
+
+        var invitation = await _service.CreateAsync(invitationModel, true);
+
+        var subscriptionModel = new EmployerSubscriptionModel
+        {
+            AccountNumber = model.AccountNumber,
+            AccountNumber2 = model.AccountNumber2,
+            RoutingNumber = model.RoutingNumber,
+            Amount = model.Amount,
+            City = model.City,
+            State = model.State,
+            Zip = model.Zip,
+            AgentCode = ushort.Parse(model.Code),
+            CompanyAddress = model.Address,
+            NumberOfEmployees = model.NumberOfEmployees, 
+            SubscriptionType = model.SubscriptionType,
+            InvitationId=invitation.Id,
+        };
+
+        await _employerSubscriptionservice.CreateAsync(subscriptionModel);
+
+        return Ok();
     }
 
     [Authorize(Policy = "SystemAdmin")]

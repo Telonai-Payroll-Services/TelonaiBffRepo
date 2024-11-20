@@ -165,4 +165,6 @@ public class DataContext : DbContext
     public DbSet<FormNineFortyFour> FormNineFortyFour { get; set; }
     public DbSet<AdditionalOtherMoneyReceived> AdditionalOtherMoneyReceived { get; set; }
     public DbSet<DocumentType> DocumentType { get; set; }
+    public DbSet<EmployerSubscription> EmployerSubscription { get; set; }
+
 }

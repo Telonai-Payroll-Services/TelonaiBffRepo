@@ -85,7 +85,7 @@
                         CallSendSubmissionsFor941Test2();
                         break;
                     case 10:
-                        CallSendSubmissionsClientFor941Multiple();
+                        CallSendSubmissionsFor941TestMultiple();
                         break;
                     case 11:
                         CallSendSubmissionsFor940Test1();
@@ -94,7 +94,7 @@
                         CallSendSubmissionsFor940Test2();
                         break;
                     case 13:
-                        CallSendSubmissionsClientFor940Multiple();
+                        CallSendSubmissionsFor940TestMultiple();
                         break;
                     default:
                         Util.Write(string.Format("You selected an invalid number: {0}\r\n", iSel));
