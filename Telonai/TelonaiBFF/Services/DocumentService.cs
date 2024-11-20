@@ -810,7 +810,7 @@ public class DocumentService : IDocumentService
         {
             { "PayStub", "Most Recent Pay Stub" },
             { "INineUnsigned", "Form I-9" },
-            { "INine", "Signed Form I - 9" },
+            { "INine", "Signed Form I-9" },
             { "WFour", "Signed W-4" },
             { "NCFour", "Signed NC-4" }
         };
@@ -822,7 +822,7 @@ public class DocumentService : IDocumentService
         {
             { "INineUnsigned", "Form I-9" },
             { "INine", "Signed Form I-9" },
-            { "EightyEiightSeventyNineEmpUnsigned", "Form 8879-EMP" },
+            { "EightyEightSeventyNineEmpUnsigned", "Form 8879-EMP" },
             { "EightyEiightSeventyNineEmp", "Signed Form 8879-EMP" },
             { "NineForty", "Form 940" },
             { "NineFortyOne", "Form 941" },
