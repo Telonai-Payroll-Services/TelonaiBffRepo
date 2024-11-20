@@ -89,12 +89,26 @@ public class DocumentsController : ControllerBase
         return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
     }
 
-    [HttpPost("documentType/{documentType}/unsigned")]
-    [Authorize(Policy = "SystemAdmin")]
-    public async Task<IActionResult> AddGovernmentDocument(DocumentTypeModel documentType)
+    [HttpPost("documentType/{documentType}")]
+    //[Authorize(Policy = "SystemAdmin")]
+    public async Task<IActionResult> AddGovernmentDocument(IFormFile file, DocumentTypeModel documentType)
     {
-        await _documentService.UploadInternalDocumentAsync(documentType);
-        return Ok(201);
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file uploaded.");
+        }
+
+        using (Stream stream = new MemoryStream())
+        {
+            file.CopyTo(stream);
+
+            var email = Request.HttpContext.User?.Claims.First(e => e.Type == "email").Value;
+            var result = await _documentService.UploadInternalDocumentAsync(documentType, email, stream);
+            
+            if (!result) return Forbid();
+
+            return Ok(new { message = "Documents uploadded." });
+        }
     }
 
 

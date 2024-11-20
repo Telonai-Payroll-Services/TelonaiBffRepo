@@ -27,3 +27,11 @@ public enum DocumentTypeModel
     [Display(Name = "Form 8879-EMP")]
     EightyEightSeventyNineEmpUnsigned
 }
+
+enum EmployerDocumentTypes {
+    INineUnsigned, INine, EightyEightSeventyNineEmpUnsigned, EightyEiightSeventyNineEmp, NineForty, NineFortyOne, NineFortyFour
+}
+
+enum EmployeeDocumentTypes { 
+    PayStub, INineUnsigned, WFour, NCFour
+}
