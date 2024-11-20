@@ -24,6 +24,8 @@ namespace TelonaiWebAPI.UnitTest.Controllers
         private readonly Mock<IMapper> _mockMapper;
         public ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal();
         public DefaultHttpContext context = new DefaultHttpContext();
+        private readonly Mock<PersonService> _personService;
+
         public PayStubControllerTest()
         {
             _mockScopedAuthorization = new Mock<IScopedAuthorization>();
@@ -31,7 +33,8 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
             _mockHttpContext = new Mock<HttpContext>();
             _mockMapper = new Mock<IMapper>();
-            _payStubController = new PayStubController(_mockPayStubService.Object, _mockScopedAuthorization.Object)
+            _personService = new Mock<PersonService>();
+            _payStubController = new PayStubController(_mockPayStubService.Object, _mockScopedAuthorization.Object, _personService.Object)
             {
                 ControllerContext = new ControllerContext
                 {
