@@ -210,17 +210,11 @@ public class DocumentsController : ControllerBase
 
     }
 
-    [HttpGet("documentTypes/employee")]
-    public async Task<IActionResult> GetDocumentTypesEmployee()
+    [HttpGet("documentTypes")]
+    public async Task<IActionResult> GetDocumentTypes()
     {
-        var documentTypes = _documentService.GetDocumentTypesEmployee();
-        return Ok(documentTypes);
-    }
-
-    [HttpGet("documentTypes/employer")]
-    public async Task<IActionResult> GetDocumentTypesEmployer()
-    {
-        var documentTypes = _documentService.GetDocumentTypesEmployer();
+        var email = Request.HttpContext.User?.Claims.First(e => e.Type == "email").Value;
+        var documentTypes = _documentService.GetDocumentTypes(email);
         return Ok(documentTypes);
     }
 }
