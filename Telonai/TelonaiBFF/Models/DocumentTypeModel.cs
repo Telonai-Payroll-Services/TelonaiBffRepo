@@ -23,5 +23,7 @@ public enum DocumentTypeModel
     [Display(Name = "940")]
     NineForty,
     [Display(Name = "941")]
-    NineFortyOne
+    NineFortyOne,
+    [Display(Name = "Form 8879-EMP")]
+    EightyEightSeventyNineEmpUnsigned
 }
