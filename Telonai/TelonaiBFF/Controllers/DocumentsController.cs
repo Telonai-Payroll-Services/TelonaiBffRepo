@@ -89,9 +89,8 @@ public class DocumentsController : ControllerBase
         return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
     }
 
-    [HttpPost("documentType/{documentType}")]
-    //[Authorize(Policy = "SystemAdmin")]
-    public async Task<IActionResult> AddGovernmentDocument(IFormFile file, DocumentTypeModel documentType)
+    [HttpPost("documentType/{documentType}/signed")]
+    public async Task<IActionResult> AddSignedDocument(IFormFile file, int employeeId, DocumentTypeModel documentType)
     {
         if (file == null || file.Length == 0)
         {
@@ -103,11 +102,30 @@ public class DocumentsController : ControllerBase
             file.CopyTo(stream);
 
             var email = Request.HttpContext.User?.Claims.First(e => e.Type == "email").Value;
-            var result = await _documentService.UploadInternalDocumentAsync(documentType, email, stream);
-            
+            var result = await _documentService.UploadSignedDocumentAsync(documentType, email, employeeId, stream);
+
             if (!result) return Forbid();
 
-            return Ok(new { message = "Documents uploadded." });
+            return Ok(new { message = "Document uploaded." });
+        }
+    }
+
+    [HttpPost("documentType/{documentType}/unsigned")]
+    [Authorize(Policy = "SystemAdmin")]
+    public async Task<IActionResult> AddGovernmentDocument(IFormFile file, DocumentTypeModel documentType)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file uploaded.");
+        }
+
+        using (Stream stream = new MemoryStream())
+        {
+            file.CopyTo(stream);
+
+            await _documentService.AddGovernmentDocumentAsync(stream, documentType);
+            
+            return Ok(new { message = "Document uploaded." });
         }
     }
 
