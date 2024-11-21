@@ -26,7 +26,7 @@ public interface IDocumentService
     Task<DocumentModel> GetOwnDocumentDetailsByDocumentIdAsync(Guid documentId);
     Task<DocumentModel> GetDocumentDetailsByDocumentIdAsync(Guid documentId);
     Task<Document> GetDocument(Guid id);
-    Task<bool> UploadInternalDocumentAsync(DocumentTypeModel documentType, string email, Stream file);
+    Task<bool> UploadSignedDocumentAsync(DocumentTypeModel documentType, string email, int employeeId, Stream file);
     Task CreateAsync(DocumentModel model, Stream file);
     Task AddGovernmentDocumentAsync(Stream file, DocumentTypeModel documentType);
     Task Update(Guid id, DocumentModel model);
@@ -245,28 +245,19 @@ public class DocumentService : IDocumentService
         return dto;
     }
 
-    public async Task<bool> UploadInternalDocumentAsync(DocumentTypeModel documentType, string email, Stream stream)
+    public async Task<bool> UploadSignedDocumentAsync(DocumentTypeModel documentType, string email, int employeeId, Stream stream)
     {
         var person = _context.Person.First(e => e.Email == email && !e.Deactivated);
         var employment = _context.Employment.FirstOrDefault(e => e.PersonId == person.Id);
-        if (employment == null)
-            return false;
         
-        //var docTypes = await _context.DocumentType.ToListAsync();
+        //Check logged-in user is an admin
+        if (employment == null || !employment.IsPayrollAdmin) return false;
 
-        if (employment.IsPayrollAdmin)
+        //Check logged in user and employeeId belong to the same company
+        var employee = _context.Person.First(e => e.Id == employeeId && !e.Deactivated);
+        if (employee == null || employee.CompanyId != person.CompanyId)
         {
-            if (!Enum.GetNames(typeof(EmployerDocumentTypes))
-                .Contains(documentType.ToString())) {
-                return false;
-            }
-        }
-        else
-        {
-            if (!Enum.GetNames(typeof(EmployeeDocumentTypes))
-                .Contains(documentType.ToString())) {
-                return false;
-            }
+            return false;
         }
 
         var dto = new Entities.Document {
@@ -274,11 +265,13 @@ public class DocumentService : IDocumentService
             DocumentTypeId = (int)documentType,
             FileName = documentType.ToString()
         };
+
         _context.Document.Add(dto);
         await _context.SaveChangesAsync();
         await _documentManager.UploadDocumentAsync(dto.Id, stream, documentType);
         return true;
     }
+
     private void ReadPdfDocument(string fileName)
     {
         StringBuilder text = new();
