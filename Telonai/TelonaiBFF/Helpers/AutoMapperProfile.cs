@@ -341,5 +341,17 @@ public class AutoMapperProfile : Profile
 
         CreateMap<CompanyContactModel, CompanyContact>()
             .ForMember(dest => dest.ContacttypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.ContactType)));
+
+        CreateMap<EmployerSubscriptionModel, EmployerSubscription>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.SubscriptionTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.SubscriptionType)));
+
+        CreateMap<EmployerSubscription, EmployerSubscriptionModel>()
+               .ForMember(dest => dest.SubscriptionType, opt => opt.MapFrom(src => (SubscriptionTypeModel)src.SubscriptionTypeId));
+
     }
 }

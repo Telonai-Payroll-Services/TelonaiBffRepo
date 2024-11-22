@@ -7,7 +7,7 @@ public class EmployerSubscription : BaseTracker
     public int Id { get; set; }
     public Guid InvitationId { get; set; }
     public string CompanyAddress { get; set; }
-    public string Zip { get; set; }
+    public ushort Zip { get; set; }
     public string City { get; set; }
     public string State { get; set; }
     public int SubscriptionTypeId { get; set; }

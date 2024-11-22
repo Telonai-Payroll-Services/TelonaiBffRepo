@@ -85,8 +85,8 @@ public class InvitationsController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("employer")]
-    public async Task<IActionResult> InviteEmployer([FromForm] EmployerInvitationModel model)
+    [HttpPost("employer/code/{code}")]
+    public async Task<IActionResult> InviteEmployer([FromForm] EmployerInvitationModel model, string code)
     {
 
         var invitationModel = new InvitationModel
@@ -100,18 +100,17 @@ public class InvitationsController : ControllerBase
             TaxId = model.TaxId
         };
 
-        var invitation = await _service.CreateAsync(invitationModel, true);
+        var invitation = await _service.CreateAsync(invitationModel, false);
 
         var subscriptionModel = new EmployerSubscriptionModel
         {
             AccountNumber = model.AccountNumber,
             AccountNumber2 = model.AccountNumber2,
             RoutingNumber = model.RoutingNumber,
-            Amount = model.Amount,
             City = model.City,
             State = model.State,
             Zip = model.Zip,
-            AgentCode = ushort.Parse(model.Code),
+            AgentCode = ushort.Parse(code),
             CompanyAddress = model.Address,
             NumberOfEmployees = model.NumberOfEmployees, 
             SubscriptionType = model.SubscriptionType,
