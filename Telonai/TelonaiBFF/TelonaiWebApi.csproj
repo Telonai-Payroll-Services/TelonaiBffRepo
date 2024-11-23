@@ -7,9 +7,6 @@
 		<OutputType>Exe</OutputType>
 	</PropertyGroup>
     <ItemGroup>
-      <Content Include="C:\Users\SamsonKassa\Documents\appsettings-dev.json" Link="appsettings-dev.json" />
-    </ItemGroup>
-    <ItemGroup>
         <PackageReference Include="Amazon.AspNetCore.Identity.Cognito" Version="3.0.1" />
         <PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="2.5.2" />
         <PackageReference Include="AutoMapper" Version="11.0.1" />

@@ -86,17 +86,16 @@ public class InvitationsController : ControllerBase
     }
 
     [HttpPost("employer")]
-    public async Task<IActionResult> InviteEmployer([FromForm] EmployerInvitationModel model)
+    public async Task<IActionResult> InviteEmployer([FromBody] EmployerInvitationModel model , string code)
     {
-        string agentCode = HttpContext.Request.Query["code"];
-                
-        if (string.IsNullOrWhiteSpace(agentCode) || agentCode.Length!=4 || ushort.TryParse(agentCode, out var code))
+        if (string.IsNullOrWhiteSpace(code) || code.Length!=4 || !ushort.TryParse(code, out var agentCode))
         {
-            _logger.LogWarning($"Invalid Agent Code: {agentCode}, Company: {model.Company}, TaxId: {model.TaxId}, " +
+            var message = ($"Invalid Agent Code: {code}, Company: {model.Company}, TaxId: {model.TaxId}, " +
                 $"Address: {model.Address}, FirstName: {model.FirstName}, LastName: {model.LastName}, " +
                 $"Phone");
-            return Ok();
+            return Ok(message);
         }
+        return Ok(code);
 
         var invitationModel = new InvitationModel
         {
@@ -120,8 +119,8 @@ public class InvitationsController : ControllerBase
             City = model.City,
             State = model.State,
             Zip = model.Zip,
-            Phone=model.PhoneNumber,
-            AgentCode = code,
+            //Phone=model.PhoneNumber,
+            AgentCode = agentCode,
             CompanyAddress = model.Address,
             NumberOfEmployees = model.NumberOfEmployees, 
             SubscriptionType = model.SubscriptionType,
