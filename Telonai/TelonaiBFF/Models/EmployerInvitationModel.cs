@@ -19,4 +19,6 @@ public class EmployerInvitationModel
     public ulong RoutingNumber { get; set; }
     public ulong AccountNumber { get; set; }
     public ulong AccountNumber2 { get; set; }
+    public BankAccountTypeModel AccountType { get; set; }
+    public string PhoneNumber { get; set; }
 }

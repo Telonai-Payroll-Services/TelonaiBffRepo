@@ -85,9 +85,18 @@ public class InvitationsController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("employer/code/{code}")]
-    public async Task<IActionResult> InviteEmployer([FromForm] EmployerInvitationModel model, string code)
+    [HttpPost("employer")]
+    public async Task<IActionResult> InviteEmployer([FromForm] EmployerInvitationModel model)
     {
+        string agentCode = HttpContext.Request.Query["code"];
+                
+        if (string.IsNullOrWhiteSpace(agentCode) || agentCode.Length!=4 || ushort.TryParse(agentCode, out var code))
+        {
+            _logger.LogWarning($"Invalid Agent Code: {agentCode}, Company: {model.Company}, TaxId: {model.TaxId}, " +
+                $"Address: {model.Address}, FirstName: {model.FirstName}, LastName: {model.LastName}, " +
+                $"Phone");
+            return Ok();
+        }
 
         var invitationModel = new InvitationModel
         {
@@ -96,21 +105,23 @@ public class InvitationsController : ControllerBase
             CountryId = 2,
             FirstName = model.FirstName,
             LastName = model.LastName,
-            PhoneCountryCode = "+1",
+            PhoneCountryCode = "+1",            
             TaxId = model.TaxId
         };
 
         var invitation = await _service.CreateAsync(invitationModel, false);
 
         var subscriptionModel = new EmployerSubscriptionModel
-        {
+        { 
             AccountNumber = model.AccountNumber,
             AccountNumber2 = model.AccountNumber2,
-            RoutingNumber = model.RoutingNumber,
+            RoutingNumber = model.RoutingNumber,  
+            BankAccountType= model.AccountType,
             City = model.City,
             State = model.State,
             Zip = model.Zip,
-            AgentCode = ushort.Parse(code),
+            Phone=model.PhoneNumber,
+            AgentCode = code,
             CompanyAddress = model.Address,
             NumberOfEmployees = model.NumberOfEmployees, 
             SubscriptionType = model.SubscriptionType,

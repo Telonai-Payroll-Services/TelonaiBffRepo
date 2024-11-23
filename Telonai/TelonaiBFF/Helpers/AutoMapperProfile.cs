@@ -348,10 +348,12 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
-            .ForMember(dest => dest.SubscriptionTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.SubscriptionType)));
+            .ForMember(dest => dest.SubscriptionTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.SubscriptionType)))
+            .ForMember(dest => dest.BankAccountTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.BankAccountType)));
 
         CreateMap<EmployerSubscription, EmployerSubscriptionModel>()
-               .ForMember(dest => dest.SubscriptionType, opt => opt.MapFrom(src => (SubscriptionTypeModel)src.SubscriptionTypeId));
+               .ForMember(dest => dest.SubscriptionType, opt => opt.MapFrom(src => (SubscriptionTypeModel)src.SubscriptionTypeId))
+               .ForMember(dest => dest.BankAccountType, opt => opt.MapFrom(src => (BankAccountTypeModel)src.BankAccountTypeId));
 
     }
 }

@@ -16,12 +16,12 @@ public class EmployerSubscription : BaseTracker
     public ulong RoutingNumber { get; set; }
     public ulong AccountNumber { get; set; }
     public ulong AccountNumber2 { get; set; }
+    public int BankAccountTypeId { get; set; }
     public bool PaymentProcessed { get; set; }
     public DateTime PaymentProcessedDate{ get; set; }
     public bool IsCancelled { get; set; }
     public string CancellationReason { get; set; }
     public ushort AgentCode { get; set; }
-
     public Invitation Invitation { get; set; }
 
 }

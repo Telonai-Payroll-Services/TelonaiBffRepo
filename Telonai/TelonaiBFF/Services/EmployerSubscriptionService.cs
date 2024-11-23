@@ -41,7 +41,7 @@ public class EmployerSubscriptionService : IEmployerSubscriptionService
         return _context.EmployerSubscription.FirstOrDefault(e => e.Invitation.CompanyName== name && !e.IsCancelled);
     }
     public async Task CreateAsync(EmployerSubscriptionModel model)
-    {
+    {        
         var dto = _mapper.Map<EmployerSubscription>(model);
         _context.EmployerSubscription.Add(dto);
         await _context.SaveChangesAsync();
