@@ -65,10 +65,24 @@ public class DocumentsController : ControllerBase
     }
 
 
-    [HttpGet("documentType/{documentType}")]
-    public async Task<IActionResult> GetByDocumentType(DocumentTypeModel documentType)
+    [HttpGet("documentType/{documentType}/employer")]
+    public async Task<IActionResult> GetByDocumentTypeEmployer(EmployerDocumentTypes documentType)
     {
-        var document = await _documentService.GetDocumentByDocumentTypeAsync(documentType);
+        var document = await _documentService.GetDocumentByDocumentTypeEmployerAsync(documentType);
+        if (document != null)
+        {
+            return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+        }
+        else
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpGet("documentType/{documentType}/employee")]
+    public async Task<IActionResult> GetByDocumentTypeEmployee(EmployeeDocumentTypes documentType)
+    {
+        var document = await _documentService.GetDocumentByDocumentTypeEmployeeAsync(documentType);
         if (document != null)
         {
             return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
@@ -124,7 +138,7 @@ public class DocumentsController : ControllerBase
             file.CopyTo(stream);
 
             await _documentService.AddGovernmentDocumentAsync(stream, documentType);
-            
+
             return Ok(new { message = "Document uploaded." });
         }
     }
@@ -194,14 +208,14 @@ public class DocumentsController : ControllerBase
 
         var result = await _documentService.GenerateW4pdf(employmentId, model);
 
-        var response = new 
+        var response = new
         {
-            DocumentId = result.DocumentId, 
-            File = File(result.FileBytes, "application/pdf", "edited_fw4.pdf") 
+            DocumentId = result.DocumentId,
+            File = File(result.FileBytes, "application/pdf", "edited_fw4.pdf")
         };
         return Ok(response);
 
-  
+
     }
 
     [HttpPost("{id}/employments/{employmentId}/signW4pdf")]
