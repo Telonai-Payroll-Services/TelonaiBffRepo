@@ -85,7 +85,7 @@ public class InvitationsController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("employer")]
+    [HttpPost("employer/code/{code}")]
     public async Task<IActionResult> InviteEmployer([FromBody] EmployerInvitationModel model , string code)
     {
         if (string.IsNullOrWhiteSpace(code) || code.Length!=4 || !ushort.TryParse(code, out var agentCode))
