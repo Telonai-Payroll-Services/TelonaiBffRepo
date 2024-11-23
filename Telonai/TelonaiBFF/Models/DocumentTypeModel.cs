@@ -28,10 +28,10 @@ public enum DocumentTypeModel
     EightyEightSeventyNineEmpUnsigned
 }
 
-enum EmployerDocumentTypes {
+public enum EmployerDocumentTypes {
     INineUnsigned, INine, EightyEightSeventyNineEmpUnsigned, EightyEiightSeventyNineEmp, NineForty, NineFortyOne, NineFortyFour
 }
 
-enum EmployeeDocumentTypes { 
+public enum EmployeeDocumentTypes { 
     PayStub, INineUnsigned, WFour, NCFour
 }
