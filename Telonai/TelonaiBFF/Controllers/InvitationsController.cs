@@ -95,7 +95,6 @@ public class InvitationsController : ControllerBase
                 $"Phone");
             return Ok(message);
         }
-        return Ok(code);
 
         var invitationModel = new InvitationModel
         {
