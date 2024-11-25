@@ -29,6 +29,14 @@ public class PersonsController : ControllerBase
         return Ok(users);
     }
 
+    [HttpGet("companies/{companyId}/incompleteInine")]
+    public IActionResult GetIncompleteInineByCompanyId(int companyId)
+    {
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        var users = _service.GetIncompleteInineByCompanyId(companyId);
+        return Ok(users);
+    }
+    
     [HttpGet]
     public IActionResult GetAll()
     {
