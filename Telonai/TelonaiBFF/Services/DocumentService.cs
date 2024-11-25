@@ -300,7 +300,34 @@ public class DocumentService : IDocumentService
         _context.Document.Add(dto);
         await _context.SaveChangesAsync();
         await _documentManager.UploadDocumentAsync(dto.Id, stream, documentType);
+                
+        await UpdateEmployeeStatusAsync(employee, documentType);
         return true;
+    }
+
+    private async Task UpdateEmployeeStatusAsync(Person person, DocumentTypeModel documentType)
+    {
+        switch (documentType)
+        {
+            case DocumentTypeModel.WFour:
+                {
+                    person.WfourWithholdingDocumentStatusId = (int)WFourWithholdingDocumentStatusModel.Submitted;
+                    break;
+                }
+            case DocumentTypeModel.NCFour:
+                {
+                    person.StateWithholdingDocumentStatusId = (int)StateWithholdingDocumentStatusModel.Submitted;
+                    break;
+                }
+            case DocumentTypeModel.INine:
+                {
+                    person.INineVerificationStatusId = (int)INineVerificationStatusModel.INineSectionTwoSubmitted;
+                    break;
+                }
+        }
+
+        _context.Person.Update(person);
+        await _context.SaveChangesAsync();
     }
 
     private void ReadPdfDocument(string fileName)
