@@ -1,7 +1,6 @@
 namespace TelonaiWebApi.Services;
 
 using AutoMapper;
-using iTextSharp.text;
 using Microsoft.EntityFrameworkCore;
 using System;
 using TelonaiWebApi.Entities;
@@ -14,7 +13,7 @@ public interface IPayrollService
     List<PayrollModel> GetReport(int companyId, DateOnly from, DateOnly to);
     PayrollModel GetCurrentPayroll( int companyId);
     PayrollModel GetPreviousPayroll(int companyId);
-
+    DateOnly GetFirstPayrollRunDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId);
 
 
     PayrollModel GetById(int id);
@@ -162,35 +161,43 @@ public class PayrollService : IPayrollService
             var nextRunDate = payroll.PayrollSchedule.StartDate;
 
             var freq = (PayrollScheduleTypeModel)newSchedule.PayrollScheduleTypeId;
+
             switch (freq)
             {
                 case PayrollScheduleTypeModel.Monthly:
-                    nextRunDate = scheduleChanged ? newSchedule.StartDate.AddDays(-1).AddMonths(1) : payroll.ScheduledRunDate.AddDays(1).AddMonths(1);
+                    if (scheduleChanged)
+                        nextRunDate = newSchedule.FirstRunDate;
+                    else
+                    {
+                        nextRunDate = payroll.ScheduledRunDate.AddMonths(1);
+                        nextRunDate = AvoidHolidaysAndWeekends(nextRunDate, 2);
+                    }
                     break;
                 case PayrollScheduleTypeModel.SemiMonthly:
-                    nextRunDate = scheduleChanged ? newSchedule.StartDate.AddDays(13) : payroll.ScheduledRunDate.AddDays(14);
-                    if (nextRunDate.Day < 15)
-                        nextRunDate = DateOnly.Parse($"{nextRunDate.Year}-{nextRunDate.Month}-15");
+                    if (scheduleChanged)
+                        nextRunDate = newSchedule.FirstRunDate;
                     else
-                        nextRunDate = DateOnly.Parse($"{nextRunDate.Year}-{nextRunDate.Month}-{DateTime.DaysInMonth(nextRunDate.Year, nextRunDate.Month)}");
+                    {
+                        nextRunDate = payroll.ScheduledRunDate.AddDays(14);
+                        if (nextRunDate.Day < 16)
+                            nextRunDate = DateOnly.Parse($"{nextRunDate.Year}-{nextRunDate.Month}-15");
+                        else
+                            nextRunDate = DateOnly.Parse($"{nextRunDate.Year}-{nextRunDate.Month}-{DateTime.DaysInMonth(nextRunDate.Year, nextRunDate.Month)}");
+                        nextRunDate = AvoidHolidaysAndWeekends(nextRunDate, 2);
+                    }
                     break;
-                case PayrollScheduleTypeModel.Biweekly:
-                    nextRunDate = scheduleChanged ? newSchedule.StartDate.AddDays(13) : payroll.ScheduledRunDate.AddDays(14);
+                case PayrollScheduleTypeModel.Biweekly: // Run date should be every other Wednesday
+                    nextRunDate = scheduleChanged ? newSchedule.FirstRunDate : payroll.ScheduledRunDate.AddDays(14);
                     break;
-                case PayrollScheduleTypeModel.Weekly:
-                    nextRunDate = scheduleChanged ? newSchedule.StartDate.AddDays(6) : payroll.ScheduledRunDate.AddDays(7);
+                case PayrollScheduleTypeModel.Weekly:// Run date should be every Wednesday
+                    nextRunDate = scheduleChanged ? newSchedule.FirstRunDate : payroll.ScheduledRunDate.AddDays(7);
                     break;
                 case 0:
                     throw new AppException("Payroll run frequency not defined");
             }
 
-            if (nextRunDate.DayOfWeek == DayOfWeek.Saturday)
-                nextRunDate = nextRunDate.AddDays(-1);
-            else if (nextRunDate.DayOfWeek == DayOfWeek.Sunday)
-                nextRunDate = nextRunDate.AddDays(-2);
-
             var nextPayroll = new Payroll
-            {
+            { 
                 PayrollScheduleId = newSchedule.Id,
                 ScheduledRunDate = nextRunDate,
                 StartDate = scheduleChanged ? newSchedule.StartDate : payroll.ScheduledRunDate.AddDays(1),
@@ -209,7 +216,7 @@ public class PayrollService : IPayrollService
 
 
     /// <summary>
-    /// Creates  the current (and theoretically  the first) payroll that will be run by a manager after a week,month, etc,
+    /// Creates  the first payroll that will be run by a manager after a week,month, etc,
     /// as determined by the PayrollScheduleType.
     /// </summary>
     /// <param name="companyId"></param>
@@ -218,8 +225,6 @@ public class PayrollService : IPayrollService
     {
         var paySchedule = _context.PayrollSchedule.FirstOrDefault(e => e.CompanyId == companyId && e.EndDate == null) ?? 
             throw new AppException("Payroll Schedule has not been setup yet.");
-
-        var freq = (PayrollScheduleTypeModel)paySchedule.PayrollScheduleTypeId;
 
         var lastScheduledRun = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefault();
         Payroll currentPayroll = null;
@@ -270,6 +275,71 @@ public class PayrollService : IPayrollService
         _context.SaveChanges();
     }
 
+    public DateOnly GetFirstPayrollRunDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId)
+    {
+        var daysInMonth = DateTime.DaysInMonth(scheduleStartDate.Year, scheduleStartDate.Month);
+
+        DateOnly nextRunDate;
+
+        switch (frequency)
+        {
+            case PayrollScheduleTypeModel.Monthly:
+                nextRunDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
+                return AvoidHolidaysAndWeekends(nextRunDate, countryId);                
+            case PayrollScheduleTypeModel.SemiMonthly:
+                if (scheduleStartDate.Day < 16)
+                    nextRunDate = scheduleStartDate.AddDays(15 - scheduleStartDate.Day);
+                else
+                    nextRunDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
+                return AvoidHolidaysAndWeekends(nextRunDate, countryId);
+            case PayrollScheduleTypeModel.Biweekly:
+                nextRunDate = GetNextWednesday(scheduleStartDate).AddDays(7);
+                break;
+            case PayrollScheduleTypeModel.Weekly:                
+                    nextRunDate = GetNextWednesday(scheduleStartDate);
+                break;
+            case 0:
+                throw new AppException("Payroll schedule not defined");
+        }
+        return nextRunDate; //Note: for weekly and bi-weekly this date falls on Wednesday, but the check date will be on Friday
+    }
+
+    private static DateOnly GetNextWednesday(DateOnly date)
+    {
+        var days = date.DayOfWeek - DayOfWeek.Wednesday;
+        if (days > 0)
+            return date.AddDays(7 - days);
+
+        return date.AddDays(-days);
+    }
+
+    private DateOnly AvoidHolidaysAndWeekends(DateOnly date, int countryId)
+    {
+        var holidays = _context.Holiday.Where(e => e.CountryId == countryId && e.Date.Year == date.Year).ToList();
+
+        if (holidays.Any(e => e.Date == date))
+            date = date.AddDays(-1);
+
+        //Do this again in case there are two holidays next to each other
+        if (holidays.Any(e => e.Date == date))
+            date = date.AddDays(-1);
+
+        if (date.DayOfWeek == DayOfWeek.Saturday)
+            date = date.AddDays(-1);
+
+        else if (date.DayOfWeek == DayOfWeek.Sunday)
+            date = date.AddDays(-2);
+
+        //Repeat holiday checks because moving it from the weekend may have brought it a holiday
+        if (holidays.Any(e => e.Date == date))
+            date = date.AddDays(-1);
+
+        //Do this again in case there are two holidays next to each other
+        if (holidays.Any(e => e.Date == date))
+            date = date.AddDays(-1);
+
+        return date;
+    }
     private Payroll GetPayroll(int id)
     {
         var dto = _context.Payroll.Find(id);

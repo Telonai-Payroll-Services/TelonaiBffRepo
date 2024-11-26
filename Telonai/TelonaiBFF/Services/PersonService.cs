@@ -14,6 +14,7 @@ public interface IPersonService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     PersonModel GetDetailsById(int id);
     Task<PersonModel> GetByEmailAsync(string email);
     IList<PersonModel> GetByCompanyId(int companyId);
+    IList<PersonModel> GetIncompleteInineByCompanyId(int companyId);
     Task<PersonModel> GetByEmailAndCompanyIdAsync(string email, int companyId);
     Task<Person> GetCurrentUserAsync();
 
@@ -33,6 +34,15 @@ public class PersonService : IPersonService<PersonModel,Person>
     public IList<PersonModel> GetByCompanyId(int companyId)
     {
         var obj = _context.Person.Where(e=>e.CompanyId==companyId && !e.Deactivated);
+        var result = _mapper.Map<IList<PersonModel>>(obj);
+        return result;
+    }
+    public IList<PersonModel> GetIncompleteInineByCompanyId(int companyId)
+    {
+        var completeStatusId = (int)INineVerificationStatusModel.INineSectionTwoSubmitted;
+        var obj = _context.Person.Where(e => e.CompanyId == companyId && e.INineVerificationStatusId < completeStatusId
+        && !e.Deactivated);
+
         var result = _mapper.Map<IList<PersonModel>>(obj);
         return result;
     }
