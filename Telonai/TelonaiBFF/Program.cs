@@ -94,6 +94,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IFormNineFortyService, FormNineFortyService>();
     services.AddScoped<ICompanyContactService, CompanyContactService>();
     services.AddScoped<IEmployerSubscriptionService, EmployerSubscriptionService>();
+    services.AddScoped<IAgentService, AgentService>();
 
 
     services.AddEndpointsApiExplorer();
