@@ -10,7 +10,7 @@ using TelonaiWebApi.Services;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize()]
+[AllowAnonymous()]
 public class PayrollsController : ControllerBase
 {
     private readonly IPayrollService _payrollService;
@@ -22,6 +22,7 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpGet("companies/{companyId}/current")]
+    [Authorize]
     public IActionResult GetCurrentPayroll(int companyId)
     {
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
@@ -30,6 +31,7 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpGet("companies/{companyId}/previous")]
+    [Authorize]
     public IActionResult GetPreviousPayroll(int companyId)
     {
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
@@ -38,6 +40,7 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpGet("companies/{companyId}/report")]
+    [Authorize]
     public IActionResult GetByCompanyAndTimeForUser(int companyId, [FromQuery(Name = "startTime")] DateOnly startTime, [FromQuery(Name = "endTime")] DateOnly endTime)
     {
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
@@ -46,6 +49,7 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpGet("companies/{companyId}/{count}")]
+    [Authorize]
     public IActionResult GetByCompanyAndCount(int companyId, int count)
     {
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
@@ -54,6 +58,7 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize]
     public IActionResult GetById(int id)
     {
         var item = _payrollService.GetById(id);
@@ -62,7 +67,9 @@ public class PayrollsController : ControllerBase
         return Ok(item);
     }
 
+
     [HttpGet("{payrollId}/Summary")]
+    [Authorize]
     public async Task<IActionResult> GetPayrollSummaryById(int payrollId)
     {
         var payrollSummary = await _payrollService.GetPayrollSummanryByPayrollId(payrollId);
@@ -82,6 +89,7 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpPost("companies/{companyId}")]
+    [Authorize]
     public IActionResult Create(int companyId)
     {
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
@@ -98,6 +106,7 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpPut("{id}/companies/{companyId}")]
+    [Authorize]
     public IActionResult Update(int id, int companyId)
     {
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
@@ -112,5 +121,14 @@ public class PayrollsController : ControllerBase
     {
         _payrollService.Delete(id);
         return Ok(new { message = "Payroll deleted." });
+    }
+
+
+    [HttpPost("frequency/{frequency}/firstRunDate")]
+    [AllowAnonymous]
+    public IActionResult GetFirstPayrollRunDate([FromBody]DateOnly startDate, PayrollScheduleTypeModel frequency)
+    {
+        var item = _payrollService.GetFirstPayrollRunDate(frequency, startDate, 2);
+        return Ok(item);
     }
 }
