@@ -66,31 +66,29 @@ public class DocumentsController : ControllerBase
 
 
     [HttpGet("documentType/{documentType}/employer")]
-    public async Task<IActionResult> GetByDocumentTypeEmployer(EmployerDocumentTypes documentType)
+    public async Task<IActionResult> GetByDocumentTypeEmployer(DocumentTypeModel documentType)
     {
-        var document = await _documentService.GetDocumentByDocumentTypeEmployerAsync(documentType);
-        if (document != null)
+        if (FilteredDocumentTypes.EmployerDocumentTypes.Contains(documentType.ToString()))
         {
-            return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+            var document = await _documentService.GetDocumentByDocumentTypeEmployerAsync(documentType);
+            if (document != null)
+
+                return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
         }
-        else
-        {
-            return NotFound();
-        }
+        return NotFound();
     }
 
     [HttpGet("documentType/{documentType}/employee")]
-    public async Task<IActionResult> GetByDocumentTypeEmployee(EmployeeDocumentTypes documentType)
+    public async Task<IActionResult> GetByDocumentTypeEmployee(DocumentTypeModel documentType)
     {
-        var document = await _documentService.GetDocumentByDocumentTypeEmployeeAsync(documentType);
-        if (document != null)
+        if (FilteredDocumentTypes.EmployeeDocumentTypes.Contains(documentType.ToString()))
         {
-            return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+            var document = await _documentService.GetDocumentByDocumentTypeEmployeeAsync(documentType);
+            if (document != null)
+
+                return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
         }
-        else
-        {
-            return NotFound();
-        }
+        return NotFound();
     }
 
 

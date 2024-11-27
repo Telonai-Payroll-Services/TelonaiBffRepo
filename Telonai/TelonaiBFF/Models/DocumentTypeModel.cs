@@ -28,10 +28,14 @@ public enum DocumentTypeModel
     EightyEightSeventyNineEmpUnsigned
 }
 
-public enum EmployerDocumentTypes {
-    INineUnsigned, INine, EightyEightSeventyNineEmpUnsigned, EightyEiightSeventyNineEmp, NineForty, NineFortyOne, NineFortyFour
-}
+public static class FilteredDocumentTypes
+{
+    public static List<string> EmployerDocumentTypes = new List<string> {
+        "INineUnsigned", "INine", "EightyEightSeventyNineEmpUnsigned", "EightyEiightSeventyNineEmp",
+        "NineForty", "NineFortyOne", "NineFortyFour"
+    };
 
-public enum EmployeeDocumentTypes { 
-    PayStub, INineUnsigned, WFour, NCFour
+    public static List<string> EmployeeDocumentTypes = new List<string> {
+        "PayStub", "INineUnsigned", "WFour", "NCFour"
+    };
 }
