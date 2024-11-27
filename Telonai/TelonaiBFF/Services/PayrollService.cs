@@ -14,7 +14,7 @@ public interface IPayrollService
     PayrollModel GetCurrentPayroll( int companyId);
     PayrollModel GetPreviousPayroll(int companyId);
     DateOnly GetFirstPayrollRunDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId);
-
+    DateOnly GetFirstPaycheckDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId);
 
     PayrollModel GetById(int id);
     Task<int> CreateNextPayrollForAll();
@@ -304,6 +304,36 @@ public class PayrollService : IPayrollService
         return nextRunDate; //Note: for weekly and bi-weekly this date falls on Wednesday, but the check date will be on Friday
     }
 
+    public DateOnly GetFirstPaycheckDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId)
+    {
+        var daysInMonth = DateTime.DaysInMonth(scheduleStartDate.Year, scheduleStartDate.Month);
+
+        DateOnly nextPaycheckDate;
+
+        switch (frequency)
+        {
+            case PayrollScheduleTypeModel.Monthly:
+                nextPaycheckDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
+                return AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
+            case PayrollScheduleTypeModel.SemiMonthly:
+                if (scheduleStartDate.Day < 16)
+                    nextPaycheckDate = scheduleStartDate.AddDays(15 - scheduleStartDate.Day);
+                else
+                    nextPaycheckDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
+                return AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
+            case PayrollScheduleTypeModel.Biweekly:
+                nextPaycheckDate = GetNextWednesday(scheduleStartDate).AddDays(7+2);//paycheck date is normally 2 days later
+                nextPaycheckDate = AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
+                break;
+            case PayrollScheduleTypeModel.Weekly:
+                nextPaycheckDate = GetNextWednesday(scheduleStartDate).AddDays(2); //paycheck date is normally 2 days later
+                nextPaycheckDate = AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
+                break;
+            case 0:
+                throw new AppException("Payroll schedule not defined");
+        }
+        return nextPaycheckDate; //Note: for weekly and bi-weekly this date falls on Wednesday, but the check date will be on Friday
+    }
     private static DateOnly GetNextWednesday(DateOnly date)
     {
         var days = date.DayOfWeek - DayOfWeek.Wednesday;

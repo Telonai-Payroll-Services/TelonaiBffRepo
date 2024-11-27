@@ -19,8 +19,8 @@ public interface IDocumentService
     Task<DocumentModel> GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType);
     Task<DocumentModel> GetDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType);
     Task<Tuple<Stream, string>> GetOwnDocumentByDocumentTypeAsync(DocumentTypeModel documentType);
-    Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployerAsync(EmployerDocumentTypes documentType);
-    Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployeeAsync(EmployeeDocumentTypes documentType);
+    Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployerAsync(DocumentTypeModel documentType);
+    Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployeeAsync(DocumentTypeModel documentType);
     Task<Tuple<Stream, string>> GetDocumentByDocumentTypeAsync(DocumentTypeModel documentType);
     Task<Tuple<Stream, string>> GetOwnDocumentByDocumentIdAsync(Guid documentId);
     Task<Tuple<Stream, string>> GetDocumentByDocumentIdAsync(Guid documentId);
@@ -165,7 +165,7 @@ public class DocumentService : IDocumentService
 
         return result;
     }
-    public async Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployerAsync(EmployerDocumentTypes documentType)
+    public async Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployerAsync(DocumentTypeModel documentType)
     {
         var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, person.CompanyId);
@@ -180,10 +180,10 @@ public class DocumentService : IDocumentService
     }
 
 
-    public async Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployeeAsync(EmployeeDocumentTypes documentType)
+    public async Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployeeAsync(DocumentTypeModel documentType)
     {
         var person = await _personService.GetCurrentUserAsync();
-        //_scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, person.CompanyId);
+            _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
         var dto = await _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefaultAsync(e => e.DocumentTypeId == (int)documentType);
         if (dto == null)

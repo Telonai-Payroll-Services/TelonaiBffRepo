@@ -14,6 +14,7 @@ public interface IEmploymentService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     Task<Employment> CreateAsync(EmploymentModel model, int companyId);
     Task DeleteAsync(int id, int companyId);
     IList<EmploymentModel> GetAllEmployees();
+    IList<EmploymentModel> GetAllCompanyEmployees(int companyId);
 }
 
 public class EmploymentService : IEmploymentService<EmploymentModel,Employment>
@@ -112,6 +113,12 @@ public class EmploymentService : IEmploymentService<EmploymentModel,Employment>
     public  IList<EmploymentModel> GetAllEmployees() 
     {
        var employements= _context.Employment.ToList();
+        return _mapper.Map<IList<EmploymentModel>> (employements);
+
+    }
+    public  IList<EmploymentModel> GetAllCompanyEmployees(int companyId) 
+    {
+       var employements= _context.Employment.Where(emp => emp.Job.CompanyId == companyId).ToList();
         return _mapper.Map<IList<EmploymentModel>> (employements);
 
     }

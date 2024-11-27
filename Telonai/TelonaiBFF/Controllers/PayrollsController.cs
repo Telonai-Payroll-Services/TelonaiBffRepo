@@ -124,11 +124,11 @@ public class PayrollsController : ControllerBase
     }
 
 
-    [HttpPost("frequency/{frequency}/firstRunDate")]
+    [HttpPost("frequency/{frequency}/firstPaycheckDate")]
     [AllowAnonymous]
-    public IActionResult GetFirstPayrollRunDate([FromBody]DateOnly startDate, PayrollScheduleTypeModel frequency)
+    public IActionResult GetFirstPaycheckDate([FromBody]DateOnly startDate, PayrollScheduleTypeModel frequency)
     {
-        var item = _payrollService.GetFirstPayrollRunDate(frequency, startDate, 2);
+        var item = _payrollService.GetFirstPaycheckDate(frequency, startDate, 2);
         return Ok(item);
     }
 }
