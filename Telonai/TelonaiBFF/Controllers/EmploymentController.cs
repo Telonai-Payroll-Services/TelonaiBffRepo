@@ -47,6 +47,7 @@ public class EmploymentController : ControllerBase
         _service.CompleteAddingEmployees(currentUserEmail,companyId);        
         return Ok(new { message = "Employee Invited" });
     }
+
     [HttpPut("{id}/companies/{companyId}/terminate")]
     public IActionResult TerminateEmployee(int id, int companyId)
     {
@@ -55,6 +56,7 @@ public class EmploymentController : ControllerBase
         _service.DeleteAsync(id, companyId);
         return Ok(new { message = "Employee Terminated" });
     }
+
     [HttpGet("get_all_employees")]
     public IActionResult GetAllEmployees()
     {
