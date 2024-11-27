@@ -9,7 +9,7 @@ namespace TelonaiWebApi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize()]
+[Authorize(Policy = "SuperAdmin")]
 public class AgentController : ControllerBase
 {
     private readonly IAgentService _service;
