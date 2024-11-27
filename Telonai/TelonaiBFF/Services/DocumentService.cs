@@ -725,12 +725,12 @@ public class DocumentService : IDocumentService
         var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.NCFourUnsigned.ToString(),
             document.Id.ToString());
 
-        var fileBytes = await SetNC4PdfFormFilds(model, documentResult, filingStatus.Item1, emp, false);
+        var fileBytes = await SetNC4PdfFormFilds(model, documentResult, filingStatus.Item2, emp, false);
 
         var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes, DocumentTypeModel.NCFourUnsigned);
         var documentForDisplay = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.NCFourUnsigned.ToString(),
             document.Id.ToString());
-        var fileForDisplay = await SetNC4PdfFormFilds(model, documentForDisplay, filingStatus.Item1, emp, true);
+        var fileForDisplay = await SetNC4PdfFormFilds(model, documentForDisplay, filingStatus.Item2, emp, true);
         var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
 
         string prefix = "Step1c_FilingStatus_";
@@ -738,7 +738,7 @@ public class DocumentService : IDocumentService
         var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(doumentId, 1, result, doumentModel);
         await CreateEmployeeWithholdingAsync(employeeWithHodingModel1C);
 
-        emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserStartedSubmittingWFour;
+        emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserStartedSubmittingStateFour;
         _context.Employment.Update(emp);
         await _context.SaveChangesAsync();
 
@@ -748,17 +748,18 @@ public class DocumentService : IDocumentService
     }
     private async Task<byte[]> SetNC4PdfFormFilds(NC4Form model, Stream documentStream, string filingStatus, Employment employee, bool formFlattening)
     {
+        var personAddress = _context.Person.Include(z => z.Zipcode).Include(c => c.Zipcode.City).Include(c => c.Zipcode.City.State).FirstOrDefault(c => c.Id == _person.Id);
         var firstName = _person?.FirstName;
         var middeName = _person?.LastName;
         var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
         var lastName = _person?.LastName;
         var ssn = _person?.Ssn;
         var address = _person?.AddressLine1;
-        var zipCode = _person?.Zipcode?.Code;
-        var city = _person?.Zipcode?.City?.Name;
-        var state = _person?.Zipcode?.City?.State.Name;
-        var country = _person?.Zipcode?.City?.State?.Country.Name;
-
+        var zipCode = personAddress?.Zipcode?.Code;
+        var city = personAddress?.Zipcode?.City?.Name;
+        var state = personAddress?.Zipcode?.City?.State?.Name;
+        var country = personAddress?.Zipcode?.City?.State?.Country?.Name;
+                    
         //TODO AddCounty
         //var county       
         string firstPart = ssn.Substring(0, 3);
@@ -771,40 +772,46 @@ public class DocumentService : IDocumentService
             using (PdfReader pdfReader = new PdfReader(documentStream))
             using (PdfStamper pdfStamper = new PdfStamper(pdfReader, workStream))
             {
-                AcroFields formFields = pdfStamper.AcroFields;
+                
+                AcroFields formFields = pdfStamper.AcroFields;                               
 
-
+                switch (filingStatus)
+                {
+                    case "Step1c_FilingStatus_SingleOrMarriedFilingSeparately":
+                        formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus2, "Choice1");
+                        break;
+                    case "Step1c_FilingStatus_MarriedFilingJointly":
+                        formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus2, "Choice2");
+                        break;
+                    case "Step1c_FilingStatus_HeadOfHousehold":
+                        formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus2, "Choice3");
+                        break;
+                    default:
+                        throw new InvalidOperationException("Unknown filing status.");
+                }
 
                 formFields.SetField(NC4PdfFields.NumberOfAllowance, model.NumberOfAllowance.ToString());
                 formFields.SetField(NC4PdfFields.AdditionalAmt, model.AdditionalAmt.ToString());
-
                 formFields.SetField(NC4PdfFields.SocialSecurity1stPart, firstPart);
                 formFields.SetField(NC4PdfFields.LastName, lastName);
-                formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus1, "On");
                 formFields.SetField(NC4PdfFields.FirstName, firstName.ToUpper());
-                formFields.SetField(NC4PdfFields.FilingStatus_undefined_4, "On");
-                formFields.SetField(NC4PdfFields.FilingStatus_undefined_5, "On");
                 formFields.SetField(NC4PdfFields.MI, middeNameInitial);
                 formFields.SetField(NC4PdfFields.Address, address.ToUpper());
                 formFields.SetField(NC4PdfFields.ZipCode, $"{zipCode}");
                 formFields.SetField(NC4PdfFields.Country, $"{country}");
                 formFields.SetField(NC4PdfFields.City, $"{city}");
                 formFields.SetField(NC4PdfFields.State, $"{state}");
-                formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus2, "On");
                 formFields.SetField(NC4PdfFields.SocialSecurity2ndPart, secondPart);
                 formFields.SetField(NC4PdfFields.SocialSecurity3rdPart, thirdPart);
-
 
                 pdfStamper.FormFlattening = formFlattening;
                 pdfStamper.Close();
                 pdfReader.Close();
             }
 
-
             var fileBytes = workStream.ToArray();
             return fileBytes;
         }
-
     }
     public async Task<byte[]> SignNC4DoumentAsync(Guid id, int employmentId, SignatureModel signature)
     {
@@ -858,7 +865,7 @@ public class DocumentService : IDocumentService
 
             await UpdateW4PdfWithSignature(id, fileBytes, DocumentTypeModel.NCFour);
 
-            emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserCompletedSubmittingWFour;
+            emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserCompletedSubmittingStateFour;
             _context.Employment.Update(emp);
             await _context.SaveChangesAsync();
 

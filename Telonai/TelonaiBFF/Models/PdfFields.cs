@@ -34,10 +34,10 @@ namespace TelonaiWebApi.Models
         public const string AdditionalAmt = "AdditionalAmt";
         public const string SocialSecurity1stPart = "Social Security 1st-Part";
         public const string LastName = "LastName";
-        public const string FilingStatus_FilingStatus1 = "Filing Status";
+        public const string Step1c_FilingStatus_SingleOrMarriedFilingSeparately = "Filing Status";
         public const string FirstName = "First Name USE CAPITAL  LETTERS FOR YOUR NAME AND ADDRESS";
-        public const string FilingStatus_undefined_4 = "undefined_4";
-        public const string FilingStatus_undefined_5 = "undefined_5";
+        public const string Step1c_FilingStatus_MarriedFilingJointly = "undefined_4";
+        public const string Step1c_FilingStatus_HeadOfHousehold = "undefined_5";
         public const string MI = "MI";
         public const string Address = "Address";
         public const string ZipCode = "ZipCode";
