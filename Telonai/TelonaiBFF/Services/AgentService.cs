@@ -46,13 +46,6 @@ public class AgentService : IAgentService
         { 
             throw new ArgumentNullException(nameof(model));
         }
-     
-        /*var existingAgentFieldValue =  _context.AgentFieldValue.FirstOrDefault(x => x.Id == model.Id && x.PersonId == model.PersonId);
-
-        if (existingAgentFieldValue != null) 
-        { 
-              return existingAgentFieldValue;
-        } */
           
         var agentFieldValue = _mapper.Map<AgentFieldValue>(model);
         _context.AgentFieldValue.Add(agentFieldValue);
