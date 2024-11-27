@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.Design;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
@@ -28,6 +29,13 @@ public class EmploymentController : ControllerBase
 
         return Ok(result);
     }
+    
+    [HttpGet("companies/{companyid}")]
+    public IActionResult GetAllCompanyEmployees(int companyid)
+    {
+        var employees = _service.GetAllCompanyEmployees(companyid); ;
+        return Ok(employees);
+    }
 
     [HttpPost("companies/{companyid}/completeadding")]
     public IActionResult InviteEmployee(int companyId)
@@ -53,4 +61,5 @@ public class EmploymentController : ControllerBase
        var employees= _service.GetAllEmployees(); ;
         return Ok(employees);
     }
+
 }
