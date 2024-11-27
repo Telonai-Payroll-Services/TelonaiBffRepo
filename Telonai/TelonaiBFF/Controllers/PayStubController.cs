@@ -97,9 +97,9 @@ public class PayStubController : ControllerBase
             var person = await _personService.GetByEmailAsync(email);
             if (person != null)
             {
-                if (payStub.Employment.PersonId == person.Id)
+                if (payStub.Employment.PersonId == person.Id && payStub.DocumentId != null)
                 {
-                    var stream = _PayStubService.GetDocumentByDocumentId(payStub.DocumentId.Value).Result;
+                    var stream = await _PayStubService.GetDocumentByDocumentId(payStub.DocumentId.Value);
                     using (MemoryStream ms = new())
                     {
                         stream.CopyTo(ms);
@@ -120,6 +120,7 @@ public class PayStubController : ControllerBase
         {
             return NotFound("Paystub does not exist");
         }
+        
     }
 
     [HttpPost()]
