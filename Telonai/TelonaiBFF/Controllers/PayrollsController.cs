@@ -101,7 +101,8 @@ public class PayrollsController : ControllerBase
     [Authorize(Policy = "SystemAdmin")]
     public IActionResult CreateNextPayrollForAll()
     {
-        var result = _payrollService.CreateNextPayrollForAll().Result;
+        var countryId = 2;
+        var result = _payrollService.CreateNextPayrollForAll(countryId).Result;
         return Ok(new { message = $"{result} Payrolls generated." });
     }
 

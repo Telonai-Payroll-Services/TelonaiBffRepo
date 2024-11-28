@@ -17,7 +17,7 @@ public interface IPayrollService
     DateOnly GetFirstPaycheckDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId);
 
     PayrollModel GetById(int id);
-    Task<int> CreateNextPayrollForAll();
+    Task<int> CreateNextPayrollForAll(int countryId);
     void Create(int companyId);
     void Update(int id, int companyId);
     void Delete(int id);
@@ -40,11 +40,11 @@ public class PayrollService : IPayrollService
 
     public List<PayrollModel> GetLatestByCount(int companyId, int count)
     {
-        var obj = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
+        var payrolls = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
             .Where(e => e.CompanyId == companyId && e.StartDate < DateOnly.FromDateTime(DateTime.UtcNow))
             .Take(count).ToList();
 
-        var result = _mapper.Map<List<PayrollModel>>(obj);
+        var result = _mapper.Map<List<PayrollModel>>(payrolls);
         var averageAmount = result.Where(e => e.ScheduledRunDate < DateTime.Now).Sum(e=>e.EmployeesOwed)/(count-1);
         var dailyRates = result.Where(e => e.ScheduledRunDate < DateTime.Now)
             .Select(e => GetDailyPayrollExpense(e.EmployeesOwed.Value, e.ScheduledRunDate, e.StartDate));
@@ -135,72 +135,87 @@ public class PayrollService : IPayrollService
     /// </summary>
     /// <returns></returns>
     /// <exception cref="AppException"></exception>
-    public async Task<int> CreateNextPayrollForAll()
+    public async Task<int> CreateNextPayrollForAll(int countryId)
     {
         var newPayrollsList = new List<Payroll>();
 
+        var now = DateOnly.FromDateTime(DateTime.Now);
+
         //Get the latest payroll schedule for all companies.
         //This gets the schedules that have already started or will start in the next 2 days
-        var startDate = DateOnly.FromDateTime(DateTime.Now.AddDays(2));
-        var paySchedules = _context.PayrollSchedule.OrderByDescending(e => e.FirstRunDate).Where(e => e.StartDate < startDate
-            && (e.EndDate == null || e.EndDate >= startDate.AddDays(-2)))
-            .GroupBy(e => e.CompanyId).Select(g => g.First()).ToList();
+
+        var twoDaysFromNow = now;
+
+        var paySchedules = _context.PayrollSchedule.OrderByDescending(e => e.FirstRunDate).Where(e => e.StartDate < twoDaysFromNow
+            && (e.EndDate == null || e.EndDate >= twoDaysFromNow))
+            .GroupBy(e => e.CompanyId)
+            .Select(g => g.First()).ToList();
 
         var currentPayrolls = _context.Payroll.Include(e => e.PayrollSchedule)
-        .Where(e => e.ScheduledRunDate >= startDate && e.TrueRunDate == null)
+        .Where(e => e.ScheduledRunDate >= now)
         .GroupBy(e => e.CompanyId)
         .Where(g => g.Count() ==1) //This line will filter out those already created in the previous day
         .Select(g => g.First()).ToList();
 
         foreach (var payroll in currentPayrolls)
         {
-            var newSchedule = paySchedules.Where(e => e.CompanyId == payroll.CompanyId).FirstOrDefault();
+            var newSchedule = paySchedules.Where(e => e.CompanyId == payroll.CompanyId).OrderByDescending(e=>e.Id).FirstOrDefault();
             var existingSchedule = payroll.PayrollSchedule;
             var scheduleChanged = newSchedule.Id != existingSchedule.Id;
                         
-            var nextRunDate = payroll.PayrollSchedule.StartDate;
+            var nextPayrollRunDate = payroll.PayrollSchedule.StartDate;
+            var nextPayrollStartDate = payroll.PayrollSchedule.StartDate;
 
-            var freq = (PayrollScheduleTypeModel)newSchedule.PayrollScheduleTypeId;
-
-            switch (freq)
+            if (scheduleChanged)
             {
-                case PayrollScheduleTypeModel.Monthly:
-                    if (scheduleChanged)
-                        nextRunDate = newSchedule.FirstRunDate;
-                    else
-                    {
-                        nextRunDate = payroll.ScheduledRunDate.AddMonths(1);
-                        nextRunDate = AvoidHolidaysAndWeekends(nextRunDate, 2);
-                    }
-                    break;
-                case PayrollScheduleTypeModel.SemiMonthly:
-                    if (scheduleChanged)
-                        nextRunDate = newSchedule.FirstRunDate;
-                    else
-                    {
-                        nextRunDate = payroll.ScheduledRunDate.AddDays(14);
-                        if (nextRunDate.Day < 16)
-                            nextRunDate = DateOnly.Parse($"{nextRunDate.Year}-{nextRunDate.Month}-15");
-                        else
-                            nextRunDate = DateOnly.Parse($"{nextRunDate.Year}-{nextRunDate.Month}-{DateTime.DaysInMonth(nextRunDate.Year, nextRunDate.Month)}");
-                        nextRunDate = AvoidHolidaysAndWeekends(nextRunDate, 2);
-                    }
-                    break;
-                case PayrollScheduleTypeModel.Biweekly: // Run date should be every other Wednesday
-                    nextRunDate = scheduleChanged ? newSchedule.FirstRunDate : payroll.ScheduledRunDate.AddDays(14);
-                    break;
-                case PayrollScheduleTypeModel.Weekly:// Run date should be every Wednesday
-                    nextRunDate = scheduleChanged ? newSchedule.FirstRunDate : payroll.ScheduledRunDate.AddDays(7);
-                    break;
-                case 0:
-                    throw new AppException("Payroll run frequency not defined");
+                nextPayrollRunDate = newSchedule.FirstRunDate;
+                nextPayrollStartDate = newSchedule.StartDate;
             }
 
+            else
+            {
+                var freq = (PayrollScheduleTypeModel)newSchedule.PayrollScheduleTypeId;
+
+                switch (freq)
+                {
+                    case PayrollScheduleTypeModel.Monthly:
+                        nextPayrollRunDate = payroll.ScheduledRunDate.AddMonths(1);
+                        nextPayrollStartDate = new DateOnly(nextPayrollRunDate.Year, nextPayrollRunDate.Month, 1);
+                        nextPayrollRunDate = nextPayrollStartDate.AddMonths(1).AddDays(-1);
+
+                        nextPayrollRunDate = AvoidHolidaysAndWeekends(nextPayrollRunDate, countryId);
+                        break;
+                    case PayrollScheduleTypeModel.SemiMonthly:
+                        nextPayrollRunDate = payroll.ScheduledRunDate.AddDays(13);
+                        if (nextPayrollRunDate.Day < 16)
+                        {
+                            nextPayrollRunDate = new DateOnly(nextPayrollRunDate.Year, nextPayrollRunDate.Month, 15);
+                            nextPayrollStartDate = new DateOnly(nextPayrollRunDate.Year, nextPayrollRunDate.Month, 1);
+                        }
+                        else
+                        {
+                            nextPayrollStartDate = new DateOnly(nextPayrollRunDate.Year, nextPayrollRunDate.Month, 16);
+                            nextPayrollRunDate = nextPayrollStartDate.AddMonths(1).AddDays(17);
+                        }
+                        nextPayrollRunDate = AvoidHolidaysAndWeekends(nextPayrollRunDate, countryId);
+                        break;
+                    case PayrollScheduleTypeModel.Biweekly: // Run date should be every other Wednesday. It is not affected by holidays
+                        nextPayrollRunDate = payroll.ScheduledRunDate.AddDays(14);
+                        nextPayrollStartDate = payroll.ScheduledRunDate.AddDays(1);
+                        break;
+                    case PayrollScheduleTypeModel.Weekly:// Run date should be every Wednesday. Not affected by holidays
+                        nextPayrollRunDate = payroll.ScheduledRunDate.AddDays(7);
+                        nextPayrollStartDate = payroll.ScheduledRunDate.AddDays(1);
+                        break;
+                    case 0:
+                        throw new AppException("Payroll run frequency not defined");
+                }
+            }
             var nextPayroll = new Payroll
             { 
                 PayrollScheduleId = newSchedule.Id,
-                ScheduledRunDate = nextRunDate,
-                StartDate = scheduleChanged ? newSchedule.StartDate : payroll.ScheduledRunDate.AddDays(1),
+                ScheduledRunDate = nextPayrollRunDate,
+                StartDate = nextPayrollStartDate,
                 CompanyId = payroll.CompanyId
             };
 
@@ -211,6 +226,9 @@ public class PayrollService : IPayrollService
             _context.Payroll.AddRange(newPayrollsList);
             _context.SaveChanges();
         }
+
+        _ = CreateNextPaystubForAllCurrentPayrollsAsync();
+
         return newPayrollsList.Count;
     }
 
@@ -255,15 +273,15 @@ public class PayrollService : IPayrollService
         if (companyId != dto.CompanyId)
             throw new UnauthorizedAccessException();
 
-        var stubs = CreatePaystubs(dto);
+        var stubs = CompletePayStubsForCurrentPayroll(dto);
 
         if (dto.TrueRunDate == null)
         {
             dto.TrueRunDate = DateTime.UtcNow;
 
             _context.Payroll.Update(dto);
-            _context.PayStub.AddRange(stubs);
-            
+            _context.PayStub.UpdateRange(stubs.Item1);
+            _context.PayStub.AddRange(stubs.Item2);            
             _context.SaveChanges();
         }
     }
@@ -375,38 +393,43 @@ public class PayrollService : IPayrollService
         var dto = _context.Payroll.Find(id);
         return dto;
     }
-       
-    private List<PayStub>CreatePaystubs(Payroll currentPayroll)
-    {
-        var payStubs= new List<PayStub>();
-        var companyId = currentPayroll.CompanyId;
-        var company= currentPayroll.Company;
-        var currentYear = currentPayroll.ScheduledRunDate.Year;
 
+    private async Task CreateNextPaystubForAllCurrentPayrollsAsync()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var payrolls = _context.Payroll.Include(e=>e.PayrollSchedule).Where(e => e.StartDate <= today && e.ScheduledRunDate >= today
+        && e.TrueRunDate == null).ToList();
+
+        payrolls.ForEach(e => _ = CreateOrUpdatePayStubsForCurrentPayrollAsync(e));
+    }
+
+    /// <summary>
+    /// This method creates paystubs if they don't exist, it updates them if they exist.
+    /// It must be invoked via lambda once a day so that the expense tracker displays correct data. 
+    /// </summary>
+    /// <param name="currentPayroll"></param>
+    /// <returns>List of Updated paystubs as Item1, and list of new paystubs as item 2 of a Tuple</returns>
+    /// <exception cref="AppException"></exception>
+    private async Task<Tuple<List<PayStub>, List<PayStub>>> CreateOrUpdatePayStubsForCurrentPayrollAsync(Payroll currentPayroll)
+    {
+        var payStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id).ToList();
+        var newPaystubs = new List<PayStub>();
+
+        var companyId = currentPayroll.CompanyId;
+        var company = currentPayroll.Company;
+        var currentYear = currentPayroll.ScheduledRunDate.Year;
 
         var timecards = _context.TimecardUsa.Where(e => e.Job.CompanyId == companyId &&
         DateOnly.FromDateTime(e.ClockIn) >= currentPayroll.StartDate &&
         DateOnly.FromDateTime(e.ClockIn) <= currentPayroll.ScheduledRunDate).ToList();
 
-        if (timecards.Any(e => !e.IsApproved))
-            throw new AppException("You have not approved all timecards");
-               
-        var schedule = _context.PayrollSchedule.FirstOrDefault(e => e.CompanyId == companyId && (e.EndDate == null ||
-        e.EndDate < currentPayroll.ScheduledRunDate));
-        
-        var frequency = (PayrollScheduleTypeModel)schedule?.PayrollScheduleTypeId;
+        var frequency = (PayrollScheduleTypeModel)currentPayroll.PayrollSchedule.PayrollScheduleTypeId;
 
         var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId &&
-        (!e.Deactivated || (e.EndDate != null && e.EndDate < currentPayroll.ScheduledRunDate
+        (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate
         && e.EndDate > currentPayroll.StartDate))).ToList();
 
-        timecards.ForEach(e => e.IsLocked = true);
-        _context.UpdateRange(timecards);
-
-        var additionalWithholdingTaxWageLimit = double.Parse(_context.CountrySpecificFieldValue.FirstOrDefault(e => e.EffectiveYear == currentYear && 
-        e.CountrySpecificField.FieldName== "AdditionalMedicareTaxWithholdingWageLimit")?.FieldValue?? "0.0");
-
-        foreach (var  emp in employments) 
+        foreach (var emp in employments)
         {
             var payrate = emp.PayRate;
             var payRateBasis = emp.PayRateBasisId;
@@ -415,37 +438,39 @@ public class PayrollService : IPayrollService
             var regularHours = 0.0;
             var otPay = 0.0;
             var otHours = 0.0;
-            Tuple<double,double,double,double> calculatedPay = null;
+            Tuple<double, double, double, double> calculatedPay = null;
 
-            var previousPayStub = _context.PayStub.OrderByDescending(e => e.Id).FirstOrDefault(e => e.EmploymentId == emp.Id
-            && !e.IsCancelled);
+            var currentPaystub = payStubs.FirstOrDefault(e => e.EmploymentId == emp.Id);
 
             if (payRateBasis == (int)PayRateBasisModel.Daily)
             {
-                var pay = CalculatePayForDailyRatedEmployees(timecards, currentPayroll, emp);
+                var pay = CalculatePayForDailyRatedEmployee(timecards, currentPayroll, emp);
                 regularPay = pay.Item1;
                 regularHours = pay.Item2 * 8;
 
-                var paystub1 = new PayStub
+                if (currentPaystub == null)
                 {
-                    EmploymentId = emp.Id,
-                    RegularHoursWorked = regularHours,                    
-                    PayrollId = currentPayroll.Id,
-                    RegularPay = regularPay,
-                    GrossPay =  regularPay
-                };
+                    var paystub1 = new PayStub
+                    {
+                        EmploymentId = emp.Id,
+                        RegularHoursWorked = regularHours,
+                        PayrollId = currentPayroll.Id,
+                        RegularPay = regularPay,
+                        GrossPay = regularPay,
+                        NetPay = regularPay,
+                    };
 
-                if (previousPayStub != null)
-                {
-                    paystub1.YtdGrossPay = regularPay + previousPayStub.YtdGrossPay;
-                    paystub1.YtdOverTimeHoursWorked = previousPayStub.YtdOverTimeHoursWorked;
-                    paystub1.YtdOverTimePay = previousPayStub.YtdOverTimePay;
-                    paystub1.YtdRegularHoursWorked = regularHours + previousPayStub.YtdRegularHoursWorked;
-                    paystub1.YtdRegularPay = regularPay + previousPayStub.RegularPay;
-                    paystub1.AmountSubjectToAdditionalMedicareTax = previousPayStub.AmountSubjectToAdditionalMedicareTax > 0 ? otPay + regularPay :
-                        Math.Max(regularPay + previousPayStub.YtdGrossPay - additionalWithholdingTaxWageLimit, 0.0);
+                    newPaystubs.Add(paystub1);
                 }
-                payStubs.Add(paystub1);
+                else
+                {
+                    currentPaystub.EmploymentId = emp.Id;
+                    currentPaystub.RegularHoursWorked = regularHours;
+                    currentPaystub.PayrollId = currentPayroll.Id;
+                    currentPaystub.RegularPay = regularPay;
+                    currentPaystub.GrossPay = regularPay;
+                    currentPaystub.NetPay = regularPay;
+                }
 
                 continue;
             }
@@ -454,9 +479,9 @@ public class PayrollService : IPayrollService
             {
                 case PayrollScheduleTypeModel.Monthly:
                     {
-                        if(payRateBasis== (int)PayRateBasisModel.Annually) //(BusinessTypeModel)src.BusinessTypeId"Annually")
+                        if (payRateBasis == (int)PayRateBasisModel.Annually) //(BusinessTypeModel)src.BusinessTypeId"Annually")
                         {
-                            regularPay = payrate/12;
+                            regularPay = payrate / 12;
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Monthly)
@@ -470,10 +495,10 @@ public class PayrollService : IPayrollService
                             regularPay = calculatedPay.Item1;
                             regularHours = calculatedPay.Item2;
                             otPay = calculatedPay.Item3;
-                            otHours = calculatedPay.Item4;                            
+                            otHours = calculatedPay.Item4;
                             break;
                         }
-                        throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Monthly payroll");                       
+                        throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Monthly payroll");
                     }
                 case PayrollScheduleTypeModel.SemiMonthly:
                     {
@@ -484,12 +509,12 @@ public class PayrollService : IPayrollService
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Monthly)
                         {
-                            regularPay = payrate/2;
+                            regularPay = payrate / 2;
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Weekly)
                         {
-                            regularPay = payrate*52 / 24;
+                            regularPay = payrate * 52 / 24;
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Hourly)
@@ -564,48 +589,294 @@ public class PayrollService : IPayrollService
                 default:
                     break;
             }
-            var paystub = new PayStub
-            {
-                EmploymentId = emp.Id,
-                RegularHoursWorked = regularHours,
-                OverTimeHoursWorked = otHours,
-                OverTimePay = otPay,
-                PayrollId = currentPayroll.Id,
-                RegularPay = regularPay,
-                GrossPay = otPay + regularPay                
-            };
 
-            if (previousPayStub != null)
+            if (currentPaystub == null)
             {
-                paystub.YtdGrossPay = otPay + regularPay + previousPayStub.YtdGrossPay;
-                paystub.YtdOverTimeHoursWorked = otHours + previousPayStub.YtdOverTimeHoursWorked;
-                paystub.YtdOverTimePay = otPay + previousPayStub.YtdOverTimePay;
-                paystub.YtdRegularHoursWorked = regularHours + previousPayStub.YtdRegularHoursWorked;
-                paystub.YtdRegularPay = regularPay + previousPayStub.RegularPay;
-                paystub.AmountSubjectToAdditionalMedicareTax = previousPayStub.AmountSubjectToAdditionalMedicareTax > 0 ? otPay + regularPay :
-                    Math.Max(otPay + regularPay + previousPayStub.YtdGrossPay - additionalWithholdingTaxWageLimit, 0.0);
+                var paystub = new PayStub
+                {
+                    EmploymentId = emp.Id,
+                    RegularHoursWorked = regularHours,
+                    OverTimeHoursWorked = otHours,
+                    OverTimePay = otPay,
+                    PayrollId = currentPayroll.Id,
+                    RegularPay = regularPay,
+                    GrossPay = otPay + regularPay,
+                };
+                newPaystubs.Add(paystub);
+            }
+            else
+            {
+                currentPaystub.EmploymentId = emp.Id;
+                currentPaystub.RegularHoursWorked = regularHours;
+                currentPaystub.PayrollId = currentPayroll.Id;
+                currentPaystub.RegularPay = regularPay;
+                currentPaystub.GrossPay = regularPay;
+                currentPaystub.NetPay = regularPay;
+            }
+        }
+
+        return Tuple.Create(payStubs, newPaystubs);
+    }
+
+
+    /// <summary>
+    /// This method is invoked when Payrolls are run. Paystubs will not change after this method call
+    /// </summary>
+    /// <param name="currentPayroll"></param>
+    /// <returns>List of Updated paystubs as Item1, and list of new paystubs as item 2 of a Tuple</returns>
+    /// <exception cref="AppException"></exception>
+    private Tuple<List<PayStub>, List<PayStub>> CompletePayStubsForCurrentPayroll(Payroll currentPayroll)
+    {
+        var previousPayrollId = _context.Payroll.OrderByDescending(e=>e.Id).FirstOrDefault(e => e.Id < currentPayroll.Id)?.Id;
+        var previousPayStubs = _context.PayStub.Where(e => e.PayrollId == previousPayrollId).ToList();
+
+        var currentPayStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id).ToList();
+        var newPayStubs = new List<PayStub>();
+
+        var companyId = currentPayroll.CompanyId;
+        var company= currentPayroll.Company;
+        var currentYear = currentPayroll.ScheduledRunDate.Year;
+
+        var timecards = _context.TimecardUsa.Where(e => e.Job.CompanyId == companyId &&
+        DateOnly.FromDateTime(e.ClockIn) >= currentPayroll.StartDate &&
+        DateOnly.FromDateTime(e.ClockIn) <= currentPayroll.ScheduledRunDate).ToList();
+
+        if (timecards.Any(e => !e.IsApproved))
+            throw new AppException("You have not approved all timecards");
+               
+        var schedule = _context.PayrollSchedule.FirstOrDefault(e => e.CompanyId == companyId && (e.EndDate == null ||
+        e.EndDate < currentPayroll.ScheduledRunDate));
+        
+        var frequency = (PayrollScheduleTypeModel)schedule?.PayrollScheduleTypeId;
+
+        var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId &&
+        (!e.Deactivated || (e.EndDate != null && e.EndDate > currentPayroll.StartDate))).ToList();
+
+        timecards.ForEach(e => e.IsLocked = true);
+        _context.UpdateRange(timecards);
+
+        var additionalWithholdingTaxWageLimit = double.Parse(_context.CountrySpecificFieldValue.FirstOrDefault(e => e.EffectiveYear == currentYear && 
+        e.CountrySpecificField.FieldName== "AdditionalMedicareTaxWithholdingWageLimit")?.FieldValue?? "0.0");
+
+        foreach (var emp in employments)
+        {
+            var payrate = emp.PayRate;
+            var payRateBasis = emp.PayRateBasisId;
+
+            var regularPay = 0.0;
+            var regularHours = 0.0;
+            var otPay = 0.0;
+            var otHours = 0.0;
+            Tuple<double, double, double, double> calculatedPay = null;
+
+            var currentPaystub = currentPayStubs.FirstOrDefault(e => e.EmploymentId == emp.Id);
+            var previousPayStub = previousPayStubs.FirstOrDefault(e => e.EmploymentId == emp.Id);
+
+            if (payRateBasis == (int)PayRateBasisModel.Daily)
+            {
+                var pay = CalculatePayForDailyRatedEmployee(timecards, currentPayroll, emp);
+                regularPay = pay.Item1;
+                regularHours = pay.Item2 * 8;
+
+                if (currentPaystub == null)
+                {
+                    currentPaystub = new PayStub
+                    {
+                        EmploymentId = emp.Id,
+                        RegularHoursWorked = regularHours,
+                        PayrollId = currentPayroll.Id,
+                        RegularPay = regularPay,
+                        GrossPay = regularPay,
+                        NetPay = regularPay,
+                    };
+                    newPayStubs.Add(currentPaystub);
+                }
+                else
+                {
+                    currentPaystub.RegularHoursWorked = regularHours;
+                    currentPaystub.RegularPay = regularPay;
+                    currentPaystub.GrossPay = regularPay;
+                    currentPaystub.NetPay = regularPay;
+                }
+                if (previousPayStub != null)
+                {
+                    currentPaystub.YtdGrossPay = regularPay + previousPayStub.YtdGrossPay;
+                    currentPaystub.YtdOverTimeHoursWorked = previousPayStub.YtdOverTimeHoursWorked;
+                    currentPaystub.YtdOverTimePay = previousPayStub.YtdOverTimePay;
+                    currentPaystub.YtdRegularHoursWorked = regularHours + previousPayStub.YtdRegularHoursWorked;
+                    currentPaystub.YtdRegularPay = regularPay + previousPayStub.RegularPay;
+                    currentPaystub.AmountSubjectToAdditionalMedicareTax = previousPayStub.AmountSubjectToAdditionalMedicareTax > 0 ? otPay + regularPay :
+                        Math.Max(regularPay + previousPayStub.YtdGrossPay - additionalWithholdingTaxWageLimit, 0.0);
+                    currentPaystub.YtdNetPay = regularPay + previousPayStub.YtdNetPay;
+                }
+
+                continue;
             }
 
-            payStubs.Add(paystub);
+            switch (frequency)
+            {
+                case PayrollScheduleTypeModel.Monthly:
+                    {
+                        if (payRateBasis == (int)PayRateBasisModel.Annually) //(BusinessTypeModel)src.BusinessTypeId"Annually")
+                        {
+                            regularPay = payrate / 12;
+                            break;
+                        }
+                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
+                        {
+                            regularPay = payrate;
+                            break;
+                        }
+                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
+                        {
+                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
+                            regularPay = calculatedPay.Item1;
+                            regularHours = calculatedPay.Item2;
+                            otPay = calculatedPay.Item3;
+                            otHours = calculatedPay.Item4;
+                            break;
+                        }
+                        throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Monthly payroll");
+                    }
+                case PayrollScheduleTypeModel.SemiMonthly:
+                    {
+                        if (payRateBasis == (int)PayRateBasisModel.Annually)
+                        {
+                            regularPay = payrate / 24;
+                            break;
+                        }
+                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
+                        {
+                            regularPay = payrate / 2;
+                            break;
+                        }
+                        if (payRateBasis == (int)PayRateBasisModel.Weekly)
+                        {
+                            regularPay = payrate * 52 / 24;
+                            break;
+                        }
+                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
+                        {
+                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
+                            regularPay = calculatedPay.Item1;
+                            regularHours = calculatedPay.Item2;
+                            otPay = calculatedPay.Item3;
+                            otHours = calculatedPay.Item4;
+                            break;
+                        }
+
+                        throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Semi-Monthly payroll");
+                    }
+                case PayrollScheduleTypeModel.Biweekly:
+                    {
+                        if (payRateBasis == (int)PayRateBasisModel.Annually)
+                        {
+                            regularPay = payrate / 26;
+                            break;
+                        }
+                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
+                        {
+                            regularPay = payrate * 12 / 26;
+                            break;
+                        }
+                        if (payRateBasis == (int)PayRateBasisModel.Weekly)
+                        {
+                            regularPay = payrate * 2;
+                            break;
+                        }
+                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
+                        {
+                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
+                            regularPay = calculatedPay.Item1;
+                            regularHours = calculatedPay.Item2;
+                            otPay = calculatedPay.Item3;
+                            otHours = calculatedPay.Item4;
+                            break;
+                        }
+                        throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Bi-Weekly payroll");
+                    }
+                case PayrollScheduleTypeModel.Weekly:
+                    {
+                        if (payRateBasis == (int)PayRateBasisModel.Annually)
+                        {
+                            regularPay = payrate / 52;
+                            break;
+                        }
+                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
+                        {
+                            regularPay = payrate * 12 / 52;
+                            break;
+                        }
+                        if (payRateBasis == (int)PayRateBasisModel.Weekly)
+                        {
+                            regularPay = payrate;
+                            break;
+                        }
+                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
+                        {
+                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
+                            regularPay = calculatedPay.Item1;
+                            regularHours = calculatedPay.Item2;
+                            otPay = calculatedPay.Item3;
+                            otHours = calculatedPay.Item4;
+                            break;
+                        }
+
+                        break;
+                    }
+                default:
+                    break;
+            }
+
+            if (currentPaystub == null)
+            {
+                currentPaystub = new PayStub
+                {
+                    EmploymentId = emp.Id,
+                    RegularHoursWorked = regularHours,
+                    OverTimeHoursWorked = otHours,
+                    OverTimePay = otPay,
+                    PayrollId = currentPayroll.Id,
+                    RegularPay = regularPay,
+                    GrossPay = otPay + regularPay,
+                };
+                newPayStubs.Add(currentPaystub);
+            }
+            else
+            {
+                currentPaystub.RegularHoursWorked = regularHours;
+                currentPaystub.RegularPay = regularPay;
+                currentPaystub.GrossPay = otPay + regularPay;
+                currentPaystub.NetPay = otPay + regularPay;
+                currentPaystub.OverTimePay = otPay;
+                currentPaystub.OverTimeHoursWorked = otHours;
+            }
+            if (previousPayStub != null)
+            {
+                currentPaystub.YtdGrossPay = otPay + regularPay + previousPayStub.YtdGrossPay;
+                currentPaystub.YtdOverTimeHoursWorked = otHours + previousPayStub.YtdOverTimeHoursWorked;
+                currentPaystub.YtdOverTimePay = otPay + previousPayStub.YtdOverTimePay;
+                currentPaystub.YtdRegularHoursWorked = regularHours + previousPayStub.YtdRegularHoursWorked;
+                currentPaystub.YtdRegularPay = regularPay + previousPayStub.RegularPay;
+                currentPaystub.AmountSubjectToAdditionalMedicareTax = previousPayStub.AmountSubjectToAdditionalMedicareTax > 0 ? otPay + regularPay :
+                    Math.Max(otPay + regularPay + previousPayStub.YtdGrossPay - additionalWithholdingTaxWageLimit, 0.0);
+            }
         }
-       
-        
-        return payStubs;
+
+        return Tuple.Create(currentPayStubs, newPayStubs);
     }
 
     private static Tuple<double,double,double,double> CalculatePayForHourlyRatedEmployees(List<TimecardUsa> timecards , Payroll currentPayroll, 
         Employment emp, PayrollScheduleTypeModel frequency)
     {
-        var myTimeCards = timecards.Where(e => e.PersonId == emp.PersonId &&
-                            e.ClockIn > currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue) &&
-                            e.ClockIn < currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MaxValue));
+        var myTimeCards = timecards.Where(e => e.PersonId == emp.PersonId);
 
         var totalHoursWorked = myTimeCards.Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds/60 / 60)).ToList();
 
         var firstWeekHours = myTimeCards.Where(e => e.ClockIn < currentPayroll.StartDate.AddDays(7).ToDateTime(TimeOnly.MinValue))
             .Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60,2)).ToList().Sum();
 
-        var firstWeekOverTime = firstWeekHours - 40;
+        var firstWeekOverTime = Math.Max(firstWeekHours - 40,0);
 
         var secondWeekHours=0.0;
         var secondWeekOverTime = 0.0;
@@ -643,7 +914,7 @@ public class PayrollService : IPayrollService
         var overTimePayAmount = Math.Round(emp.PayRate * 1.5 * overTimeHours,2); //TO DO: get the 1.5 value from CountrySpecificFields table in DB
         return Tuple.Create(regularPay, regularHours, overTimePayAmount,overTimeHours);
     }
-    private static Tuple<double, int> CalculatePayForDailyRatedEmployees(List<TimecardUsa> timecards, 
+    private static Tuple<double, int> CalculatePayForDailyRatedEmployee(List<TimecardUsa> timecards, 
         Payroll currentPayroll, Employment emp)
     {
         var myTimeCards = timecards.Where(e => e.PersonId == emp.PersonId &&
