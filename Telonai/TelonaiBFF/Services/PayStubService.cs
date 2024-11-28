@@ -145,7 +145,6 @@ public class PayStubService : IPayStubService
         else if (schedule == PayrollScheduleTypeModel.SemiMonthly) { _numberOfPaymentsInYear = 24; }
         else if (schedule == PayrollScheduleTypeModel.Biweekly) { _numberOfPaymentsInYear = 26; }
 
-
         var payStubs = _context.PayStub.Include(e => e.OtherMoneyReceived).Include(e => e.Employment).ThenInclude(e => e.Person)
                 .ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
                 .Where(e => e.PayrollId == payrollId) ?? throw new AppException("Pay stubs not found");
@@ -157,6 +156,7 @@ public class PayStubService : IPayStubService
             var additionalMoneyReceivedIds = payStub.OtherMoneyReceived.AdditionalOtherMoneyReceivedId;
             var additionalMoneyReceived = _context.AdditionalOtherMoneyReceived.Where(e => additionalMoneyReceivedIds.Contains(e.Id)).ToList();
             var paymentExemptFromFutaTax = additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0);
+            payStub.NetPay = payStub.GrossPay;
 
             if (!payStub.Employment.IsTenNinetyNine)
             {
@@ -176,7 +176,7 @@ public class PayStubService : IPayStubService
             await _context.SaveChangesAsync();
         }
 
-        payroll.EmployeesOwed = payStubs.Select(e => e.NetPay).Sum();
+        payroll.EmployeesOwed = payStubs.Sum(e => e.NetPay);
         payroll.StatesOwed = _newIncomeTaxesToHold.Where(e => e.IncomeTaxType.StateId != null).Select(e => e.Amount).Sum();
         payroll.FederalOwed = _newIncomeTaxesToHold.Where(e => e.IncomeTaxType.StateId == null).Select(e => e.Amount).Sum();
     }
@@ -251,10 +251,11 @@ public class PayStubService : IPayStubService
         return dto;
     }
 
-    private async Task CalculateFederalWitholdingsAsync(PayStub stub, List<AdditionalOtherMoneyReceived> additionalMoney)
+    private async Task<PayStub> CalculateFederalWitholdingsAsync(PayStub stub, List<AdditionalOtherMoneyReceived> additionalMoney)
     {
         try
         {
+            //First let's get tax rates and withholding forms
             var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
 
             var previousIncomeTaxes = _context.IncomeTax.OrderByDescending(e => e.CreatedDate).Where(
@@ -285,6 +286,8 @@ public class PayStubService : IPayStubService
             var employerFederalRates = incomeTaxRates.Where(e => !e.IncomeTaxType.ForEmployee &&
             e.EffectiveYear == _currentYear && e.IncomeTaxType.StateId == null).ToList();
 
+            //************************Lets calculate taxes for employees now*******************//
+
             //Calculate Federal Tax to withhold
             var hasMultipleJobs = !string.IsNullOrWhiteSpace(w4TwoC);
             var annualAmount = stub.GrossPay * _numberOfPaymentsInYear + double.Parse(w4FourA);
@@ -304,6 +307,7 @@ public class PayStubService : IPayStubService
             tentativeWithholdingAmt = Math.Max(tentativeWithholdingAmt - credits, 0);
 
             var finalWithholdingAmount = tentativeWithholdingAmt + double.Parse(w4FourC);
+            stub.NetPay = stub.NetPay - finalWithholdingAmount;
             _newIncomeTaxesToHold.Add(
                 new IncomeTax
                 {
@@ -328,6 +332,7 @@ public class PayStubService : IPayStubService
                 if (item.IncomeTaxType.Name == "Additional Medicare")
                 {
                     var addlAmount = stub.AmountSubjectToAdditionalMedicareTax * item.Rate;
+                    stub.NetPay = stub.NetPay - addlAmount;
 
                     _newIncomeTaxesToHold.Add(
                         new IncomeTax
@@ -341,6 +346,8 @@ public class PayStubService : IPayStubService
                 }
 
                 var amount = stub.GrossPay * item.Rate;
+                stub.NetPay = stub.NetPay - amount;
+
                 _newIncomeTaxesToHold.Add(
                     new IncomeTax
                     {
@@ -352,11 +359,14 @@ public class PayStubService : IPayStubService
                 );
             }
 
+
+            //************************Lets calculate taxes for employer now*******************//
+
             var employerRates = employerFederalRates.Where(e => e.Minimum < Math.Round(stub.GrossPay) && e.Maximum < Math.Round(stub.GrossPay));
             var paymentExemptFromFuta = additionalMoney.Where(e => e.ExemptFromFutaTaxTypeId > 0).Sum(e => e.Amount);
-            var paymentExemptFromSocialAndMedi = additionalMoney.Where(e => 
-            e.ExemptFromFutaTaxTypeId== (int)ExemptFromFutaTaxTypeModel.DependentCare || 
-            e.ExemptFromFutaTaxTypeId== (int)ExemptFromFutaTaxTypeModel.GroupTermLifeInsurance ||
+            var paymentExemptFromSocialAndMedi = additionalMoney.Where(e =>
+            e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.DependentCare ||
+            e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.GroupTermLifeInsurance ||
             e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.RetirementOrPension).Sum(e => e.Amount);
 
             foreach (var item in employerRates)
@@ -396,8 +406,8 @@ public class PayStubService : IPayStubService
                     default:
                         break;
                 }
-
-                            var amount = stub.GrossPay * item.Rate;
+                               
+                var amount = stub.GrossPay * item.Rate;
                 _newIncomeTaxesToHold.Add(
                     new IncomeTax
                     {
@@ -408,6 +418,7 @@ public class PayStubService : IPayStubService
                     }
                 );
             }
+            return stub;
         }
         catch (Exception ex)
         {
@@ -415,7 +426,7 @@ public class PayStubService : IPayStubService
         }
     }
 
-    private async Task CalculateStateWitholdingAsync(PayStub stub, List<AdditionalOtherMoneyReceived> additionalMoney)
+    private async Task<PayStub> CalculateStateWitholdingAsync(PayStub stub, List<AdditionalOtherMoneyReceived> additionalMoney)
     {
         var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
         var withHolingForms = _context.EmployeeWithholding.Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year);
@@ -449,6 +460,9 @@ public class PayStubService : IPayStubService
             var netAnnualWage = annualWage - deduction;
             var netAnnualTax = netAnnualWage * item.Rate;
             var netCurrentTax = netAnnualTax / _numberOfPaymentsInYear;
+
+            stub.NetPay= stub.NetPay - netCurrentTax;
+
             _newIncomeTaxesToHold.Add(
                    new IncomeTax
                    {
@@ -483,6 +497,7 @@ public class PayStubService : IPayStubService
                 continue;
             }
         }
+        return stub;
     }
 }
 
