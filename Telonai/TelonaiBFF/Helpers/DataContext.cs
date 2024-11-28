@@ -166,5 +166,7 @@ public class DataContext : DbContext
     public DbSet<AdditionalOtherMoneyReceived> AdditionalOtherMoneyReceived { get; set; }
     public DbSet<DocumentType> DocumentType { get; set; }
     public DbSet<EmployerSubscription> EmployerSubscription { get; set; }
+    public DbSet<AgentField> AgentField { get; set; }
+    public DbSet<AgentFieldValue> AgentFieldValue { get; set; }
 
 }

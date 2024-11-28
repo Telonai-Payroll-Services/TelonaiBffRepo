@@ -354,6 +354,17 @@ public class AutoMapperProfile : Profile
         CreateMap<EmployerSubscription, EmployerSubscriptionModel>()
                .ForMember(dest => dest.SubscriptionType, opt => opt.MapFrom(src => (SubscriptionTypeModel)src.SubscriptionTypeId))
                .ForMember(dest => dest.BankAccountType, opt => opt.MapFrom(src => (BankAccountTypeModel)src.BankAccountTypeId));
+        CreateMap<AgentField, AgentFieldModel>();
+
+        CreateMap<AgentFieldModel, AgentField>()
+             .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+        CreateMap<AgentFieldValue, AgentFieldValueModel>();
+
+        CreateMap<AgentFieldValueModel, AgentFieldValue>()
+             .ForMember(dest => dest.Person, opt => opt.Ignore())
+             .ForMember(dest => dest.AgentField, opt => opt.Ignore())
+             .ForMember(dest => dest.Id, opt => opt.Ignore());
 
     }
 }
