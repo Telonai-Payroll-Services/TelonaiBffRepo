@@ -37,7 +37,7 @@ public class EmploymentController : ControllerBase
         return Ok(employees);
     }
 
-    [HttpPost("companies/{companyid}/completeadding")]
+    [HttpPost("companies/{companyId}/completeadding")]
     public IActionResult InviteEmployee(int companyId)
     {
         _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
