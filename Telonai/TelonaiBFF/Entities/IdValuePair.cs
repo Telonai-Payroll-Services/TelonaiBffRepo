@@ -26,3 +26,4 @@ public class CheckedBoxSixteenType : IdValuePair { }
 public class QuarterType : IdValuePair { }
 public class ExemptFromFutaTaxType : IdValuePair { }
 
+public class BankAccountType : IdValuePair { }

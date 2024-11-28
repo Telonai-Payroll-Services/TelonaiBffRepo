@@ -26,6 +26,7 @@ namespace TelonaiWebApi.UnitTest.Controllers
         private readonly Mock<IScopedAuthorization> _mockScopedAuthorization;
         private readonly Mock<HttpContext> _mockHttpContext;
         private readonly Mock<HttpRequest> _mockHttpRequest;
+        private readonly Mock<CompanyContactService> _mockCompanyContactService;
 
         public CompaniesControllerTests()
         {
@@ -38,7 +39,9 @@ namespace TelonaiWebApi.UnitTest.Controllers
             _mockScopedAuthorization = new Mock<IScopedAuthorization>();
             _mockHttpContext = new Mock<HttpContext>();
             _mockHttpRequest = new Mock<HttpRequest>();
-            _controller = new CompaniesController(_mockCompanyService.Object, _mockUserService.Object, _mockPersonService.Object, _mockInvitationService.Object, _mockEmploymentService.Object, _mockJobService.Object, _mockScopedAuthorization.Object)
+            _mockCompanyContactService = new Mock<CompanyContactService>();
+            _controller = new CompaniesController(_mockCompanyService.Object, _mockUserService.Object, _mockPersonService.Object, _mockInvitationService.Object, 
+                _mockEmploymentService.Object, _mockJobService.Object, _mockScopedAuthorization.Object,_mockCompanyContactService.Object)
             {
                 ControllerContext = new ControllerContext
                 {

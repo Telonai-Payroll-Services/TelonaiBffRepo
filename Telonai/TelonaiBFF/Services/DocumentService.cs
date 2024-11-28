@@ -19,14 +19,15 @@ public interface IDocumentService
     Task<DocumentModel> GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType);
     Task<DocumentModel> GetDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType);
     Task<Tuple<Stream, string>> GetOwnDocumentByDocumentTypeAsync(DocumentTypeModel documentType);
+    Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployerAsync(DocumentTypeModel documentType);
+    Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployeeAsync(DocumentTypeModel documentType);
     Task<Tuple<Stream, string>> GetDocumentByDocumentTypeAsync(DocumentTypeModel documentType);
-
     Task<Tuple<Stream, string>> GetOwnDocumentByDocumentIdAsync(Guid documentId);
     Task<Tuple<Stream, string>> GetDocumentByDocumentIdAsync(Guid documentId);
     Task<DocumentModel> GetOwnDocumentDetailsByDocumentIdAsync(Guid documentId);
     Task<DocumentModel> GetDocumentDetailsByDocumentIdAsync(Guid documentId);
     Task<Document> GetDocument(Guid id);
-    Task UploadInternalDocumentAsync(DocumentTypeModel documentType);
+    Task<bool> UploadSignedDocumentAsync(DocumentTypeModel documentType, string email, int employeeId, Stream file);
     Task CreateAsync(DocumentModel model, Stream file);
     Task AddGovernmentDocumentAsync(Stream file, DocumentTypeModel documentType);
     Task Update(Guid id, DocumentModel model);
@@ -39,7 +40,7 @@ public interface IDocumentService
     Task<Guid> Confirm(Guid id);
     Task<W4PdfResult> GenerateNC4pdf(int employmentId, NC4Form model);
     Task<byte[]> SignNC4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
-    Dictionary<string,string> GetDocumentTypes(string email);
+    Dictionary<string, string> GetDocumentTypes(string email);
 }
 
 public class DocumentService : IDocumentService
@@ -53,8 +54,8 @@ public class DocumentService : IDocumentService
     private readonly IScopedAuthorization _scopedAuthorization;
     private readonly IInvitationService<InvitationModel, Invitation> _invitationService;
 
-    public DocumentService(DataContext context, IMapper mapper, IDocumentManager documentManager, 
-                           IHttpContextAccessor httpContextAccessor, IPersonService<PersonModel, Person> personService, 
+    public DocumentService(DataContext context, IMapper mapper, IDocumentManager documentManager,
+                           IHttpContextAccessor httpContextAccessor, IPersonService<PersonModel, Person> personService,
                            IScopedAuthorization scopedAuthorization, IInvitationService<InvitationModel, Invitation> invitationService)
     {
         _context = context;
@@ -65,11 +66,11 @@ public class DocumentService : IDocumentService
         _scopedAuthorization = scopedAuthorization;
         _invitationService = invitationService;
     }
-    public  async Task<DocumentModel> GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType)
+    public async Task<DocumentModel> GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType)
     {
         var person = await _personService.GetCurrentUserAsync(); ;
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, _person.CompanyId);
-        var dto =  _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => e.PersonId == person.Id && e.DocumentTypeId == (int)documentType);
+        var dto = _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => e.PersonId == person.Id && e.DocumentTypeId == (int)documentType);
 
         if (dto == null)
             return null;
@@ -81,10 +82,10 @@ public class DocumentService : IDocumentService
 
     public async Task<Tuple<Stream, string>> GetOwnDocumentByDocumentTypeAsync(DocumentTypeModel documentType)
     {
-        var person = await _personService.GetCurrentUserAsync(); 
+        var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
-        var dto =  _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => e.PersonId == person.Id
+        var dto = _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefault(e => e.PersonId == person.Id
         && e.DocumentTypeId == (int)documentType);
 
         if (dto == null)
@@ -92,12 +93,12 @@ public class DocumentService : IDocumentService
 
         var document = await _documentManager.GetDocumentByTypeAndIdAsync(documentType.ToString(), dto.Id.ToString());
 
-        return Tuple.Create(document,dto.FileName);
+        return Tuple.Create(document, dto.FileName);
     }
 
     public async Task<Tuple<Stream, string>> GetOwnDocumentByDocumentIdAsync(Guid documentId)
     {
-        var person = await _personService.GetCurrentUserAsync(); 
+        var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
         var dto = await _context.Document.FindAsync(documentId);
@@ -112,11 +113,11 @@ public class DocumentService : IDocumentService
 
     public async Task<DocumentModel> GetOwnDocumentDetailsByDocumentIdAsync(Guid documentId)
     {
-        var person = await _personService.GetCurrentUserAsync(); 
+        var person = await _personService.GetCurrentUserAsync();
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
 
         var dto = await _context.Document.FindAsync(documentId);
-        if (dto == null || dto.PersonId!=person.Id)
+        if (dto == null || dto.PersonId != person.Id)
             return null;
 
         var result = _mapper.Map<DocumentModel>(dto);
@@ -164,6 +165,35 @@ public class DocumentService : IDocumentService
 
         return result;
     }
+    public async Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployerAsync(DocumentTypeModel documentType)
+    {
+        var person = await _personService.GetCurrentUserAsync();
+        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, person.CompanyId);
+
+        var dto = await _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefaultAsync(e => e.DocumentTypeId == (int)documentType);
+        if (dto == null)
+            return null;
+
+        var document = await _documentManager.GetDocumentByTypeAndIdAsync(documentType.ToString(), dto.Id.ToString());
+
+        return Tuple.Create(document, dto.FileName);
+    }
+
+
+    public async Task<Tuple<Stream, string>> GetDocumentByDocumentTypeEmployeeAsync(DocumentTypeModel documentType)
+    {
+        var person = await _personService.GetCurrentUserAsync();
+            _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
+
+        var dto = await _context.Document.OrderByDescending(e => e.CreatedDate).FirstOrDefaultAsync(e => e.DocumentTypeId == (int)documentType);
+        if (dto == null)
+            return null;
+
+        var document = await _documentManager.GetDocumentByTypeAndIdAsync(documentType.ToString(), dto.Id.ToString());
+
+        return Tuple.Create(document, dto.FileName);
+    }
+
     public async Task<Tuple<Stream, string>> GetDocumentByDocumentTypeAsync(DocumentTypeModel documentType)
     {
         var person = await _personService.GetCurrentUserAsync();
@@ -182,12 +212,12 @@ public class DocumentService : IDocumentService
     {
         var person = _context.Person.Find(model.PersonId) ?? throw new InvalidDataException("PersonId Missing");
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, person.CompanyId);
-                
+
         var dto = _mapper.Map<Document>(model);
-        dto.Id=Guid.NewGuid();
+        dto.Id = Guid.NewGuid();
 
         await _context.Document.AddAsync(dto);
-        await _documentManager.UploadDocumentAsync(dto.Id,file,model.DocumentType);
+        await _documentManager.UploadDocumentAsync(dto.Id, file, model.DocumentType);
         await _context.SaveChangesAsync();
     }
 
@@ -213,7 +243,7 @@ public class DocumentService : IDocumentService
     public async Task Update(Guid id, DocumentModel model)
     {
         var document = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
-        var updatedDocument =  _mapper.Map<Document>(model);
+        var updatedDocument = _mapper.Map<Document>(model);
         if ((int)updatedDocument.DocumentTypeId != document.DocumentTypeId)
         {
             document.DocumentTypeId = (int)updatedDocument.DocumentTypeId;
@@ -245,28 +275,61 @@ public class DocumentService : IDocumentService
         return dto;
     }
 
-    public async Task UploadInternalDocumentAsync(DocumentTypeModel documentType)
+    public async Task<bool> UploadSignedDocumentAsync(DocumentTypeModel documentType, string email, int employeeId, Stream stream)
     {
-        string fileName;
+        var person = _context.Person.First(e => e.Email == email && !e.Deactivated);
+        var employment = _context.Employment.FirstOrDefault(e => e.PersonId == person.Id);
+
+        //Check logged-in user is an admin
+        if (employment == null || !employment.IsPayrollAdmin) return false;
+
+        //Check logged in user and employeeId belong to the same company
+        var employee = _context.Person.First(e => e.Id == employeeId && !e.Deactivated);
+        if (employee == null || employee.CompanyId != person.CompanyId)
+        {
+            return false;
+        }
+
+        var dto = new Entities.Document
+        {
+            Id = Guid.NewGuid(),
+            DocumentTypeId = (int)documentType,
+            FileName = documentType.ToString()
+        };
+
+        _context.Document.Add(dto);
+        await _context.SaveChangesAsync();
+        await _documentManager.UploadDocumentAsync(dto.Id, stream, documentType);
+                
+        await UpdateEmployeeStatusAsync(employee, documentType);
+        return true;
+    }
+
+    private async Task UpdateEmployeeStatusAsync(Person person, DocumentTypeModel documentType)
+    {
         switch (documentType)
         {
-            case DocumentTypeModel.WFourUnsigned:
-                fileName = "Resources/w4.pdf";
-                break;
-            case DocumentTypeModel.NCFourUnsigned:
-                fileName = "Resources/nc4.pdf";
-                break;
-            case DocumentTypeModel.INineUnsigned:
-                fileName = "Resources/i-9.pdf";
-                break;
-            default: throw new KeyNotFoundException();
+            case DocumentTypeModel.WFour:
+                {
+                    person.WfourWithholdingDocumentStatusId = (int)WFourWithholdingDocumentStatusModel.Submitted;
+                    break;
+                }
+            case DocumentTypeModel.NCFour:
+                {
+                    person.StateWithholdingDocumentStatusId = (int)StateWithholdingDocumentStatusModel.Submitted;
+                    break;
+                }
+            case DocumentTypeModel.INine:
+                {
+                    person.INineVerificationStatusId = (int)INineVerificationStatusModel.INineSectionTwoSubmitted;
+                    break;
+                }
         }
-        if (File.Exists(fileName))
-        {
-            using Stream stream = new MemoryStream(System.IO.File.ReadAllBytes(fileName));
-            await AddGovernmentDocumentAsync(stream, documentType);
-        }
+
+        _context.Person.Update(person);
+        await _context.SaveChangesAsync();
     }
+
     private void ReadPdfDocument(string fileName)
     {
         StringBuilder text = new();
@@ -285,26 +348,26 @@ public class DocumentService : IDocumentService
             }
             pdfReader.Close();
         }
-        var result= text.ToString();
+        var result = text.ToString();
     }
-    public async Task<Tuple<Stream, string,DateOnly>> GetDocumentByDocumentTypeAndIdAsync(DocumentTypeModel documentType,Guid id)
+    public async Task<Tuple<Stream, string, DateOnly>> GetDocumentByDocumentTypeAndIdAsync(DocumentTypeModel documentType, Guid id)
     {
 
         var dto = await _context.Document.FindAsync(id);
         if (dto == null)
-            return null;      
+            return null;
 
         var document = await _documentManager.GetDocumentByTypeAndIdAsync(documentType.ToString(), dto.Id.ToString());
 
-        return Tuple.Create(document, dto.FileName,dto.EffectiveDate);
+        return Tuple.Create(document, dto.FileName, dto.EffectiveDate);
     }
-    private async Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[] file, DocumentTypeModel documentType) 
+    private async Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[] file, DocumentTypeModel documentType)
     {
 
         var fileBytes = file;
         var documentModel = new DocumentModel
         {
-            FileName = _person.FirstName+ _person.MiddleName+ _person.LastName+fileName,
+            FileName = _person.FirstName + _person.MiddleName + _person.LastName + fileName,
             DocumentType = documentType,
             PersonId = _person.Id
         };
@@ -315,20 +378,20 @@ public class DocumentService : IDocumentService
         await _context.Document.AddAsync(dto);
         await _documentManager.UploadDocumentAsync(dto.Id, stream, documentModel.DocumentType);
         await _context.SaveChangesAsync();
-    
+
         return dto.Id;
     }
-    private async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream,string filingStatus,Employment employee,bool formFlattening)
+    private async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream, string filingStatus, Employment employee, bool formFlattening)
     {
-        var firstName = _person?.FirstName ;
-        var middeName= _person?.LastName ;
+        var firstName = _person?.FirstName;
+        var middeName = _person?.LastName;
         var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
-        var lastName= _person?.LastName ;
+        var lastName = _person?.LastName;
         var ssn = _person?.Ssn;
-        var address= _person?.AddressLine1;
+        var address = _person?.AddressLine1;
         var zipCode = _person?.Zipcode?.Code;
-        var cityOrTown = _person?.Zipcode?.City?.Name ;
-        var state=_person?.Zipcode?.City?.State.Name ;
+        var cityOrTown = _person?.Zipcode?.City?.Name;
+        var state = _person?.Zipcode?.City?.State.Name;
         var company = _context.Company.FirstOrDefault(e => e.Id == employee.Person.CompanyId);
 
         using (var workStream = new MemoryStream())
@@ -346,7 +409,7 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.Step1b_SocialSecurityNumber, ssn);
 
                 formFields.SetField(filingStatus, "On");
-               
+
                 var multipleJobsOrSpouseWorks = model.MultipleJobs || model.SpouseWorks;
 
                 formFields.SetField(PdfFields.Step2_MultipleJobsOrSpouseWorks, multipleJobsOrSpouseWorks ? "On" : "");
@@ -360,8 +423,8 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.Step4b_Deductions, model.Deductions.ToString());
                 formFields.SetField(PdfFields.Step4c_ExtraWithholding, model.ExtraWithholding.ToString());
 
-                formFields.SetField(PdfFields.EmployerNameAndAddress, company.Name+""+company.Zipcode+""+ company.AddressLine1);
-                formFields.SetField(PdfFields.EmployerFirstDateOfEmployement, employee.CreatedDate.ToShortDateString());              
+                formFields.SetField(PdfFields.EmployerNameAndAddress, company.Name + "" + company.Zipcode + "" + company.AddressLine1);
+                formFields.SetField(PdfFields.EmployerFirstDateOfEmployement, employee.CreatedDate.ToShortDateString());
                 formFields.SetField(PdfFields.EmployerIdentificationNumber, company.TaxId);
                 pdfStamper.FormFlattening = formFlattening;
                 pdfStamper.Close();
@@ -403,7 +466,7 @@ public class DocumentService : IDocumentService
             return null;
         }
 
-        return Tuple.Create(selectedFilingStatus,selectedField);
+        return Tuple.Create(selectedFilingStatus, selectedField);
     }
     private async Task CreateEmployeeWithholdingAsync(EmployeeWithholdingModel employee)
     {
@@ -448,10 +511,10 @@ public class DocumentService : IDocumentService
 
     public DateTime GetInvitationDateForEmployee(int id)
     {
-       var person= _personService.GetById(id);
-       var invitation = _invitationService.GetByInviteeEmail(person.Email).FirstOrDefault();
-       var effectiveDate = invitation.CreatedDate;
-       return effectiveDate;
+        var person = _personService.GetById(id);
+        var invitation = _invitationService.GetByInviteeEmail(person.Email).FirstOrDefault();
+        var effectiveDate = invitation.CreatedDate;
+        return effectiveDate;
 
     }
     public async Task<byte[]> SignW4DoumentAsync(Guid id, int employmentId, SignatureModel signature)
@@ -459,13 +522,13 @@ public class DocumentService : IDocumentService
         var emp = _context.Employment.Include(e => e.Person).FirstOrDefault(e => e.Id == employmentId);
         _scopedAuthorization.ValidateByJobId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, emp.JobId);
         _person = emp.Person;
-        var documentType = DocumentTypeModel.WFourUnsigned;      
+        var documentType = DocumentTypeModel.WFourUnsigned;
         var document = await GetDocumentByDocumentTypeAndIdAsync(documentType, id);
         if (document == null)
         {
             throw new KeyNotFoundException();
         };
-       
+
         var font = await GetDocumentByDocumentTypeAndIdAsync(documentType, CursiveFont.Id);
 
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -477,28 +540,28 @@ public class DocumentService : IDocumentService
             using (PdfStamper pdfStamper = new PdfStamper(pdfReader, workStream))
             {
                 AcroFields formFields = pdfStamper.AcroFields;
-              
+
                 formFields.SetField(PdfFields.Date, DateTime.Now.ToShortDateString());
 
-                    using (var memoryStream = new MemoryStream())
+                using (var memoryStream = new MemoryStream())
                 {
-                    font.Item1.CopyTo(memoryStream); 
-                    memoryStream.Position = 0; 
-                    
+                    font.Item1.CopyTo(memoryStream);
+                    memoryStream.Position = 0;
+
                     BaseFont cursiveFont = BaseFont.CreateFont("Pacifico-Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, true, memoryStream.ToArray(), null);
                     var fieldPositions = formFields.GetFieldPositions(PdfFields.Signature);
-                    if (fieldPositions != null && fieldPositions.Count > 0) 
-                    { 
-                        var position = fieldPositions[0].position; 
-                        int pageNumber = fieldPositions[0].page; 
+                    if (fieldPositions != null && fieldPositions.Count > 0)
+                    {
+                        var position = fieldPositions[0].position;
+                        int pageNumber = fieldPositions[0].page;
                         PdfContentByte cb = pdfStamper.GetOverContent(pageNumber);
-                       
+
                         cb.BeginText();
                         cb.SetFontAndSize(cursiveFont, 12);
-                   
+
                         cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, signature.Signature, position.Left, position.Bottom, 0);
-                        cb.EndText(); 
-                    } 
+                        cb.EndText();
+                    }
                 }
                 pdfStamper.FormFlattening = true;
                 pdfStamper.Close();
@@ -518,13 +581,13 @@ public class DocumentService : IDocumentService
     }
     public async Task<W4PdfResult> GenerateW4pdf(int empId, W4Form model)
     {
-        var emp = _context.Employment.Include(e=>e.Person).FirstOrDefault(e=>e.Id==empId);
-       
+        var emp = _context.Employment.Include(e => e.Person).FirstOrDefault(e => e.Id == empId);
+
         _scopedAuthorization.ValidateByJobId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, emp.JobId);
 
         _person = emp.Person;
         var documentTypeId = (int)DocumentTypeModel.WFourUnsigned;
-        var document = _context.Document.FirstOrDefault(e => e.DocumentTypeId == documentTypeId && !e.IsDeleted && e.FileName== DocumentTypeModel.WFourUnsigned.GetDisplayName());             
+        var document = _context.Document.FirstOrDefault(e => e.DocumentTypeId == documentTypeId && !e.IsDeleted && e.FileName == DocumentTypeModel.WFourUnsigned.GetDisplayName());
 
         if (document == null)
         {
@@ -537,13 +600,13 @@ public class DocumentService : IDocumentService
             throw new InvalidOperationException("No filing status selected or more than one status selected.");
         }
 
-         var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.WFourUnsigned.ToString(),
-             document.Id.ToString());
-        
-        var fileBytes = await SetPdfFormFilds(model, documentResult, filingStatus.Item1, emp,false);
+        var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.WFourUnsigned.ToString(),
+            document.Id.ToString());
+
+        var fileBytes = await SetPdfFormFilds(model, documentResult, filingStatus.Item1, emp, false);
         var documentForDisplay = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.WFourUnsigned.ToString(),
             document.Id.ToString());
-        var fileForDisplay = await SetPdfFormFilds(model, documentForDisplay, filingStatus.Item1, emp,true);
+        var fileForDisplay = await SetPdfFormFilds(model, documentForDisplay, filingStatus.Item1, emp, true);
         var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes, DocumentTypeModel.WFourUnsigned);
         var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
 
@@ -571,7 +634,7 @@ public class DocumentService : IDocumentService
         {
             FileName = _person.FirstName + _person.MiddleName + _person.LastName + documentType.GetDisplayName(),
             DocumentType = documentType,
-            PersonId =  _person.Id
+            PersonId = _person.Id
         };
         using Stream stream = new MemoryStream(file);
 
@@ -594,14 +657,14 @@ public class DocumentService : IDocumentService
     }
     private EmployeeWithholdingModel CreateEmployeeWithholdingModel(Guid documentId, int fieldId, string fieldValue, DocumentModel documentModel)
     {
-        var employeeAtCompany = _context.Employment.FirstOrDefault(e => e.PersonId == _person.Id && e.Job.CompanyId==_person.CompanyId);
+        var employeeAtCompany = _context.Employment.FirstOrDefault(e => e.PersonId == _person.Id && e.Job.CompanyId == _person.CompanyId);
         var effectiveDate = GetInvitationDateForEmployee(employeeAtCompany.PersonId);
         var employeeWithholdingModel = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_person, documentId, fieldId, fieldValue, documentModel, employeeAtCompany.Id, effectiveDate);
         return employeeWithholdingModel;
 
     }
 
-    private async Task<List<EmployeeWithholdingModel>> CreatemployeeWithholdingModels( Guid documentId,string filingStatus, W4Form model, DocumentModel documentModel)
+    private async Task<List<EmployeeWithholdingModel>> CreatemployeeWithholdingModels(Guid documentId, string filingStatus, W4Form model, DocumentModel documentModel)
     {
         var multipleJobsOrSpouseWorks = model.MultipleJobs || model.SpouseWorks;
         var totalClaimedAmount = model.NumberOfChildrenUnder17 * 2000 + model.OtherDependents * 500;
@@ -626,18 +689,18 @@ public class DocumentService : IDocumentService
 
     private async Task<DocumentModel> CreateDocumentModel(Guid documentId, string filename, DateOnly effectiveDate)
     {
-        var documentModel=EmployeeWithholdingHelper.CreateDocumentModel(documentId, filename, _person.Id, effectiveDate);
+        var documentModel = EmployeeWithholdingHelper.CreateDocumentModel(documentId, filename, _person.Id, effectiveDate);
         return documentModel;
     }
     public async Task<Guid> Confirm(Guid id)
-    {   
+    {
         var document = await GetDocument(id) ?? throw new KeyNotFoundException("Document not found");
         document.IsConfirmed = true;
         _context.Document.Update(document);
         await _context.SaveChangesAsync();
         return document.Id;
     }
-   
+
     public async Task<W4PdfResult> GenerateNC4pdf(int empId, NC4Form model)
     {
         var emp = _context.Employment.Include(e => e.Person).FirstOrDefault(e => e.Id == empId);
@@ -662,40 +725,41 @@ public class DocumentService : IDocumentService
         var documentResult = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.NCFourUnsigned.ToString(),
             document.Id.ToString());
 
-        var fileBytes = await SetNC4PdfFormFilds(model, documentResult, filingStatus.Item1, emp,false);
+        var fileBytes = await SetNC4PdfFormFilds(model, documentResult, filingStatus.Item2, emp, false);
 
         var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes, DocumentTypeModel.NCFourUnsigned);
         var documentForDisplay = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.NCFourUnsigned.ToString(),
             document.Id.ToString());
-        var fileForDisplay = await SetNC4PdfFormFilds(model, documentForDisplay, filingStatus.Item1, emp,true);
+        var fileForDisplay = await SetNC4PdfFormFilds(model, documentForDisplay, filingStatus.Item2, emp, true);
         var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
 
         string prefix = "Step1c_FilingStatus_";
         string result = filingStatus.Item2.Substring(prefix.Length);
         var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(doumentId, 1, result, doumentModel);
-        await CreateEmployeeWithholdingAsync(employeeWithHodingModel1C);   
+        await CreateEmployeeWithholdingAsync(employeeWithHodingModel1C);
 
-        emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserStartedSubmittingWFour;
+        emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserStartedSubmittingStateFour;
         _context.Employment.Update(emp);
         await _context.SaveChangesAsync();
-        
+
 
         return new W4PdfResult { FileBytes = fileForDisplay, DocumentId = doumentId };
 
     }
-    private async Task<byte[]> SetNC4PdfFormFilds(NC4Form model, Stream documentStream, string filingStatus, Employment employee,bool formFlattening)
+    private async Task<byte[]> SetNC4PdfFormFilds(NC4Form model, Stream documentStream, string filingStatus, Employment employee, bool formFlattening)
     {
+        var personAddress = _context.Person.Include(z => z.Zipcode).Include(c => c.Zipcode.City).Include(c => c.Zipcode.City.State).FirstOrDefault(c => c.Id == _person.Id);
         var firstName = _person?.FirstName;
         var middeName = _person?.LastName;
         var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
         var lastName = _person?.LastName;
         var ssn = _person?.Ssn;
         var address = _person?.AddressLine1;
-        var zipCode = _person?.Zipcode?.Code;
-        var city = _person?.Zipcode?.City?.Name;
-        var state = _person?.Zipcode?.City?.State.Name;
-        var country = _person?.Zipcode?.City?.State?.Country.Name;
-
+        var zipCode = personAddress?.Zipcode?.Code;
+        var city = personAddress?.Zipcode?.City?.Name;
+        var state = personAddress?.Zipcode?.City?.State?.Name;
+        var country = personAddress?.Zipcode?.City?.State?.Country?.Name;
+                    
         //TODO AddCounty
         //var county       
         string firstPart = ssn.Substring(0, 3);
@@ -708,40 +772,46 @@ public class DocumentService : IDocumentService
             using (PdfReader pdfReader = new PdfReader(documentStream))
             using (PdfStamper pdfStamper = new PdfStamper(pdfReader, workStream))
             {
-                AcroFields formFields = pdfStamper.AcroFields;
+                
+                AcroFields formFields = pdfStamper.AcroFields;                               
 
-                
-                
+                switch (filingStatus)
+                {
+                    case "Step1c_FilingStatus_SingleOrMarriedFilingSeparately":
+                        formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus2, "Choice1");
+                        break;
+                    case "Step1c_FilingStatus_MarriedFilingJointly":
+                        formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus2, "Choice2");
+                        break;
+                    case "Step1c_FilingStatus_HeadOfHousehold":
+                        formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus2, "Choice3");
+                        break;
+                    default:
+                        throw new InvalidOperationException("Unknown filing status.");
+                }
+
                 formFields.SetField(NC4PdfFields.NumberOfAllowance, model.NumberOfAllowance.ToString());
                 formFields.SetField(NC4PdfFields.AdditionalAmt, model.AdditionalAmt.ToString());
-
                 formFields.SetField(NC4PdfFields.SocialSecurity1stPart, firstPart);
                 formFields.SetField(NC4PdfFields.LastName, lastName);
-                formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus1, "On");
                 formFields.SetField(NC4PdfFields.FirstName, firstName.ToUpper());
-                formFields.SetField(NC4PdfFields.FilingStatus_undefined_4, "On");
-                formFields.SetField(NC4PdfFields.FilingStatus_undefined_5, "On");
                 formFields.SetField(NC4PdfFields.MI, middeNameInitial);
                 formFields.SetField(NC4PdfFields.Address, address.ToUpper());
                 formFields.SetField(NC4PdfFields.ZipCode, $"{zipCode}");
                 formFields.SetField(NC4PdfFields.Country, $"{country}");
                 formFields.SetField(NC4PdfFields.City, $"{city}");
                 formFields.SetField(NC4PdfFields.State, $"{state}");
-                formFields.SetField(NC4PdfFields.FilingStatus_FilingStatus2, "On");
-                formFields.SetField(NC4PdfFields.SocialSecurity2ndPart,secondPart);
-                formFields.SetField(NC4PdfFields.SocialSecurity3rdPart ,thirdPart);
+                formFields.SetField(NC4PdfFields.SocialSecurity2ndPart, secondPart);
+                formFields.SetField(NC4PdfFields.SocialSecurity3rdPart, thirdPart);
 
-
-                 pdfStamper.FormFlattening = formFlattening;
-                 pdfStamper.Close();
-                 pdfReader.Close();
+                pdfStamper.FormFlattening = formFlattening;
+                pdfStamper.Close();
+                pdfReader.Close();
             }
-
 
             var fileBytes = workStream.ToArray();
             return fileBytes;
         }
-
     }
     public async Task<byte[]> SignNC4DoumentAsync(Guid id, int employmentId, SignatureModel signature)
     {
@@ -764,7 +834,7 @@ public class DocumentService : IDocumentService
             using (PdfStamper pdfStamper = new PdfStamper(pdfReader, workStream))
             {
                 AcroFields formFields = pdfStamper.AcroFields;
-               
+
                 formFields.SetField(NC4PdfFields.Date, DateTime.Now.ToShortDateString());
                 using (var memoryStream = new MemoryStream())
                 {
@@ -795,7 +865,7 @@ public class DocumentService : IDocumentService
 
             await UpdateW4PdfWithSignature(id, fileBytes, DocumentTypeModel.NCFour);
 
-            emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserCompletedSubmittingWFour;
+            emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserCompletedSubmittingStateFour;
             _context.Employment.Update(emp);
             await _context.SaveChangesAsync();
 
@@ -807,18 +877,19 @@ public class DocumentService : IDocumentService
     {
         var person = _context.Person.First(e => e.Email == email && !e.Deactivated);
         var employment = _context.Employment.FirstOrDefault(e => e.PersonId == person.Id);
-        if (employment == null) {
+        if (employment == null)
+        {
             return new Dictionary<string, string>
             {
                 { "error", "Employment not found" },
             };
         }
-        
+
         //var docTypes = await _context.DocumentType.ToListAsync();
         if (employment.IsPayrollAdmin)
         {
             //employer
-            if(employment.PayRateBasis == null)
+            if (employment.PayRateBasis == null)
             {
                 return new Dictionary<string, string>
                 {

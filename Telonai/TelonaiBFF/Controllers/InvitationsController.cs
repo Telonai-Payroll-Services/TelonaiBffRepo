@@ -85,9 +85,16 @@ public class InvitationsController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("employer")]
-    public async Task<IActionResult> InviteEmployer([FromForm] EmployerInvitationModel model)
+    [HttpPost("employer/code/{code}")]
+    public async Task<IActionResult> InviteEmployer([FromBody] EmployerInvitationModel model , string code)
     {
+        if (string.IsNullOrWhiteSpace(code) || code.Length!=4 || !ushort.TryParse(code, out var agentCode))
+        {
+            var message = ($"Invalid Agent Code: {code}, Company: {model.Company}, TaxId: {model.TaxId}, " +
+                $"Address: {model.Address}, FirstName: {model.FirstName}, LastName: {model.LastName}, " +
+                $"Phone");
+            return Ok(message);
+        }
 
         var invitationModel = new InvitationModel
         {
@@ -96,22 +103,23 @@ public class InvitationsController : ControllerBase
             CountryId = 2,
             FirstName = model.FirstName,
             LastName = model.LastName,
-            PhoneCountryCode = "+1",
+            PhoneCountryCode = "+1",            
             TaxId = model.TaxId
         };
 
-        var invitation = await _service.CreateAsync(invitationModel, true);
+        var invitation = await _service.CreateAsync(invitationModel, false);
 
         var subscriptionModel = new EmployerSubscriptionModel
-        {
+        { 
             AccountNumber = model.AccountNumber,
             AccountNumber2 = model.AccountNumber2,
-            RoutingNumber = model.RoutingNumber,
-            Amount = model.Amount,
+            RoutingNumber = model.RoutingNumber,  
+            BankAccountType= model.AccountType,
             City = model.City,
             State = model.State,
             Zip = model.Zip,
-            AgentCode = ushort.Parse(model.Code),
+            //Phone=model.PhoneNumber,
+            AgentCode = agentCode,
             CompanyAddress = model.Address,
             NumberOfEmployees = model.NumberOfEmployees, 
             SubscriptionType = model.SubscriptionType,
