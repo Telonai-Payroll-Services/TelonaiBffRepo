@@ -18,8 +18,10 @@
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\..\MefSdk\lib\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
-    <Reference Include="MefClientSdkConsole">
-      <HintPath>..\..\..\Backup\TelonaiBffRepo\Telonai\MefClientSdkConsole\bin\Debug\net6.0\MefClientSdkConsole.dll</HintPath>
+    <Reference Include="MeFWCFClient">
+      <HintPath>..\..\..\Libraries\Utilities\Libraries\MeFWCFClient.dll</HintPath>
+      <Private>True</Private>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.Practices.EnterpriseLibrary.Common">
       <HintPath>..\..\MefSdk\lib\Microsoft.Practices.EnterpriseLibrary.Common.dll</HintPath>

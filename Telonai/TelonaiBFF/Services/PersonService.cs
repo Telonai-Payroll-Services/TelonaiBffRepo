@@ -26,11 +26,17 @@ public class PersonService : IPersonService<PersonModel,Person>
     private readonly DataContext _context;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    public PersonService(DataContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+    private readonly IZipcodeService _zipCodeService;
+    private readonly ICityService _cityService;
+    private readonly IStateService _stateService;
+    public PersonService(DataContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, IZipcodeService zipCodeService, ICityService cityService, IStateService stateService)
     {
         _context = context;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
+        _zipCodeService = zipCodeService;
+        _cityService = cityService;
+        _stateService = stateService;
     }
     public IList<PersonModel> GetByCompanyId(int companyId)
     {
@@ -148,12 +154,22 @@ public class PersonService : IPersonService<PersonModel,Person>
             person.AddressLine2 = string.IsNullOrWhiteSpace(model.AddressLine2) ? person.AddressLine2 : model.AddressLine2;
             person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
             person.Ssn = string.IsNullOrWhiteSpace(model.Ssn) ? person.Ssn : model.Ssn;
-            person.ZipcodeId = model.ZipcodeId == 0 ? person.ZipcodeId : model.ZipcodeId;
-            person.Zipcode.CityId = model.CityId == 0 ? person.Zipcode.CityId : model.CityId;
-            person.Zipcode.City.StateId = model.StateId == 0 ? person.Zipcode.City.StateId : model.StateId;
-
-            _context.Person.Update(person);
-
+            if (model.ZipcodeId != null && model.ZipcodeId > 0)
+            {
+                if (person.Zipcode == null)
+                {
+                    person.Zipcode = _zipCodeService.GetById(model.ZipcodeId);
+                    person.ZipcodeId = model.ZipcodeId;
+                    person.Zipcode.City = _cityService.GetById(person.Zipcode.CityId);
+                    person.Zipcode.City.State = _stateService.GetById(person.Zipcode.City.StateId);
+                }
+                else
+                {
+                    person.ZipcodeId = model.ZipcodeId == 0 ? person.ZipcodeId : model.ZipcodeId;
+                    person.Zipcode.CityId = model.CityId == 0 ? person.Zipcode.CityId : model.CityId;
+                    person.Zipcode.City.StateId = model.StateId == 0 ? person.Zipcode.City.StateId : model.StateId;
+                }
+            }
             if (model.Ssn != null)
             {
                 var emp = _context.Employment.FirstOrDefault(e => e.PersonId == id);
