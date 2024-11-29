@@ -148,13 +148,13 @@ public class PayStubService : IPayStubService
         var payStubs = _context.PayStub.Include(e => e.OtherMoneyReceived).Include(e => e.Employment).ThenInclude(e => e.Person)
                 .ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
                 .Where(e => e.PayrollId == payrollId) ?? throw new AppException("Pay stubs not found");
-
+        var additionalMoneyReceived = new List<AdditionalOtherMoneyReceived>();
         foreach (var payStub in payStubs.ToList())
         {
             //Calculate Federal and State Taxes
-
+            Guid docId;
             var additionalMoneyReceivedIds = payStub.OtherMoneyReceived.AdditionalOtherMoneyReceivedId;
-            var additionalMoneyReceived = _context.AdditionalOtherMoneyReceived.Where(e => additionalMoneyReceivedIds.Contains(e.Id)).ToList();
+            additionalMoneyReceived = _context.AdditionalOtherMoneyReceived.Where(e => additionalMoneyReceivedIds.Contains(e.Id)).ToList();
             var paymentExemptFromFutaTax = additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0);
             payStub.NetPay = payStub.GrossPay;
 
@@ -167,7 +167,7 @@ public class PayStubService : IPayStubService
             }
 
             //Create PDFs
-            var docId = await pdfManager.CreatePayStubPdfAsync(payStub, payStub.OtherMoneyReceived, additionalMoneyReceived, _newIncomeTaxesToHold.ToList());
+            docId = await pdfManager.CreatePayStubPdfAsync(payStub, payStub.OtherMoneyReceived, additionalMoneyReceived, _newIncomeTaxesToHold.ToList());
             var doc = new Document { Id = docId, FileName = string.Format("PayStub-" + payStub.Id + "-" + dTime.ToString("yyyyMMddmmss") + ".pdf") };
             _context.Document.Add(doc);
 
@@ -264,20 +264,20 @@ public class PayStubService : IPayStubService
             var withHolingForms = _context.EmployeeWithholding.Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year).ToList();
             var w4Form = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.WFour).ToList();
 
-            var fedFilingStatus = FilingStatusTypeModel.Single;
+            var fedFilingStatus = FilingStatusTypeModel.SingleOrMarriedFilingSeparately;
 
-            var w4OneA = w4Form.FirstOrDefault(e => e.Field.FieldNme == "1a")?.FieldValue;
-            var w4OneC = w4Form.FirstOrDefault(e => e.Field.FieldNme == "1c")?.FieldValue;
+            var w4OneA = w4Form.Find(e => e.Field.FieldNme == "1a");
+            var w4OneC = w4Form.Find(e => e.Field.FieldNme == "1c");
 
-            if (!Enum.TryParse(w4OneC, out fedFilingStatus))
+            if (!Enum.TryParse(w4OneC.FieldValue, out fedFilingStatus))
                 throw new InvalidDataException($"Invalid filing status [{w4OneC}]");
 
-            var w4TwoC = w4Form.FirstOrDefault(e => e.Field.FieldNme == "2c")?.FieldValue;
-            var w4Three = w4Form.FirstOrDefault(e => e.Field.FieldNme == "3")?.FieldValue;
-            var w4FourA = w4Form.FirstOrDefault(e => e.Field.FieldNme == "4a")?.FieldValue;
-            var w4FourB = w4Form.FirstOrDefault(e => e.Field.FieldNme == "4a")?.FieldValue;
-            var w4FourC = w4Form.FirstOrDefault(e => e.Field.FieldNme == "4a")?.FieldValue;
-            var w4FourD = w4Form.FirstOrDefault(e => e.Field.FieldNme == "4a")?.FieldValue;
+            var w4TwoC = w4Form.Find(e => e.Field.FieldNme == "2c");
+            var w4Three = w4Form.Find(e => e.Field.FieldNme == "3");
+            var w4FourA = w4Form.Find(e => e.Field.FieldNme == "4a");
+            var w4FourB = w4Form.Find(e => e.Field.FieldNme == "4a");
+            var w4FourC = w4Form.Find(e => e.Field.FieldNme == "4a");
+            var w4FourD = w4Form.Find(e => e.Field.FieldNme == "4a");
 
             var employeeFederalRates = incomeTaxRates.Where(e => e.IncomeTaxType.ForEmployee &&
             e.EffectiveYear == _currentYear && e.IncomeTaxType.StateId == null && (e.FilingStatusId == null ||
@@ -289,13 +289,13 @@ public class PayStubService : IPayStubService
             //************************Lets calculate taxes for employees now*******************//
 
             //Calculate Federal Tax to withhold
-            var hasMultipleJobs = !string.IsNullOrWhiteSpace(w4TwoC);
-            var annualAmount = stub.GrossPay * _numberOfPaymentsInYear + double.Parse(w4FourA);
-            var deduction = double.Parse(w4FourB) * (hasMultipleJobs ? 0 : w4OneC.Contains("Jointly") ? 12900 : 8600);//TO DO The hard coded values should come from database 
+            var hasMultipleJobs = !string.IsNullOrWhiteSpace(w4TwoC.FieldValue);
+            var annualAmount = stub.GrossPay * _numberOfPaymentsInYear + double.Parse(w4FourA.FieldValue);
+            var deduction = double.Parse(w4FourB.FieldValue) * (hasMultipleJobs ? 0 : w4OneC.FieldValue.Contains("Jointly") ? 12900 : 8600);//TO DO The hard coded values should come from database 
             var adjustedAnnualWageAmount = annualAmount - deduction;
 
             var rate = employeeFederalRates.First(e => e.IncomeTaxType.Name.StartsWith("Federal") &&
-            e.Minimum < Math.Round(adjustedAnnualWageAmount) && e.Maximum < Math.Round(adjustedAnnualWageAmount));
+            e.Minimum < Math.Round(adjustedAnnualWageAmount) && e.Maximum > Math.Round(adjustedAnnualWageAmount));
 
             var previousIncomeTax = previousIncomeTaxes.FirstOrDefault(e => e.IncomeTaxTypeId == rate.IncomeTaxTypeId);
 
@@ -303,10 +303,10 @@ public class PayStubService : IPayStubService
                 (rate.TentativeAmount ?? 0)) / _numberOfPaymentsInYear;
 
             //Credits
-            var credits = double.Parse(w4Three) / _numberOfPaymentsInYear;
+            var credits = double.Parse(w4Three.FieldValue) / _numberOfPaymentsInYear;
             tentativeWithholdingAmt = Math.Max(tentativeWithholdingAmt - credits, 0);
 
-            var finalWithholdingAmount = tentativeWithholdingAmt + double.Parse(w4FourC);
+            var finalWithholdingAmount = tentativeWithholdingAmt + double.Parse(w4FourC.FieldValue);
             stub.NetPay = stub.NetPay - finalWithholdingAmount;
             _newIncomeTaxesToHold.Add(
                 new IncomeTax
@@ -320,7 +320,7 @@ public class PayStubService : IPayStubService
 
             //Other Federal Withholdings
             var otherFederalWithholdings = employeeFederalRates.Where(e => !e.IncomeTaxType.Name.StartsWith("Federal") &&
-            e.Minimum < Math.Round(stub.GrossPay) && e.Maximum < Math.Round(stub.GrossPay));
+            e.Minimum < Math.Round(stub.GrossPay) && e.Maximum > Math.Round(stub.GrossPay));
 
             var previousPayStub = _context.PayStub.OrderByDescending(e => e.Id).FirstOrDefault(e => e.EmploymentId == stub.EmploymentId
             && !e.IsCancelled && e.Payroll.ScheduledRunDate.Year == _currentYear);
@@ -362,7 +362,7 @@ public class PayStubService : IPayStubService
 
             //************************Lets calculate taxes for employer now*******************//
 
-            var employerRates = employerFederalRates.Where(e => e.Minimum < Math.Round(stub.GrossPay) && e.Maximum < Math.Round(stub.GrossPay));
+            var employerRates = employerFederalRates.Where(e => e.Minimum < Math.Round(stub.GrossPay) && e.Maximum > Math.Round(stub.GrossPay));
             var paymentExemptFromFuta = additionalMoney.Where(e => e.ExemptFromFutaTaxTypeId > 0).Sum(e => e.Amount);
             var paymentExemptFromSocialAndMedi = additionalMoney.Where(e =>
             e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.DependentCare ||
@@ -432,7 +432,7 @@ public class PayStubService : IPayStubService
         var withHolingForms = _context.EmployeeWithholding.Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year);
         var nc4 = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.NCFour);
         var ncAnnualStandardDeductions = _staticDataService.GetStateStandardDeductionsByStateId(_stateId, _currentYear);
-        var ncFilingStatus = FilingStatusTypeModel.Single;
+        var ncFilingStatus = FilingStatusTypeModel.SingleOrMarriedFilingSeparately;
 
         var ncOne = nc4.First(e => e.Field.FieldNme == "totalnumberofallowances")?.FieldValue;
         var ncTwo = nc4.First(e => e.Field.FieldNme == "additionalamount")?.FieldValue;

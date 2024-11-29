@@ -102,8 +102,10 @@ public class PayrollsController : ControllerBase
     public IActionResult CreateNextPayrollForAll()
     {
         var countryId = 2;
-        var result = _payrollService.CreateNextPayrollForAll(countryId).Result;
-        return Ok(new { message = $"{result} Payrolls generated." });
+        _ = _payrollService.CreateNextPayrollForAll(countryId);
+        _ = _payrollService.CreateNextPaystubForAllCurrentPayrollsAsync();
+
+        return Ok("Invocation of Payroll generation and Paystub generation completed");
     }
 
     [HttpPut("{id}/companies/{companyId}")]

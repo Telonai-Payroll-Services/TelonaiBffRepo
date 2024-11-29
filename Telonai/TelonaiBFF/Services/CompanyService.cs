@@ -19,16 +19,22 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
         private readonly IPayrollService _payrollService;
         private readonly ICompanyContactService _companyContactService;
         private readonly IPersonService<PersonModel,Person> _personService;
-
+        private readonly IZipcodeService _zipCodeService;
+        private readonly ICityService _cityService;
+        private readonly IStateService _stateService;
         public CompanyService(DataContext context, IMapper mapper, IStaticDataService staticDataService, IPayrollService payrollService,
-                             ICompanyContactService companyContactService, IPersonService<PersonModel, Person> personService)
+                             ICompanyContactService companyContactService, IPersonService<PersonModel, Person> personService,
+                             IZipcodeService zipCodeService, ICityService cityService, IStateService stateService)
         {
-            _context = context;
-            _mapper = mapper;
-            _staticDataService = staticDataService;
-            _payrollService = payrollService;
-            _companyContactService = companyContactService;
-        _personService = personService;
+                _context = context;
+                _mapper = mapper;
+                _staticDataService = staticDataService;
+                _payrollService = payrollService;
+                _companyContactService = companyContactService;
+                _personService = personService;
+                _zipCodeService = zipCodeService;
+                _cityService = cityService;
+                _stateService = stateService;
         }
 
         public IList<CompanyModel> Get()
@@ -93,9 +99,24 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
                 company.Name = string.IsNullOrEmpty(model.Name) ? company.Name : model.Name;
                 company.AddressLine1 = string.IsNullOrEmpty(model.AddressLine1) ? company.AddressLine1 : model.AddressLine1;
                 company.AddressLine2 = string.IsNullOrEmpty(model.AddressLine2) ? company.AddressLine2 : model.AddressLine2;
-                company.ZipcodeId = model.ZipcodeId == 0 ? company.ZipcodeId : model.ZipcodeId;
-                company.Zipcode.CityId = model.CityId == 0 ? company.Zipcode.CityId : model.CityId;
-                company.Zipcode.City.StateId = model.StateId == 0 ? company.Zipcode.City.StateId : model.StateId;
+            if (model.ZipcodeId != null && model.ZipcodeId > 0)
+            {
+                if (company.Zipcode == null)
+                {
+                    company.Zipcode = _zipCodeService.GetById(model.ZipcodeId);
+                    company.ZipcodeId = model.ZipcodeId;
+                    company.Zipcode.City = _cityService.GetById(company.Zipcode.CityId);
+                    company.Zipcode.City.State = _stateService.GetById(company.Zipcode.City.StateId);
+                }
+                else
+                {
+                    company.ZipcodeId = model.ZipcodeId == 0 ? company.ZipcodeId : model.ZipcodeId;
+                    company.Zipcode.CityId = model.CityId == 0 ? company.Zipcode.CityId : model.CityId;
+                    company.Zipcode.City.StateId = model.StateId == 0 ? company.Zipcode.City.StateId : model.StateId;
+                }
+            }
+            if (companyContact != null)
+            {
                 var person = await _personService.GetPersonById(companyContact.PersonId);
                 if (person != null)
                 {
@@ -104,7 +125,8 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
                     person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
                     _context.Person.Update(person);
                 }
-                _context.Company.Update(company);
+            }
+            _context.Company.Update(company);
                 await _context.SaveChangesAsync();
             }
         }
