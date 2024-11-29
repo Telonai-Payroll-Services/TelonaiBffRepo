@@ -168,6 +168,7 @@ public class PersonService : IPersonService<PersonModel,Person>
                     _context.Employment.Update(emp);
                 }
             }
+            _context.Person.Update(person);
             _context.SaveChanges();
         }
     }
