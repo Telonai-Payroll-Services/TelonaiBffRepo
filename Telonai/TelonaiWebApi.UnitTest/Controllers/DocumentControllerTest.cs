@@ -960,7 +960,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             _mockDocumentService.Setup(service => service.GetDocumentByDocumentTypeAsync(DocumentTypeModel.INine)).ReturnsAsync(tuple);
 
             // Act
-            var result = await _documentController.GetByDocumentTypeEmployer(EmployerDocumentTypes.INine);
+            var result = await _documentController.GetByDocumentTypeEmployer(DocumentTypeModel.INine);
 
             //Assert
             var okResult = Assert.IsType<FileStreamResult>(result);
@@ -1041,7 +1041,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             _mockDocumentService.Setup(service => service.GetDocumentByDocumentTypeAsync(DocumentTypeModel.INineUnsigned)).ReturnsAsync((Tuple<Stream, string>)null);
 
             // Act
-            var result = await _documentController.GetByDocumentTypeEmployer(EmployerDocumentTypes.INineUnsigned);
+            var result = await _documentController.GetByDocumentTypeEmployer(DocumentTypeModel.INineUnsigned);
 
             //Assert
             Assert.IsType<NotFoundResult>(result);

@@ -47,10 +47,21 @@ public class PersonService : IPersonService<PersonModel,Person>
     public IList<PersonModel> GetIncompleteInineByCompanyId(int companyId)
     {
         var completeStatusId = (int)INineVerificationStatusModel.INineSectionTwoSubmitted;
-        var obj = _context.Person.Where(e => e.CompanyId == companyId && e.INineVerificationStatusId < completeStatusId
-        && !e.Deactivated);
 
-        var result = _mapper.Map<IList<PersonModel>>(obj);
+        var jobIds = _context.Job
+            .Where(e => e.CompanyId == companyId)
+            .Select(e => e.Id)
+            .ToList();
+
+        var filteredPersons = _context.Person
+            .Where(p => p.CompanyId == companyId
+                        && p.INineVerificationStatusId < completeStatusId
+                        && !p.Deactivated
+                        && !_context.Employment
+                            .Any(e => jobIds.Contains(e.JobId) && e.PersonId == p.Id && e.Deactivated))
+            .ToList();
+
+        var result = _mapper.Map<IList<PersonModel>>(filteredPersons);
         return result;
     }
 
