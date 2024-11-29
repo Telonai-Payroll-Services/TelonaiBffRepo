@@ -18,6 +18,7 @@ public interface IPayrollService
 
     PayrollModel GetById(int id);
     Task<int> CreateNextPayrollForAll(int countryId);
+    Task CreateNextPaystubForAllCurrentPayrollsAsync();
     void Create(int companyId);
     void Update(int id, int companyId);
     void Delete(int id);
@@ -45,20 +46,20 @@ public class PayrollService : IPayrollService
             .Take(count).ToList();
 
         var result = _mapper.Map<List<PayrollModel>>(payrolls);
-        var averageAmount = result.Where(e => e.ScheduledRunDate < DateTime.Now).Sum(e=>e.EmployeesOwed)/(count-1);
-        var dailyRates = result.Where(e => e.ScheduledRunDate < DateTime.Now)
-            .Select(e => GetDailyPayrollExpense(e.EmployeesOwed.Value, e.ScheduledRunDate, e.StartDate));
+        var averageAmount = result.Where(e => e.ScheduledRunDate < DateTime.Now).Sum(e => e.GrossPay?? 0) / (count - 1);
+        
+        double buffer1 = averageAmount;
+        double buffer2 = buffer1 * 1.2;
 
-        double buffer1 = 100;
-        double buffer2 = 500;
         result.ForEach(e => {
-            var diff = e.EmployeesOwed - averageAmount;
-            if (e.ScheduledRunDate > DateTime.Now && e.EmployeesOwed.HasValue &&
-            GetForecastedPayrollExpense(e.EmployeesOwed.Value, e.StartDate, e.ScheduledRunDate) - averageAmount > buffer2)
-            {
-                e.ExpenseTrackingHexColor = "#D20103";
-                return;
-            }
+         
+            var diff = e.GrossPay?? 0 - averageAmount;
+            if (e.ScheduledRunDate > DateTime.Now && e.GrossPay.HasValue)
+                diff = GetForecastedPayrollExpense(e.GrossPay.Value, e.StartDate, e.ScheduledRunDate)-averageAmount;
+
+            e.GrossPay = e.GrossPay ?? 0;
+            e.GrossPay = Math.Round(e.GrossPay.Value, 2);
+
             if (diff < buffer1)
             {
                 e.ExpenseTrackingHexColor = "#3CA612";
@@ -74,18 +75,11 @@ public class PayrollService : IPayrollService
         return result;
     }
 
-    private static double GetDailyPayrollExpense(double totalEmployeesOwed, DateTime startDate, DateTime endDate)
+    private static double GetForecastedPayrollExpense(double grossPayToDate, DateTime payrollStartDate, DateTime payrollEndDate)
     {
-        var span = endDate - startDate;
-        var dailyAmount = totalEmployeesOwed / span.TotalDays;
-        return dailyAmount;
-    }
-
-    private static double GetForecastedPayrollExpense(double totalEmployeesOwed, DateTime startDate, DateTime endDate)
-    {
-        var span = DateTime.UtcNow - startDate;
-        var projectedSpan = endDate - startDate;
-        var dailyAmount = totalEmployeesOwed / span.TotalDays;
+        var span = DateTime.UtcNow - payrollStartDate;
+        var projectedSpan = payrollEndDate - payrollStartDate;
+        var dailyAmount = grossPayToDate / span.TotalDays;
         var forecasted = dailyAmount * projectedSpan.TotalDays;
         return forecasted;
     }
@@ -227,8 +221,6 @@ public class PayrollService : IPayrollService
             _context.SaveChanges();
         }
 
-        _ = CreateNextPaystubForAllCurrentPayrollsAsync();
-
         return newPayrollsList.Count;
     }
 
@@ -352,6 +344,29 @@ public class PayrollService : IPayrollService
         }
         return nextPaycheckDate; //Note: for weekly and bi-weekly this date falls on Wednesday, but the check date will be on Friday
     }
+
+    public async Task CreateNextPaystubForAllCurrentPayrollsAsync()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var payrolls = _context.Payroll.Include(e => e.PayrollSchedule).Where(e => e.StartDate <= today && e.ScheduledRunDate >= today
+        && e.TrueRunDate == null).ToList();
+
+        for (int i = 0; i < payrolls.Count; i++)
+        {
+            var payroll = payrolls[i];
+            var stubs = await CreateOrUpdatePayStubsForCurrentPayrollAsync(payroll);
+            payroll.GrossPay = stubs.Item1.Sum(e => e.GrossPay) + stubs.Item2.Sum(e => e.GrossPay);
+
+            if (stubs.Item1.Count > 0)
+                _context.PayStub.UpdateRange(stubs.Item1);
+
+            if (stubs.Item2.Count > 0)
+                _context.PayStub.AddRange(stubs.Item2);
+
+            _context.Payroll.Update(payroll);
+            _ = _context.SaveChanges();
+        }
+    }
     private static DateOnly GetNextWednesday(DateOnly date)
     {
         var days = date.DayOfWeek - DayOfWeek.Wednesday;
@@ -394,15 +409,6 @@ public class PayrollService : IPayrollService
         return dto;
     }
 
-    private async Task CreateNextPaystubForAllCurrentPayrollsAsync()
-    {
-        var today = DateOnly.FromDateTime(DateTime.Now);
-        var payrolls = _context.Payroll.Include(e=>e.PayrollSchedule).Where(e => e.StartDate <= today && e.ScheduledRunDate >= today
-        && e.TrueRunDate == null).ToList();
-
-        payrolls.ForEach(e => _ = CreateOrUpdatePayStubsForCurrentPayrollAsync(e));
-    }
-
     /// <summary>
     /// This method creates paystubs if they don't exist, it updates them if they exist.
     /// It must be invoked via lambda once a day so that the expense tracker displays correct data. 
@@ -416,7 +422,6 @@ public class PayrollService : IPayrollService
         var newPaystubs = new List<PayStub>();
 
         var companyId = currentPayroll.CompanyId;
-        var company = currentPayroll.Company;
         var currentYear = currentPayroll.ScheduledRunDate.Year;
 
         var timecards = _context.TimecardUsa.Where(e => e.Job.CompanyId == companyId &&
@@ -445,7 +450,7 @@ public class PayrollService : IPayrollService
             if (payRateBasis == (int)PayRateBasisModel.Daily)
             {
                 var pay = CalculatePayForDailyRatedEmployee(timecards, currentPayroll, emp);
-                regularPay = pay.Item1;
+                regularPay = Math.Round(pay.Item1, 2);
                 regularHours = pay.Item2 * 8;
 
                 if (currentPaystub == null)
@@ -614,7 +619,7 @@ public class PayrollService : IPayrollService
                 currentPaystub.NetPay = regularPay;
             }
         }
-
+        
         return Tuple.Create(payStubs, newPaystubs);
     }
 
@@ -827,6 +832,9 @@ public class PayrollService : IPayrollService
                 default:
                     break;
             }
+            
+            regularPay= Math.Round(regularPay,2);
+            otPay = Math.Round(otPay, 2);
 
             if (currentPaystub == null)
             {
