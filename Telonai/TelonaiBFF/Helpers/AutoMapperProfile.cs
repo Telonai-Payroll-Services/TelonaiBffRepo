@@ -340,7 +340,11 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.ContactType, opt => opt.MapFrom(src => (ContactTypeModel)src.ContacttypeId));
 
         CreateMap<CompanyContactModel, CompanyContact>()
-            .ForMember(dest => dest.ContacttypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.ContactType)));
+            .ForMember(dest => dest.ContacttypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.ContactType)))
+            .ForMember(dest => dest.Company, opt => opt.Ignore())
+            .ForMember(dest => dest.Person, opt => opt.Ignore())
+            .ForMember(dest => dest.ContactType, opt => opt.Ignore())
+            .ForMember(dest => dest.ContactType, opt => opt.Ignore());
 
         CreateMap<EmployerSubscriptionModel, EmployerSubscription>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
