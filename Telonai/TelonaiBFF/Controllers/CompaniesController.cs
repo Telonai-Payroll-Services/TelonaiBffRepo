@@ -97,10 +97,11 @@ public class CompaniesController : ControllerBase
 
             var companyContact = new CompanyContactModel()
             {
-                CompanyId = company.Id,
+                CompanyId = createdJob.CompanyId,
                 PersonId = person.Id,
-                ContactType = ContactTypeModel.FirstContact.ToString()
-
+                ContactType = ((int)ContactTypeModel.FirstContact).ToString(),
+                CreatedBy = model.Manager.Username,
+                CreatedDate = DateTime.Now,
             };
             await _companyContactService.SaveCompanyContact(companyContact);
 
