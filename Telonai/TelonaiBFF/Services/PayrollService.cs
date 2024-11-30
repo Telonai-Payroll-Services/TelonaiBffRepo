@@ -138,10 +138,10 @@ public class PayrollService : IPayrollService
         //Get the latest payroll schedule for all companies.
         //This gets the schedules that have already started or will start in the next 2 days
 
-        var twoDaysFromNow = now;
+        var twoDaysFromNow = now.AddDays(2);
 
-        var paySchedules = _context.PayrollSchedule.OrderByDescending(e => e.FirstRunDate).Where(e => e.StartDate < twoDaysFromNow
-            && (e.EndDate == null || e.EndDate >= twoDaysFromNow))
+        var paySchedules = _context.PayrollSchedule.OrderByDescending(e => e.FirstRunDate).Where(e => e.StartDate <= twoDaysFromNow
+            && (e.EndDate == null || e.EndDate > twoDaysFromNow))
             .GroupBy(e => e.CompanyId)
             .Select(g => g.First()).ToList();
 

@@ -66,11 +66,11 @@ public class InvitationsController : ControllerBase
     public IActionResult GetByActivationCodeAndEmail([FromBody] InvitationRequestModel model)
     {
         var codeRegEx = new Regex(@"^[a-zA-Z0-9\s,]*$");
-        if (model.code.Length != 7 && !codeRegEx.IsMatch(model.code))
-            throw new InvalidDataException();
+        if (model.code.Length != 8 || !codeRegEx.IsMatch(model.code))
+            throw new InvalidDataException("Invalid Activation Code");
 
         if (!InputValidator.IsValidEmail(model.Email))
-            throw new InvalidDataException();
+            throw new InvalidDataException("Invalid Email");
 
         var result = _service.GetAllByActivaionCodeAndInviteeEmail(model.code,model.Email);
         return Ok(result);

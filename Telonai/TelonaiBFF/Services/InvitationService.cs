@@ -75,7 +75,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
 
     public InvitationModel GetAllByActivaionCodeAndInviteeEmail(string activationCode, string email)
     {
-        var dto = _context.Invitation.Include(e => e.Job).Include(e=>e.Country)
+        var dto = _context.Invitation.Include(e => e.Job).Include(e => e.Country)
             .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow);
 
