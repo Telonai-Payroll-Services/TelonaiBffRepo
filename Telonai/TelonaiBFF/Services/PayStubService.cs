@@ -344,7 +344,7 @@ public class PayStubService : IPayStubService
                     new IncomeTax
                     {
                         Amount = addlAmount,
-                        IncomeTaxTypeId = rate.IncomeTaxTypeId,
+                        IncomeTaxTypeId = item.IncomeTaxTypeId,
                         PayStubId = stub.Id,
                         YtdAmount = addlAmount + previous?.YtdAmount ?? 0
                     });
@@ -358,7 +358,7 @@ public class PayStubService : IPayStubService
                 new IncomeTax
                 {
                     Amount = amount,
-                    IncomeTaxTypeId = rate.IncomeTaxTypeId,
+                    IncomeTaxTypeId = item.IncomeTaxTypeId,
                     PayStubId = stub.Id,
                     YtdAmount = amount + previous?.YtdAmount ?? 0
                 }
@@ -389,7 +389,7 @@ public class PayStubService : IPayStubService
                         new IncomeTax
                         {
                             Amount = futaTax,
-                            IncomeTaxTypeId = rate.IncomeTaxTypeId,
+                            IncomeTaxTypeId = item.IncomeTaxTypeId,
                             PayStubId = stub.Id,
                             YtdAmount = futaTax + previous?.YtdAmount ?? 0
                         });
@@ -404,25 +404,14 @@ public class PayStubService : IPayStubService
                         new IncomeTax
                         {
                             Amount = ssOrMediTax,
-                            IncomeTaxTypeId = rate.IncomeTaxTypeId,
+                            IncomeTaxTypeId = item.IncomeTaxTypeId,
                             PayStubId = stub.Id,
                             YtdAmount = ssOrMediTax + previous?.YtdAmount ?? 0
                         });
                     break;
                 default:
                     break;
-            }
-
-            var amount = stub.GrossPay * item.Rate;
-            _newIncomeTaxesToHold.Add(
-                new IncomeTax
-                {
-                    Amount = amount,
-                    IncomeTaxTypeId = rate.IncomeTaxTypeId,
-                    PayStubId = stub.Id,
-                    YtdAmount = amount + previous?.YtdAmount ?? 0
-                }
-            );
+            }           
         }
 
         return stub;
