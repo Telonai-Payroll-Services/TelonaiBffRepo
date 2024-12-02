@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.ConstrainedExecution;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using TelonaiWebApi.Entities;
@@ -22,6 +24,7 @@ namespace TelonaiWebAPI.UnitTest.Services
         private readonly Mock<IMapper> _mockMapper;
         private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
         private readonly Mock<IScopedAuthorization> _mockScopedAuthorization;
+        private readonly Mock<IOtherMoneyReceivedService> _mockOtherMoneyReceivedService;
         private readonly OtherMoneyReceivedService _OtherMoneyReceivedService;
 
         public OtherMoneyReceivedServiceTest()
@@ -30,6 +33,7 @@ namespace TelonaiWebAPI.UnitTest.Services
             _mockMapper = new Mock<IMapper>();
             _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
             _mockScopedAuthorization = new Mock<IScopedAuthorization>();
+            _mockOtherMoneyReceivedService = new Mock<IOtherMoneyReceivedService>();
             _OtherMoneyReceivedService = new OtherMoneyReceivedService(_mockDataContext.Object, _mockMapper.Object, _mockHttpContextAccessor.Object, _mockScopedAuthorization.Object);
         }
 
@@ -273,6 +277,7 @@ namespace TelonaiWebAPI.UnitTest.Services
         #endregion
         
         #region Delete Other Money Received
+
         [Fact]
         public async void DeleteOtherIncome_WhenPassingExistingId_ReturnsOtherIncomeListWithOutDeletedIncome()
         {
