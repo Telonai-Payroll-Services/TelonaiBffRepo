@@ -73,11 +73,6 @@ public class UsersController : Controller
             {
                 loginResult.FullName = $"{personList.First().FirstName} {personList.First().LastName}";
                 loginResult.Employments = _employmentService.GetByEmail(email).ToList();
-                //foreach (var person in personList)
-                //{
-                //    //loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(person.Id);
-                    
-                //}
             }
 
             return Ok(loginResult);
