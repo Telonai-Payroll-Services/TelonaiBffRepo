@@ -67,13 +67,17 @@ public class UsersController : Controller
             }
 
             var email = result.Item1.Attributes["email"];
-            var person = _personService.GetByEmailAsync(email).Result;
+            var personList = await _personService.GetListByEmailAsync(email);
 
-            if (person != null)
+            if (personList != null && personList.Count > 0)
             {
-                loginResult.FullName = $"{person.FirstName} {person.LastName}";
-                loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(person.Id); 
-                loginResult.Employments = _employmentService.GetByPersonId(person.Id).ToList();
+                loginResult.FullName = $"{personList.First().FirstName} {personList.First().LastName}";
+                loginResult.Employments = _employmentService.GetByEmail(email).ToList();
+                //foreach (var person in personList)
+                //{
+                //    //loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(person.Id);
+                    
+                //}
             }
 
             return Ok(loginResult);
@@ -193,6 +197,26 @@ public class UsersController : Controller
         }
 
         return BadRequest();
+    }
+    
+    [HttpPost("checkUsernameAvailability/{username}")]
+    public async Task<IActionResult> CheckUserNameAvailability(string username)
+    {
+        if (!string.IsNullOrEmpty(username))
+        {
+            if (await _userService.CheckUsernameAvailability(username))
+            {
+                return BadRequest("There is an existing username, Please try another username!");
+            }
+            else
+            {
+                return Ok("The username is available");
+            }
+        }
+        else
+        {
+            return Ok("Please provide the username to check whether it is available or not");
+        }
     }
 
     private async Task<PersonModel> CreateProfileFromUserAsync(User user, int companyId)
