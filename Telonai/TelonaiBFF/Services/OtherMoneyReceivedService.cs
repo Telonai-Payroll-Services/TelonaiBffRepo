@@ -35,7 +35,7 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
 
     public OtherMoneyReceivedModel GetById(int id)
     {
-        var obj = _context.OtherMoneyReceived.Where(e => e.Id==id);
+        var obj = _context.OtherMoneyReceived.Find(id);
         
         if (obj == null)
             return null;

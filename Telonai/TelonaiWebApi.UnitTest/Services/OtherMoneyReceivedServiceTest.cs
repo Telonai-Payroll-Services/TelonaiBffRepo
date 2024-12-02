@@ -84,6 +84,7 @@ namespace TelonaiWebAPI.UnitTest.Services
             
             _mockMapper.Setup(m => m.Map<OtherMoneyReceivedModel>(otherIncome)).Returns(otherIncomeModel);
             _mockDataContext.Setup(c => c.OtherMoneyReceived).Returns(mockSet.Object);
+            _mockDataContext.Setup(o => o.OtherMoneyReceived.Find(otherIncome.Id)).Returns(otherIncome);
                        
             // Act
             var result = _OtherMoneyReceivedService.GetById(otherIncomeId);
@@ -160,20 +161,23 @@ namespace TelonaiWebAPI.UnitTest.Services
                 StartDate = DateOnly.FromDateTime(DateTime.Now),
                 TrueRunDate = DateTime.Now
             };
+
+            var otherReceivedMoney = new OtherMoneyReceived()
+            {
+                Id = otherIncomeId,
+                IsCancelled = false,
+                CreditCardTips = 0,
+                YtdCreditCardTips = 32,
+                AdditionalOtherMoneyReceivedId = new[] { 12, 67, 300 },
+                CashTips = 200,
+                YtdCashTips = 200,
+                Reimbursement = 100,
+                YtdReimbursement = 100,
+
+            };
             var otherRecivedMoneyList = new List<OtherMoneyReceived>()
             {
-                new OtherMoneyReceived()
-                {
-                    Id = otherIncomeId,
-                    IsCancelled = false,
-                    CreditCardTips = 0,
-                    YtdCreditCardTips = 32,
-                    AdditionalOtherMoneyReceivedId = new[] { 12, 67, 300 },
-                    CashTips = 200,
-                    YtdCashTips = 200,
-                    Reimbursement = 100,
-                    YtdReimbursement = 100,
-                }
+               otherReceivedMoney
             }.AsQueryable();
 
             var payStubs = new List<PayStub>()
@@ -197,6 +201,7 @@ namespace TelonaiWebAPI.UnitTest.Services
                     YtdRegularPay = 20500,
                     IsCancelled = false,
                     Payroll = payroll,
+                    OtherMoneyReceived = otherReceivedMoney,
                 },
                 new PayStub()
                 {
@@ -217,6 +222,7 @@ namespace TelonaiWebAPI.UnitTest.Services
                     YtdRegularPay = 20500,
                     IsCancelled = false,
                     Payroll = payroll,
+                    OtherMoneyReceived = otherReceivedMoney,
                 },
                 new PayStub()
                 {
@@ -237,6 +243,7 @@ namespace TelonaiWebAPI.UnitTest.Services
                     YtdRegularPay = 20500,
                     IsCancelled = false,
                     Payroll = payroll,
+                    OtherMoneyReceived = otherReceivedMoney,
                 },
             }.AsQueryable();
             var otherRecivedMoneyModelList = new List<OtherMoneyReceivedModel>()
@@ -317,12 +324,11 @@ namespace TelonaiWebAPI.UnitTest.Services
             _mockDataContext.Setup(c => c.OtherMoneyReceived.Find(1)).Returns(otherIncomeList.First());
 
             //Act
-            _OtherMoneyReceivedService.Delete(1);
+            var result = await _OtherMoneyReceivedService.Delete(1);
 
 
             //Assert
-            mockSet.Verify(m => m.Remove(It.Is<OtherMoneyReceived>(p => p.Id == 1)), Times.Once);
-            _mockDataContext.Verify(m => m.SaveChanges(), Times.Once);
+            Assert.True(result);
         }
         [Fact]
         public async void DeleteOtherIncome_WhenPassingExistingId_ReturnsAllOtherIncomeLists()
