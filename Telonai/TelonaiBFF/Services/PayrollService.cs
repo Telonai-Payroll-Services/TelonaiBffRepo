@@ -138,10 +138,10 @@ public class PayrollService : IPayrollService
         //Get the latest payroll schedule for all companies.
         //This gets the schedules that have already started or will start in the next 2 days
 
-        var twoDaysFromNow = now;
+        var twoDaysFromNow = now.AddDays(2);
 
-        var paySchedules = _context.PayrollSchedule.OrderByDescending(e => e.FirstRunDate).Where(e => e.StartDate < twoDaysFromNow
-            && (e.EndDate == null || e.EndDate >= twoDaysFromNow))
+        var paySchedules = _context.PayrollSchedule.OrderByDescending(e => e.FirstRunDate).Where(e => e.StartDate <= twoDaysFromNow
+            && (e.EndDate == null || e.EndDate > twoDaysFromNow))
             .GroupBy(e => e.CompanyId)
             .Select(g => g.First()).ToList();
 
@@ -272,8 +272,11 @@ public class PayrollService : IPayrollService
             dto.TrueRunDate = DateTime.UtcNow;
 
             _context.Payroll.Update(dto);
-            _context.PayStub.UpdateRange(stubs.Item1);
-            _context.PayStub.AddRange(stubs.Item2);            
+            if (stubs.Item1.Count > 0)
+                _context.PayStub.UpdateRange(stubs.Item1);
+
+            if (stubs.Item2.Count > 0)
+                _context.PayStub.AddRange(stubs.Item2);            
             _context.SaveChanges();
         }
     }
@@ -418,6 +421,7 @@ public class PayrollService : IPayrollService
     /// <exception cref="AppException"></exception>
     private async Task<Tuple<List<PayStub>, List<PayStub>>> CreateOrUpdatePayStubsForCurrentPayrollAsync(Payroll currentPayroll)
     {
+
         var payStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id).ToList();
         var newPaystubs = new List<PayStub>();
 
@@ -623,7 +627,6 @@ public class PayrollService : IPayrollService
         return Tuple.Create(payStubs, newPaystubs);
     }
 
-
     /// <summary>
     /// This method is invoked when Payrolls are run. Paystubs will not change after this method call
     /// </summary>
@@ -637,7 +640,6 @@ public class PayrollService : IPayrollService
 
         var currentPayStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id).ToList();
         var newPayStubs = new List<PayStub>();
-
         var companyId = currentPayroll.CompanyId;
         var company= currentPayroll.Company;
         var currentYear = currentPayroll.ScheduledRunDate.Year;
@@ -650,12 +652,11 @@ public class PayrollService : IPayrollService
             throw new AppException("You have not approved all timecards");
                
         var schedule = _context.PayrollSchedule.FirstOrDefault(e => e.CompanyId == companyId && (e.EndDate == null ||
-        e.EndDate < currentPayroll.ScheduledRunDate));
-        
+        e.EndDate < currentPayroll.ScheduledRunDate));        
         var frequency = (PayrollScheduleTypeModel)schedule?.PayrollScheduleTypeId;
 
         var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId &&
-        (!e.Deactivated || (e.EndDate != null && e.EndDate > currentPayroll.StartDate))).ToList();
+        (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate))).ToList();
 
         timecards.ForEach(e => e.IsLocked = true);
         _context.UpdateRange(timecards);

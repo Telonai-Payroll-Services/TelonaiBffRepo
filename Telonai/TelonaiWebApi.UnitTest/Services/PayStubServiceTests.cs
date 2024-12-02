@@ -11,6 +11,8 @@ using Xunit;
 using System.Net.Sockets;
 using System;
 using Amazon.Runtime.SharedInterfaces;
+using Amazon.Runtime.Internal.Util;
+using Microsoft.Extensions.Logging;
 
 namespace TelonaiWebAPI.UnitTest.Services
 {
@@ -21,13 +23,17 @@ namespace TelonaiWebAPI.UnitTest.Services
         private readonly Mock<IStaticDataService> _mockIStaticDataService;
         private readonly PayStubService _mockPayStubService;
         private readonly Mock<IPersonService<PersonModel,Person>> _mockPersonService;
+        private readonly Mock<ILogger<PayStubService>> _mockLogger;
+
         public PayStubServiceTests()
         {
             _mockDataContext = new Mock<DataContext>();
             _mockMapper = new Mock<IMapper>();
             _mockIStaticDataService = new Mock<IStaticDataService>();
             _mockPersonService  = new Mock<IPersonService<PersonModel, Person>>();
-            _mockPayStubService = new PayStubService(_mockDataContext.Object, _mockMapper.Object, _mockIStaticDataService.Object, _mockPersonService.Object);
+            _mockLogger= new Mock<ILogger<PayStubService>>();
+            _mockPayStubService = new PayStubService(_mockDataContext.Object, _mockMapper.Object, _mockIStaticDataService.Object,
+                _mockPersonService.Object, _mockLogger.Object);
         }
 
         #region GetCurrentByCompanyId
