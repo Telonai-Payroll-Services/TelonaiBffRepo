@@ -32,7 +32,7 @@ namespace TelonaiWebApi.UnitTest.Services
             _mockContext = new Mock<DataContext>(MockBehavior.Default, new object[] { new Mock<IHttpContextAccessor>().Object });
             _mockMapper = new Mock<IMapper>();
             _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-            _service = new PersonService(_mockContext.Object, _mockMapper.Object, _mockHttpContextAccessor.Object);
+            _service = new PersonService(_mockContext.Object, _mockMapper.Object, _mockHttpContextAccessor.Object, null,null,null);
         }
         [Fact]
         public void GetByCompanyId_ReturnsCorrectData()

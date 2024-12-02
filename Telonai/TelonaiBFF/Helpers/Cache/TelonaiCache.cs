@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Routing.Template;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using TelonaiWebApi.Helpers.Configuration;
 
 namespace TelonaiWebApi.Helpers.Cache
 {

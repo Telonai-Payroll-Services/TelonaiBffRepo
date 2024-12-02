@@ -8,14 +8,12 @@ using TelonaiWebApi.Entities;
 using TelonaiWebApi.Models;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using System.Security.Claims;
-using System.ComponentModel;
-using Newtonsoft.Json;
 using Amazon.S3;
 using Amazon.SQS;
 using TelonaiWebApi.Models.FileScan;
 using TelonaiWebApi.Helpers.FileScan;
 using TelonaiWebApi.Helpers.Interface;
-using Microsoft.AspNetCore.Http.Json;
+using TelonaiWebApi.Helpers.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,17 +25,19 @@ var builder = WebApplication.CreateBuilder(args);
     var configuration = builder.Configuration;
     services.AddOptions();
     services.Configure<ApiOptions>(configuration);
-    services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+
+
+    IAmazonS3 _s3Client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
+    var s3ObjectStream = _s3Client.GetObjectAsync("telonai-bff-appsettings", $"appsettings-{env.EnvironmentName}.json").Result.ResponseStream;
+    
+    builder.Host.ConfigureAppConfiguration((_, configurationBuilder) =>
+    {
+        configurationBuilder.AddAmazonSecretsManager("us-east-2", "FileScanAuthSettings");
+        configurationBuilder.AddAmazonSecretsManager("us-east-2", "AwsUserPoolSettings");
+        configurationBuilder.AddJsonStream(s3ObjectStream);
+    });
 
     services.AddSingleton<IConfiguration>(configuration);
-
-   // var options = configuration.GetAWSOptions();
-
-    services.AddDefaultAWSOptions(configuration.GetAWSOptions());
-
-    //IAmazonS3 client = options.CreateServiceClient<IAmazonS3>();
-    //IAmazonS3 client2 = options.CreateServiceClient<IAmazonS3>();
-
     services.AddDbContext<DataContext>();
     services.AddCors();
     services.AddMemoryCache();
@@ -66,7 +66,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<ICountryService, CountryService>();
     services.AddScoped<IEmploymentService<EmploymentModel, Employment>, EmploymentService>();
     services.AddScoped<IHolidaysService, HolidaysService>();
-    services.AddScoped<IIncomeTaxService<IncomeTaxRateModel, IncomeTaxRate>, IncomeTaxService>();
+    services.AddScoped<IIncomeTaxRateService<IncomeTaxRateModel, IncomeTaxRate>, IncomeTaxRateService>();
     services.AddScoped<IInvitationService<InvitationModel, Invitation>, InvitationService>();
     services.AddScoped<IJobService<JobModel, Job>, JobService>();
     services.AddScoped<IOtherMoneyReceivedService, OtherMoneyReceivedService>();
@@ -92,7 +92,13 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IFormNineFortyOneService, FormNineFortyOneService>();
     services.AddScoped<IFormNineFortyFourService, FormNineFortyFourService>();
     services.AddScoped<IFormNineFortyService, FormNineFortyService>();
+    services.AddScoped<ICompanyContactService, CompanyContactService>();
+    services.AddScoped<IEmployerSubscriptionService, EmployerSubscriptionService>();
+    services.AddScoped<IAgentService, AgentService>();
 
+
+    services.AddEndpointsApiExplorer();
+    services.AddSwaggerGen();
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());
     services.AddAWSService<IAmazonS3>();
     services.AddAWSService<IAmazonSQS>();
@@ -105,8 +111,8 @@ var builder = WebApplication.CreateBuilder(args);
     var fileScanSettings = builder.Configuration.GetSection("FileScan");
     builder.Services.Configure<FileScanSettings>(fileScanSettings);
 
-    var fileScanLogin = builder.Configuration.GetSection("FileScanLogin");
-    builder.Services.Configure<FileScanLogin>(fileScanLogin);
+    builder.Services.Configure<FileScanAuthSettings>(builder.Configuration);
+    builder.Services.Configure<AwsUserPoolSettings>(builder.Configuration);
 
     // Adds Amazon Cognito as Identity Provider
     services.AddCognitoIdentity();
@@ -131,18 +137,6 @@ var builder = WebApplication.CreateBuilder(args);
             options.AccessDeniedPath = "/Users/AccessDenied";
         });
 
-    //services
-    //    .AddAuthentication("Bearer")
-    //    .AddJwtBearer(options =>
-    //    {
-    //        options.Authority = "https://cognito-idp.us-east-2.amazonaws.com/us-east-2_vCPO95uWK";
-    //        options.TokenValidationParameters = new TokenValidationParameters
-    //        {
-    //            ValidateAudience = false,
-    //        };
-    //    });
-
-   
     services.AddAuthorization(options =>
     {
         //options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
@@ -151,8 +145,6 @@ var builder = WebApplication.CreateBuilder(args);
     });
 
 
-    services.AddEndpointsApiExplorer();
-    services.AddSwaggerGen();
 }
 
 var app = builder.Build();
@@ -176,5 +168,6 @@ var app = builder.Build();
     app.UseSwaggerUI();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
-app.Run("http://localhost:5000");
-//app.Run();
+
+//app.Run("http://localhost:5000");
+app.Run();

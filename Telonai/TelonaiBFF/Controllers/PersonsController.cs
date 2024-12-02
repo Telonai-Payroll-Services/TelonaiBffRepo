@@ -29,6 +29,14 @@ public class PersonsController : ControllerBase
         return Ok(users);
     }
 
+    [HttpGet("companies/{companyId}/incompleteInine")]
+    public IActionResult GetIncompleteInineByCompanyId(int companyId)
+    {
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
+        var users = _service.GetIncompleteInineByCompanyId(companyId);
+        return Ok(users);
+    }
+    
     [HttpGet]
     public IActionResult GetAll()
     {
@@ -37,7 +45,7 @@ public class PersonsController : ControllerBase
         var profiles = _service.Get();
         return Ok(profiles);
     }
-    [HttpGet("{email}")]
+    [HttpGet("email/{email}")]
     public IActionResult GetByEmail(string email)
     {
         var user = _service.GetByEmailAsync(email)?.Result;

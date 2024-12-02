@@ -2,6 +2,8 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TelonaiWebApi.Helpers;
+using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
 
 [Route("[controller]")]

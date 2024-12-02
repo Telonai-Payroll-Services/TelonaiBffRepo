@@ -2,7 +2,6 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using System.Text.RegularExpressions;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
@@ -17,11 +16,15 @@ public class InvitationsController : ControllerBase
     private readonly IInvitationService<InvitationModel, Invitation> _service;
     private readonly ILogger<InvitationsController> _logger;
     private readonly IScopedAuthorization _scopedAuthrorization;
-    public InvitationsController(IInvitationService<InvitationModel, Invitation> service, ILogger<InvitationsController> logger, IScopedAuthorization scopedAuthrorization)
+    private readonly IEmployerSubscriptionService _employerSubscriptionservice;
+
+    public InvitationsController(IInvitationService<InvitationModel, Invitation> service, 
+        ILogger<InvitationsController> logger, IScopedAuthorization scopedAuthrorization, IEmployerSubscriptionService employerSubscriptionservice)
     {
         _service = service;
         _logger = logger;
         _scopedAuthrorization = scopedAuthrorization;
+        _employerSubscriptionservice = employerSubscriptionservice;
     }
 
     [Authorize]
@@ -63,11 +66,11 @@ public class InvitationsController : ControllerBase
     public IActionResult GetByActivationCodeAndEmail([FromBody] InvitationRequestModel model)
     {
         var codeRegEx = new Regex(@"^[a-zA-Z0-9\s,]*$");
-        if (model.code.Length != 7 && !codeRegEx.IsMatch(model.code))
-            throw new InvalidDataException();
+        if (model.code.Length != 8 || !codeRegEx.IsMatch(model.code))
+            throw new InvalidDataException("Invalid Activation Code");
 
         if (!InputValidator.IsValidEmail(model.Email))
-            throw new InvalidDataException();
+            throw new InvalidDataException("Invalid Email");
 
         var result = _service.GetAllByActivaionCodeAndInviteeEmail(model.code,model.Email);
         return Ok(result);
@@ -82,12 +85,50 @@ public class InvitationsController : ControllerBase
         return Ok();
     }
 
-    [Authorize(Policy = "SystemAdmin")]
-    [HttpPost("employer")]
-    public IActionResult InviteEmployer([FromBody] InvitationModel model)
+    [HttpPost("employer/code/{code}")]
+    public async Task<IActionResult> InviteEmployer([FromBody] EmployerInvitationModel model , string code)
     {
-        _service.CreateAsync(model,false);
-        return Ok(new { message = "Employer Invited" });
+        if (string.IsNullOrWhiteSpace(code) || code.Length!=4 || !ushort.TryParse(code, out var agentCode))
+        {
+            var message = ($"Invalid Agent Code: {code}, Company: {model.Company}, TaxId: {model.TaxId}, " +
+                $"Address: {model.Address}, FirstName: {model.FirstName}, LastName: {model.LastName}, " +
+                $"Phone");
+            return Ok(message);
+        }
+
+        var invitationModel = new InvitationModel
+        {
+            Email = model.Email,
+            Company = model.Company,
+            CountryId = 2,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            PhoneCountryCode = "+1",            
+            TaxId = model.TaxId
+        };
+
+        var invitation = await _service.CreateAsync(invitationModel, false);
+
+        var subscriptionModel = new EmployerSubscriptionModel
+        { 
+            AccountNumber = model.AccountNumber,
+            AccountNumber2 = model.AccountNumber2,
+            RoutingNumber = model.RoutingNumber,  
+            BankAccountType= model.AccountType,
+            City = model.City,
+            State = model.State,
+            Zip = model.Zip,
+            //Phone=model.PhoneNumber,
+            AgentCode = agentCode,
+            CompanyAddress = model.Address,
+            NumberOfEmployees = model.NumberOfEmployees, 
+            SubscriptionType = model.SubscriptionType,
+            InvitationId=invitation.Id,
+        };
+
+        await _employerSubscriptionservice.CreateAsync(subscriptionModel);
+
+        return Ok();
     }
 
     [Authorize(Policy = "SystemAdmin")]

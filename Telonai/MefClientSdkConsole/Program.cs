@@ -79,13 +79,22 @@
                         CallGetNewSubmissionsStatus();
                         break;
                     case 8:
-                        CallSendSubmissionsClientForTest1();
+                        CallSendSubmissionsFor941Test1();
                         break;
                     case 9:
-                        CallSendSubmissionsClientForTest2();
+                        CallSendSubmissionsFor941Test2();
                         break;
                     case 10:
-                        CallSendSubmissionsClientForTestMultiple();
+                        CallSendSubmissionsFor941TestMultiple();
+                        break;
+                    case 11:
+                        CallSendSubmissionsFor940Test1();
+                        break;
+                    case 12:
+                        CallSendSubmissionsFor940Test2();
+                        break;
+                    case 13:
+                        CallSendSubmissionsFor940TestMultiple();
                         break;
                     default:
                         Util.Write(string.Format("You selected an invalid number: {0}\r\n", iSel));
@@ -253,7 +262,7 @@
             }
         }
 
-        private static void CallSendSubmissionsClientForTest1()
+        private static void CallSendSubmissionsFor941Test1()
         {
             try
             {
@@ -311,7 +320,7 @@
             }
         }
 
-        private static void CallSendSubmissionsClientForTest2()
+        private static void CallSendSubmissionsFor941Test2()
         {
             try
             {
@@ -378,7 +387,7 @@
             }
         }
 
-        private static void CallSendSubmissionsClientForTestMultiple()
+        private static void CallSendSubmissionsFor941TestMultiple()
         {
             try
             {
@@ -414,6 +423,213 @@
                     path + "manifest.xml"),
                     submissionXml = new MeF.Client.Services.InputComposition.SubmissionXml(
                         path + "941.xml"),
+                    binaryAttachments = new List<MeF.Client.Services.InputComposition.BinaryAttachment>
+                    {
+                        new MeF.Client.Services.InputComposition.BinaryAttachment("8453-EMP.pdf",fileStream1),
+                        new MeF.Client.Services.InputComposition.BinaryAttachment("ScheduleB.pdf",fileStream2),
+                    }
+                };
+
+                //add both submissions
+                list.Add(new MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive(submissionArch, DateTime.Now));
+                list.Add(new MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive(submissionArch2, DateTime.Now));
+
+                var container = new SubmissionContainer(list);
+
+                //Create the client using the current directory for simplicity
+                var client = new SendSubmissionsClient(path2);
+
+                var result = client.Invoke(context, container);
+                Util.WriteMessage("Result:");
+
+                Util.WriteResult(string.Format(" Attachment Path: {0}", result.AttachmentFilePath));
+                Util.WriteResult(string.Format(" DepositId ID: {0}", result.DepositId));
+                Util.WriteResult(string.Format(" MessageID ID: {0}", result.MessageID));
+                Util.WriteResult(string.Format(" FileNameD: {0}", result.FileName));
+
+                var unzippedContent = result.unzippedcontent;
+
+                if (unzippedContent != null)
+                {
+                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
+                    string xmlString = enc.GetString(unzippedContent);
+
+                    Util.WriteResult(string.Format(" XML Content: {0}", xmlString));
+                }
+                var submissionRecieptlist = result.GetSubmissionReceiptList();
+
+                Util.WriteResult(string.Format(" Submission Receipt List Count: {0}", submissionRecieptlist.Cnt));
+
+                Pause();
+            }
+            catch (Exception e)
+            {
+                Util.WriteError("An error has occured check the log for details...");
+                Util.WriteError(e.Message);
+            }
+        }
+
+        private static void CallSendSubmissionsFor940Test1()
+        {
+            try
+            {
+                Util.Write("  Enter the maxResults:");
+                Util.WriteInput("Enter Your selection (0 to cancel): ");
+
+                var list = new List<MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive>();
+
+                var path = Environment.CurrentDirectory + "\\940\\Files1\\";
+                var path2 = Environment.CurrentDirectory + "\\940\\Files1Result\\";
+                var submissionArch = new MeF.Client.Services.InputComposition.SubmissionArchive
+                {
+                    isFileBased = false,
+                    submissionId = "69321820243050000011",
+                    submissionManifest = new MeF.Client.Services.InputComposition.SubmissionManifest(
+                    path + "manifest.xml"),
+                    submissionXml = new MeF.Client.Services.InputComposition.SubmissionXml(
+                        path + "940.xml")
+                };
+
+                list.Add(new MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive(submissionArch, DateTime.Now));
+
+                var container = new SubmissionContainer(list);
+
+                //Create the client using the current directory for simplicity
+                var client = new SendSubmissionsClient(path2);
+
+                var result = client.Invoke(context, container);
+                Util.WriteMessage("Result:");
+
+                Util.WriteResult(string.Format(" Attachment Path: {0}", result.AttachmentFilePath));
+                Util.WriteResult(string.Format(" DepositId ID: {0}", result.DepositId));
+                Util.WriteResult(string.Format(" MessageID ID: {0}", result.MessageID));
+                Util.WriteResult(string.Format(" FileNameD: {0}", result.FileName));
+
+                var unzippedContent = result.unzippedcontent;
+
+                if (unzippedContent != null)
+                {
+                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
+                    string xmlString = enc.GetString(unzippedContent);
+
+                    Util.WriteResult(string.Format(" XML Content: {0}", xmlString));
+                }
+                var submissionRecieptlist = result.GetSubmissionReceiptList();
+
+                Util.WriteResult(string.Format(" Submission Receipt List Count: {0}", submissionRecieptlist.Cnt));
+
+                Pause();
+            }
+            catch (Exception e)
+            {
+                Util.WriteError("An error has occured check the log for details...");
+                Util.WriteError(e.Message);
+            }
+        }
+
+        private static void CallSendSubmissionsFor940Test2()
+        {
+            try
+            {
+                Util.Write("  Enter the maxResults:");
+                Util.WriteInput("Enter Your selection (0 to cancel): ");
+
+                var list = new List<MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive>();
+
+                var path = Environment.CurrentDirectory + "\\940\\Files2\\";
+                var path2 = Environment.CurrentDirectory + "\\940\\Files2Result\\";
+
+                var fileStream1 = File.ReadAllBytes(path + "8453-EMP.pdf");
+                var fileStream2 = File.ReadAllBytes(path + "ScheduleB.pdf");
+
+                var submissionArch = new MeF.Client.Services.InputComposition.SubmissionArchive
+                {
+                    isFileBased = false,
+                    submissionId = "69321820243050000012",
+                    submissionManifest = new MeF.Client.Services.InputComposition.SubmissionManifest(
+                    path + "manifest.xml"),
+                    submissionXml = new MeF.Client.Services.InputComposition.SubmissionXml(
+                        path + "940.xml"),
+                    binaryAttachments = new List<MeF.Client.Services.InputComposition.BinaryAttachment>
+                    {
+                        new MeF.Client.Services.InputComposition.BinaryAttachment("8453-EMP.pdf",fileStream1),
+                        new MeF.Client.Services.InputComposition.BinaryAttachment("ScheduleB.pdf",fileStream2),
+                    }
+                };
+
+                list.Add(new MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive(submissionArch, DateTime.Now));
+
+                var container = new SubmissionContainer(list);
+
+                //Create the client using the current directory for simplicity
+                var client = new SendSubmissionsClient(path2);
+
+                var result = client.Invoke(context, container);
+                Util.WriteMessage("Result:");
+
+                Util.WriteResult(string.Format(" Attachment Path: {0}", result.AttachmentFilePath));
+                Util.WriteResult(string.Format(" DepositId ID: {0}", result.DepositId));
+                Util.WriteResult(string.Format(" MessageID ID: {0}", result.MessageID));
+                Util.WriteResult(string.Format(" FileNameD: {0}", result.FileName));
+
+                var unzippedContent = result.unzippedcontent;
+
+                if (unzippedContent != null)
+                {
+                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
+                    string xmlString = enc.GetString(unzippedContent);
+
+                    Util.WriteResult(string.Format(" XML Content: {0}", xmlString));
+                }
+                var submissionRecieptlist = result.GetSubmissionReceiptList();
+
+                Util.WriteResult(string.Format(" Submission Receipt List Count: {0}", submissionRecieptlist.Cnt));
+
+                Pause();
+            }
+            catch (Exception e)
+            {
+                Util.WriteError("An error has occured check the log for details...");
+                Util.WriteError(e.Message);
+            }
+        }
+
+        private static void CallSendSubmissionsFor940TestMultiple()
+        {
+            try
+            {
+                Util.Write("  Enter the maxResults:");
+                Util.WriteInput("Enter Your selection (0 to cancel): ");
+
+                var list = new List<MeF.Client.Services.InputComposition.PostmarkedSubmissionArchive>();
+
+                //first submission
+                var path = Environment.CurrentDirectory + "\\940\\Files1\\";
+                var submissionArch = new MeF.Client.Services.InputComposition.SubmissionArchive
+                {
+                    isFileBased = false,
+                    submissionId = "69321820243050000021",
+                    submissionManifest = new MeF.Client.Services.InputComposition.SubmissionManifest(
+                    path + "manifest.xml"),
+                    submissionXml = new MeF.Client.Services.InputComposition.SubmissionXml(
+                        path + "940.xml")
+                };
+
+                //second submission
+                var path2 = Environment.CurrentDirectory + "\\940\\Files2\\";
+                var path3 = Environment.CurrentDirectory + "\\940\\FilesResultMultiple\\";
+
+                var fileStream1 = File.ReadAllBytes(path2 + "8453-EMP.pdf");
+                var fileStream2 = File.ReadAllBytes(path2 + "ScheduleB.pdf");
+
+                var submissionArch2 = new MeF.Client.Services.InputComposition.SubmissionArchive
+                {
+                    isFileBased = false,
+                    submissionId = "69321820243050000022",
+                    submissionManifest = new MeF.Client.Services.InputComposition.SubmissionManifest(
+                    path + "manifest.xml"),
+                    submissionXml = new MeF.Client.Services.InputComposition.SubmissionXml(
+                        path + "940.xml"),
                     binaryAttachments = new List<MeF.Client.Services.InputComposition.BinaryAttachment>
                     {
                         new MeF.Client.Services.InputComposition.BinaryAttachment("8453-EMP.pdf",fileStream1),

@@ -1,6 +1,6 @@
-﻿namespace TelonaiWebApi.Models.FileScan
+﻿namespace TelonaiWebApi.Helpers.Configuration
 {
-    public class FileScanLogin
+    public class FileScanAuthSettings
     {
         public string username { get; set; }
         public string password { get; set; }

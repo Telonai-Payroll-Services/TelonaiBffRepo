@@ -5,19 +5,19 @@ using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 
-public interface IIncomeTaxService<IncomeTaxRateModel, IncomeTaxRate> : IDataService<IncomeTaxRateModel, IncomeTaxRate>
+public interface IIncomeTaxRateService<IncomeTaxRateModel, IncomeTaxRate> : IDataService<IncomeTaxRateModel, IncomeTaxRate>
 {
     IList<IncomeTaxRateModel> GetModelByCountryId(int countryId);
     IList<IncomeTaxRate> GetByCountryId(int countryId);
 
 }
 
-public class IncomeTaxService : IIncomeTaxService<IncomeTaxRateModel, IncomeTaxRate>
+public class IncomeTaxRateService : IIncomeTaxRateService<IncomeTaxRateModel, IncomeTaxRate>
 {
     private readonly DataContext _context;
     private readonly IMapper _mapper;
     
-    public IncomeTaxService(DataContext context, IMapper mapper)
+    public IncomeTaxRateService(DataContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
@@ -44,7 +44,7 @@ public class IncomeTaxService : IIncomeTaxService<IncomeTaxRateModel, IncomeTaxR
     {
         try
         {
-            var dto = _context.IncomeTaxRate.Where(e => e.IncomeTaxType.CountryId == countryId && e.EffectiveDate.Year <= DateTime.Now.Year).ToList();
+            var dto = _context.IncomeTaxRate.Where(e => e.IncomeTaxType.CountryId == countryId && e.EffectiveYear == DateTime.Now.Year).ToList();
 
             return dto;
         }
@@ -66,5 +66,5 @@ public class IncomeTaxService : IIncomeTaxService<IncomeTaxRateModel, IncomeTaxR
     {
         throw new NotImplementedException();
     }
-    
+
 }

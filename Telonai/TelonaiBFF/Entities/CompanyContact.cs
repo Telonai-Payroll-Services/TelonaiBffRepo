@@ -8,7 +8,7 @@ public class CompanyContact: BaseTracker
     public int PersonId { get; set; }
     public int CompanyId { get; set; }
     public int ContacttypeId { get; set; }
-    public Person person { get; set; }
+    public Person Person { get; set; }
     public Company Company { get; set; }
     public ContactType ContactType { get; set; }
 }

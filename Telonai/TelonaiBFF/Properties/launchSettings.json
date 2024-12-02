@@ -3,18 +3,18 @@
     "WebApi": {
         "commandName": "Project",
         "launchBrowser": true,
-        "launchUrl": "swagger/index",
+        "launchUrl": "swagger/index.html",
         "environmentVariables": {
-            "ASPNETCORE_ENVIRONMENT": "Development"
+            "ASPNETCORE_ENVIRONMENT": "local"
         },
         "applicationUrl": "https://localhost:60887;http://localhost:80"
     },
     "WSL": {
       "commandName": "WSL2",
       "launchBrowser": true,
-      "launchUrl": "swagger/index",
+      "launchUrl": "swagger/index.html",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_ENVIRONMENT": "local",
         "ASPNETCORE_URLS": "https://localhost:60887;http://localhost:80"
       },
       "distributionName": ""

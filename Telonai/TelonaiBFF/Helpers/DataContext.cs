@@ -26,11 +26,11 @@ public class DataContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
+
         var secret = GetSecret("TelonaiDBConnectionString").Result;        
         var connectionString = $"Host={secret["host"]};Database={secret["dbname"]};Username={secret["username"]};Password={secret["password"]}";
-
         options.UseNpgsql(connectionString).ReplaceService<ISqlGenerationHelper, NpgsqlSqlGenerationLowercasingHelper>();
-
+        options.EnableSensitiveDataLogging();
     }
 
     public override int SaveChanges()
@@ -164,5 +164,9 @@ public class DataContext : DbContext
     public DbSet<StateSpecificFieldValue> StateSpecificFieldValue { get; set; }
     public DbSet<FormNineFortyFour> FormNineFortyFour { get; set; }
     public DbSet<AdditionalOtherMoneyReceived> AdditionalOtherMoneyReceived { get; set; }
+    public DbSet<DocumentType> DocumentType { get; set; }
+    public DbSet<EmployerSubscription> EmployerSubscription { get; set; }
+    public DbSet<AgentField> AgentField { get; set; }
+    public DbSet<AgentFieldValue> AgentFieldValue { get; set; }
 
 }

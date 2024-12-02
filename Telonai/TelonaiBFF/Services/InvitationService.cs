@@ -75,7 +75,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
 
     public InvitationModel GetAllByActivaionCodeAndInviteeEmail(string activationCode, string email)
     {
-        var dto = _context.Invitation.Include(e => e.Job).Include(e=>e.Country)
+        var dto = _context.Invitation.Include(e => e.Job).Include(e => e.Country)
             .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow);
 
@@ -243,8 +243,8 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
                 + $"Dear {recieverName},\r\n"
                 + $"You are invited by {senderCompanyName} to activate your Telonai account. "
                 + $"To activate your account, you need to download and install the Telonai app. "
-                + "If you are an IOS (iPhone) user, download the app from https://aws.amazon.com/ses .\r\n"
-                + "If you are an Android user, download the app from https://aws.amazon.com/ses .\r\n"
+               // + "If you are an IOS (iPhone) user, download the app from https://aws.amazon.com/ses .\r\n"
+                + "If you are an Android user, download the app from https://play.google.com/apps/internaltest/4701723557107848335 .\r\n"
                 + $"When prompted for activation code, please enter {activationCode} .";                
     }
 
@@ -253,8 +253,8 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         return $"<h1>Activate your account</h1>" 
          + $"Dear {recieverName}, </br><p>You are invited by <strong>{senderCompanyName}</strong> to activate your Telonai account. " 
          + $"<br/>To activate your account, you need to download and install the <strong>Telonai</strong> app."
-         + "<br/>If you are an IOS (iPhone) user, download the app from:  <a href='https://aws.amazon.com/ses'> App Store </a> ."
-         + "<br/>If you are an Android user, download the app from: <a href='https://aws.amazon.com/ses'> Google Play </a> ."
+        // + "<br/>If you are an IOS (iPhone) user, download the app from:  <a href='https://aws.amazon.com/ses'> App Store </a> ."
+         + "<br/>If you are an Android user, download the app from: <a href='https://play.google.com/apps/internaltest/4701723557107848335'> Google Play </a> ."
          + $"<br/>When prompted for activation code, please enter <strong>{activationCode}</strong> .";
     }
     private static string GetActivationCode(Guid invitationId)

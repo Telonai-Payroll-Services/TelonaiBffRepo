@@ -1,4 +1,4 @@
-﻿namespace TelonaiWebApi.Helpers
+﻿namespace TelonaiWebApi.Helpers.Configuration
 {
     public class ApiOptions
     {

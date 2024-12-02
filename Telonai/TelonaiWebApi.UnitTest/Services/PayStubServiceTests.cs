@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Services;
@@ -6,6 +8,11 @@ using TelonaiWebApi.Models;
 using TelonaiWebApi.Helpers;
 using Moq;
 using Xunit;
+using System.Net.Sockets;
+using System;
+using Amazon.Runtime.SharedInterfaces;
+using Amazon.Runtime.Internal.Util;
+using Microsoft.Extensions.Logging;
 
 namespace TelonaiWebAPI.UnitTest.Services
 {
@@ -15,12 +22,18 @@ namespace TelonaiWebAPI.UnitTest.Services
         private readonly Mock<IMapper> _mockMapper;
         private readonly Mock<IStaticDataService> _mockIStaticDataService;
         private readonly PayStubService _mockPayStubService;
+        private readonly Mock<IPersonService<PersonModel,Person>> _mockPersonService;
+        private readonly Mock<ILogger<PayStubService>> _mockLogger;
+
         public PayStubServiceTests()
         {
             _mockDataContext = new Mock<DataContext>();
             _mockMapper = new Mock<IMapper>();
             _mockIStaticDataService = new Mock<IStaticDataService>();
-            _mockPayStubService = new PayStubService(_mockDataContext.Object, _mockMapper.Object, _mockIStaticDataService.Object);
+            _mockPersonService  = new Mock<IPersonService<PersonModel, Person>>();
+            _mockLogger= new Mock<ILogger<PayStubService>>();
+            _mockPayStubService = new PayStubService(_mockDataContext.Object, _mockMapper.Object, _mockIStaticDataService.Object,
+                _mockPersonService.Object, _mockLogger.Object);
         }
 
         #region GetCurrentByCompanyId
@@ -1584,46 +1597,12 @@ namespace TelonaiWebAPI.UnitTest.Services
         [Fact]
         public async void GetPayStub_WhenThereIsExistingPayStub_ReturnsPayStubDetailInfo()
         {
-            var companyId = 1;
-            var personId = 21;
-            var jobId = 20;
-            var payroll = new Payroll()
-            {
-                Id = 112,
-                CompanyId = companyId,
-                PayrollScheduleId = 2,
-                ScheduledRunDate = DateOnly.FromDateTime(DateTime.Today),
-                StartDate = DateOnly.FromDateTime(DateTime.Now),
-                TrueRunDate = DateTime.Now
-            };
-
-            var employment = new Employment()
-            {
-                Id = 20,
-                PersonId = personId,
-                JobId = jobId,
-                PayRateBasisId = 11,
-                PayRate = 90,
-                IsPayrollAdmin = false,
-                IsSalariedOvertimeExempt = false,
-                IsTenNinetyNine = false,
-                StartDate = DateOnly.FromDateTime(DateTime.Now),
-                Job = new Job()
-                {
-                    Id = jobId,
-                    CompanyId = companyId,
-                    AddressLine1 = "Bole Getu Commercial Center",
-                    AddressLine2 = "Kebede Building",
-                    AddressLine3 = "Second Floor",
-                    ZipcodeId = 232
-                }
-            };
             //Arrange
             var payStub = new PayStub()
             {
                 Id = 1,
-                PayrollId = 112,
-                EmploymentId = 20,
+                PayrollId = 12,
+                EmploymentId = 13,
                 OtherMoneyReceivedId = 25,
                 RegularHoursWorked = 160,
                 OverTimeHoursWorked = 64,
@@ -1637,8 +1616,6 @@ namespace TelonaiWebAPI.UnitTest.Services
                 YtdOverTimePay = 0,
                 YtdRegularPay = 20500,
                 IsCancelled = false,
-                Payroll = payroll,
-                Employment = employment,
             };
             var mockSet = new Mock<DbSet<PayStub>>();
             _mockDataContext.Setup(c => c.PayStub).Returns(mockSet.Object);
@@ -1917,8 +1894,7 @@ namespace TelonaiWebAPI.UnitTest.Services
 
         #endregion
 
-        #region  Delete PayStub
-
+        #region 
 
         [Fact]
         public async void DeletePayStub_WhenPassingExistingPayStubID_ReturnListThatExcludeTheDeletedPayStub()

@@ -17,11 +17,13 @@ public class PayStubController : ControllerBase
 {
     private readonly IPayStubService _PayStubService;
     private readonly IScopedAuthorization _scopedAuthorization;
+    private readonly IPersonService<PersonModel, Person> _personService;
 
-    public PayStubController(IPayStubService PayStubService, IScopedAuthorization scopedAuthorization)
+    public PayStubController(IPayStubService PayStubService, IScopedAuthorization scopedAuthorization, IPersonService<PersonModel,Person> personService)
     {
         _PayStubService = PayStubService;
         _scopedAuthorization = scopedAuthorization;
+        _personService = personService;
     }
 
     [HttpGet("companies/{companies}")]
@@ -32,11 +34,18 @@ public class PayStubController : ControllerBase
         return Ok(PayStub);
     }
 
-    [HttpGet("companies/{companies}/persons/{personId}")]
-    public IActionResult GetCurrentByJobIdAndPersonId(int companyId, int personId)
+    [HttpGet("companies/{companyId}/persons/{personId}")]
+    public IActionResult GetCurrentByCompanyAndPersonId(int companyId, int personId)
     {
-        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.User, companyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, companyId);
         var PayStub = _PayStubService.GetCurrentByCompanyIdAndPersonId(companyId, personId);
+        return Ok(PayStub);
+    }
+    [HttpGet("companies/{companyId}/own/count/{count}/skip/{skip}")]
+    public async Task<IActionResult> GetCurrentByJobIdAnd(int companyId,int count=6,int skip=0)
+    {
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, companyId);
+        var PayStub =await _PayStubService.GetCurrentOwnPayStubByCompanyId(companyId,count,skip);
         return Ok(PayStub);
     }
 
@@ -77,17 +86,41 @@ public class PayStubController : ControllerBase
     }
 
     [HttpGet("{id}/document")]
-    public IActionResult GetDocumentByPayStubId(int id)
+    public async Task<IActionResult> GetDocumentByPayStubId(int id)
     {
-        var item = _PayStubService.GetById(id);
-        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, item.Payroll.CompanyId);
-
-        var stream = _PayStubService.GetDocumentByDocumentId(item.DocumentId.Value).Result;
-        using (MemoryStream ms = new())
+        var payStub = _PayStubService.GetById(id);
+        if (payStub != null)
         {
-            stream.CopyTo(ms);
-            return File(ms.ToArray(), "application/pdf", "mypdf.pdf");
-        }       
+            _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, payStub.Payroll.CompanyId);
+            var userInfo = Request.HttpContext.User;
+            var email = userInfo.Claims.First(e => e.Type == "email").Value;
+            var person = await _personService.GetByEmailAsync(email);
+            if (person != null)
+            {
+                if (payStub.Employment.PersonId == person.Id && payStub.DocumentId != null)
+                {
+                    var stream = await _PayStubService.GetDocumentByDocumentId(payStub.DocumentId.Value);
+                    using (MemoryStream ms = new())
+                    {
+                        stream.CopyTo(ms);
+                        return File(ms.ToArray(), "application/pdf", "mypdf.pdf");
+                    }
+                }
+                else
+                {
+                    return NotFound("Paystub cannot be found");
+                }
+            }
+            else
+            {
+                return NotFound("Paystub cannot be found");
+            }
+        }
+        else
+        {
+            return NotFound("Paystub does not exist");
+        }
+        
     }
 
     [HttpPost()]

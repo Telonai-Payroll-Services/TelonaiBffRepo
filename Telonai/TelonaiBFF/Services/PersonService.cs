@@ -14,8 +14,10 @@ public interface IPersonService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     PersonModel GetDetailsById(int id);
     Task<PersonModel> GetByEmailAsync(string email);
     IList<PersonModel> GetByCompanyId(int companyId);
+    IList<PersonModel> GetIncompleteInineByCompanyId(int companyId);
     Task<PersonModel> GetByEmailAndCompanyIdAsync(string email, int companyId);
     Task<Person> GetCurrentUserAsync();
+    Task<Person> GetPersonById(int Id);
 
 }
 
@@ -24,16 +26,42 @@ public class PersonService : IPersonService<PersonModel,Person>
     private readonly DataContext _context;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    public PersonService(DataContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+    private readonly IZipcodeService _zipCodeService;
+    private readonly ICityService _cityService;
+    private readonly IStateService _stateService;
+    public PersonService(DataContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, IZipcodeService zipCodeService, ICityService cityService, IStateService stateService)
     {
         _context = context;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
+        _zipCodeService = zipCodeService;
+        _cityService = cityService;
+        _stateService = stateService;
     }
     public IList<PersonModel> GetByCompanyId(int companyId)
     {
         var obj = _context.Person.Where(e=>e.CompanyId==companyId && !e.Deactivated);
         var result = _mapper.Map<IList<PersonModel>>(obj);
+        return result;
+    }
+    public IList<PersonModel> GetIncompleteInineByCompanyId(int companyId)
+    {
+        var completeStatusId = (int)INineVerificationStatusModel.INineSectionTwoSubmitted;
+
+        var jobIds = _context.Job
+            .Where(e => e.CompanyId == companyId)
+            .Select(e => e.Id)
+            .ToList();
+
+        var filteredPersons = _context.Person
+            .Where(p => p.CompanyId == companyId
+                        && p.INineVerificationStatusId < completeStatusId
+                        && !p.Deactivated
+                        && !_context.Employment
+                            .Any(e => jobIds.Contains(e.JobId) && e.PersonId == p.Id && e.Deactivated))
+            .ToList();
+
+        var result = _mapper.Map<IList<PersonModel>>(filteredPersons);
         return result;
     }
 
@@ -117,28 +145,43 @@ public class PersonService : IPersonService<PersonModel,Person>
 
     public void Update(int id, PersonModel model)
     {
-        var user = GetPerson(id) ?? throw new AppException("Account not found.");
-
-        user.FirstName = string.IsNullOrWhiteSpace(model.FirstName) ? user.FirstName : model.FirstName;
-        user.LastName = string.IsNullOrWhiteSpace(model.LastName) ? user.LastName : model.LastName;
-        user.AddressLine1 = string.IsNullOrWhiteSpace(model.AddressLine1) ? user.AddressLine1 : model.AddressLine1;
-        user.AddressLine2 = string.IsNullOrWhiteSpace(model.AddressLine2) ? user.AddressLine2 : model.AddressLine2;
-        user.AddressLine3 = string.IsNullOrWhiteSpace(model.AddressLine3) ? user.AddressLine3 : model.AddressLine3;
-        user.Ssn = string.IsNullOrWhiteSpace(model.Ssn) ? user.Ssn : model.Ssn;
-        user.ZipcodeId = model.ZipcodeId == 0 ? user.ZipcodeId : model.ZipcodeId;
-
-        _context.Person.Update(user);
-
-        if (model.Ssn != null)
+        var person = GetPerson(id) ?? throw new AppException("Account not found.");
+        if (person != null)
         {
-            var emp = _context.Employment.FirstOrDefault(e => e.PersonId == id);
-            if (emp != null && (emp.SignUpStatusTypeId==null || emp.SignUpStatusTypeId < (int)SignUpStatusTypeModel.UserProfileCreationCompleted))
+            person.FirstName = string.IsNullOrWhiteSpace(model.FirstName) ? person.FirstName : model.FirstName;
+            person.LastName = string.IsNullOrWhiteSpace(model.LastName) ? person.LastName : model.LastName;
+            person.AddressLine1 = string.IsNullOrWhiteSpace(model.AddressLine1) ? person.AddressLine1 : model.AddressLine1;
+            person.AddressLine2 = string.IsNullOrWhiteSpace(model.AddressLine2) ? person.AddressLine2 : model.AddressLine2;
+            person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
+            person.Ssn = string.IsNullOrWhiteSpace(model.Ssn) ? person.Ssn : model.Ssn;
+            if (model.ZipcodeId != null && model.ZipcodeId > 0)
             {
-                emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserProfileCreationCompleted;
-                _context.Employment.Update(emp);
-            }               
+                if (person.Zipcode == null)
+                {
+                    person.Zipcode = _zipCodeService.GetById(model.ZipcodeId);
+                    person.ZipcodeId = model.ZipcodeId;
+                    person.Zipcode.City = _cityService.GetById(person.Zipcode.CityId);
+                    person.Zipcode.City.State = _stateService.GetById(person.Zipcode.City.StateId);
+                }
+                else
+                {
+                    person.ZipcodeId = model.ZipcodeId == 0 ? person.ZipcodeId : model.ZipcodeId;
+                    person.Zipcode.CityId = model.CityId == 0 ? person.Zipcode.CityId : model.CityId;
+                    person.Zipcode.City.StateId = model.StateId == 0 ? person.Zipcode.City.StateId : model.StateId;
+                }
+            }
+            if (model.Ssn != null)
+            {
+                var emp = _context.Employment.FirstOrDefault(e => e.PersonId == id);
+                if (emp != null && (emp.SignUpStatusTypeId == null || emp.SignUpStatusTypeId < (int)SignUpStatusTypeModel.UserProfileCreationCompleted))
+                {
+                    emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserProfileCreationCompleted;
+                    _context.Employment.Update(emp);
+                }
+            }
+            _context.Person.Update(person);
+            _context.SaveChanges();
         }
-        _context.SaveChanges();
     }
 
     public async Task DeleteAsync(int id)
@@ -149,11 +192,17 @@ public class PersonService : IPersonService<PersonModel,Person>
         await _context.SaveChangesAsync();
     }
 
+    public async Task<Person> GetPersonById(int Id)
+    {
+        var result = await _context.Person.Include(z => z.Zipcode).Include(c => c.Zipcode.City).FirstOrDefaultAsync(p => p.Id == Id);
+        return result;
+    }
+
     // helper methods
 
     private Person GetPerson(int id)
     {
-        return _context.Person.Find(id);       
+        return _context.Person.Include(z=>z.Zipcode).Include(c=>c.Zipcode.City).FirstOrDefault(p=>p.Id == id);       
     }
 
     public async Task<Person> GetCurrentUserAsync()
@@ -163,4 +212,6 @@ public class PersonService : IPersonService<PersonModel,Person>
             return person;       
         
     }
+
+    
 }

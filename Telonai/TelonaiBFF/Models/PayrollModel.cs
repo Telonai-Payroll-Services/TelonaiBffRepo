@@ -17,4 +17,6 @@ public class PayrollModel
     public double? StatesPaid { get; set; }
     public double? FederalPaid { get; set; }
     public string ExpenseTrackingHexColor { get; set; }
+    public double? GrossPay { get; set; }
+
 }

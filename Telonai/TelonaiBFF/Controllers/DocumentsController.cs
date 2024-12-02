@@ -65,18 +65,30 @@ public class DocumentsController : ControllerBase
     }
 
 
-    [HttpGet("documentType/{documentType}")]
-    public async Task<IActionResult> GetByDocumentType(DocumentTypeModel documentType)
+    [HttpGet("documentType/{documentType}/employer")]
+    public async Task<IActionResult> GetByDocumentTypeEmployer(DocumentTypeModel documentType)
     {
-        var document = await _documentService.GetDocumentByDocumentTypeAsync(documentType);
-        if (document != null)
+        if (FilteredDocumentTypes.EmployerDocumentTypes.Contains(documentType.ToString()))
         {
-            return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
+            var document = await _documentService.GetDocumentByDocumentTypeEmployerAsync(documentType);
+            if (document != null)
+
+                return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
         }
-        else
+        return NotFound();
+    }
+
+    [HttpGet("documentType/{documentType}/employee")]
+    public async Task<IActionResult> GetByDocumentTypeEmployee(DocumentTypeModel documentType)
+    {
+        if (FilteredDocumentTypes.EmployeeDocumentTypes.Contains(documentType.ToString()))
         {
-            return NotFound();
+            var document = await _documentService.GetDocumentByDocumentTypeEmployeeAsync(documentType);
+            if (document != null)
+
+                return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
         }
+        return NotFound();
     }
 
 
@@ -89,12 +101,44 @@ public class DocumentsController : ControllerBase
         return File(document.Item1, "application/octet-stream", $"{document.Item2}.pdf");
     }
 
+    [HttpPost("documentType/{documentType}/signed")]
+    public async Task<IActionResult> AddSignedDocument(IFormFile file, int employeeId, DocumentTypeModel documentType)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file uploaded.");
+        }
+
+        using (Stream stream = new MemoryStream())
+        {
+            file.CopyTo(stream);
+
+            var email = Request.HttpContext.User?.Claims.First(e => e.Type == "email").Value;
+            var result = await _documentService.UploadSignedDocumentAsync(documentType, email, employeeId, stream);
+
+            if (!result) return Forbid();
+
+            return Ok(new { message = "Document uploaded." });
+        }
+    }
+
     [HttpPost("documentType/{documentType}/unsigned")]
     [Authorize(Policy = "SystemAdmin")]
-    public async Task<IActionResult> AddGovernmentDocument(DocumentTypeModel documentType)
+    public async Task<IActionResult> AddGovernmentDocument(IFormFile file, DocumentTypeModel documentType)
     {
-        await _documentService.UploadInternalDocumentAsync(documentType);
-        return Ok(201);
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file uploaded.");
+        }
+
+        using (Stream stream = new MemoryStream())
+        {
+            file.CopyTo(stream);
+
+            await _documentService.AddGovernmentDocumentAsync(stream, documentType);
+
+            return Ok(new { message = "Document uploaded." });
+        }
     }
 
 
@@ -162,14 +206,14 @@ public class DocumentsController : ControllerBase
 
         var result = await _documentService.GenerateW4pdf(employmentId, model);
 
-        var response = new 
+        var response = new
         {
-            DocumentId = result.DocumentId, 
-            File = File(result.FileBytes, "application/pdf", "edited_fw4.pdf") 
+            DocumentId = result.DocumentId,
+            File = File(result.FileBytes, "application/pdf", "edited_fw4.pdf")
         };
         return Ok(response);
 
-  
+
     }
 
     [HttpPost("{id}/employments/{employmentId}/signW4pdf")]
@@ -179,5 +223,42 @@ public class DocumentsController : ControllerBase
 
         return File(fileBytes, "application/pdf", "signed_fw4.pdf");
 
+    }
+
+    [HttpPost("{id}/confirm")]
+    public async Task<IActionResult> Confirm(Guid id)
+    {
+        await _documentService.Confirm(id);
+        return Ok(new { message = "Document Signature Confirmed." });
+    }
+
+    [HttpPost("employments/{employmentId}/generateNC4pdf")]
+    public async Task<IActionResult> GenerateNC4pdf(int employmentId, [FromBody] NC4Form model)
+    {
+
+        var result = await _documentService.GenerateNC4pdf(employmentId, model);
+
+        var response = new
+        {
+            DocumentId = result.DocumentId,
+            File = File(result.FileBytes, "application/pdf", "edited_nc4.pdf")
+        };
+        return Ok(response);
+    }
+    [HttpPost("{id}/employments/{employmentId}/signNC4pdf")]
+    public async Task<IActionResult> SignNC4Doument(Guid id, int employmentId, SignatureModel signature)
+    {
+        var fileBytes = await _documentService.SignNC4DoumentAsync(id, employmentId, signature);
+
+        return File(fileBytes, "application/pdf", "signed_nc4.pdf");
+
+    }
+
+    [HttpGet("documentTypes")]
+    public async Task<IActionResult> GetDocumentTypes()
+    {
+        var email = Request.HttpContext.User?.Claims.First(e => e.Type == "email").Value;
+        var documentTypes = _documentService.GetDocumentTypes(email);
+        return Ok(documentTypes);
     }
 }

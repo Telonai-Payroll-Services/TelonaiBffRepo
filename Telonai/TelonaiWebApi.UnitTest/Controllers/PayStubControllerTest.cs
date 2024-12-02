@@ -24,6 +24,8 @@ namespace TelonaiWebAPI.UnitTest.Controllers
         private readonly Mock<IMapper> _mockMapper;
         public ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal();
         public DefaultHttpContext context = new DefaultHttpContext();
+        private readonly Mock<PersonService> _personService;
+
         public PayStubControllerTest()
         {
             _mockScopedAuthorization = new Mock<IScopedAuthorization>();
@@ -31,7 +33,8 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
             _mockHttpContext = new Mock<HttpContext>();
             _mockMapper = new Mock<IMapper>();
-            _payStubController = new PayStubController(_mockPayStubService.Object, _mockScopedAuthorization.Object)
+            _personService = new Mock<PersonService>();
+            _payStubController = new PayStubController(_mockPayStubService.Object, _mockScopedAuthorization.Object, _personService.Object)
             {
                 ControllerContext = new ControllerContext
                 {
@@ -397,7 +400,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             _mockPayStubService.Setup(service => service.GetCurrentByCompanyIdAndPersonId(companyId, presonId)).Returns(payStubModel);
 
             //Act 
-            var result = _payStubController.GetCurrentByJobIdAndPersonId(companyId, presonId);
+            var result = _payStubController.GetCurrentByCompanyAndPersonId(companyId, presonId);
             //Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
             var returnedDocument = Assert.IsType<List<PayStubModel>>(okResult.Value);
@@ -528,7 +531,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             _mockPayStubService.Setup(service => service.GetCurrentByCompanyIdAndPersonId(companyId, presonId)).Returns(payStubModel);
 
             //Act 
-            var result = _payStubController.GetCurrentByJobIdAndPersonId(It.IsAny<int>(), It.IsAny<int>());
+            var result = _payStubController.GetCurrentByCompanyAndPersonId(It.IsAny<int>(), It.IsAny<int>());
 
             //Assert
             var okResult = Assert.IsType<OkObjectResult>(result);

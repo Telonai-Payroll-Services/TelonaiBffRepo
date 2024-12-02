@@ -12,3 +12,4 @@ public class SpecificField
 public sealed class StateSpecificField : SpecificField { }
 public sealed class CompanySpecificField : SpecificField { }
 public sealed class CountrySpecificField : SpecificField { }
+public sealed class AgentField : SpecificField { }

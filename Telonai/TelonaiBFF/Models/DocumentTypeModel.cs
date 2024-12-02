@@ -23,5 +23,19 @@ public enum DocumentTypeModel
     [Display(Name = "940")]
     NineForty,
     [Display(Name = "941")]
-    NineFortyOne
+    NineFortyOne,
+    [Display(Name = "Form 8879-EMP")]
+    EightyEightSeventyNineEmpUnsigned
+}
+
+public static class FilteredDocumentTypes
+{
+    public static List<string> EmployerDocumentTypes = new List<string> {
+        "INineUnsigned", "INine", "EightyEightSeventyNineEmpUnsigned", "EightyEiightSeventyNineEmp",
+        "NineForty", "NineFortyOne", "NineFortyFour"
+    };
+
+    public static List<string> EmployeeDocumentTypes = new List<string> {
+        "PayStub", "INineUnsigned", "WFour", "NCFour"
+    };
 }
