@@ -268,7 +268,7 @@ public class PayStubService : IPayStubService
             e => e.CreatedDate.Year == _currentYear && !e.PayStub.IsCancelled && e.PayStub.EmploymentId == stub.EmploymentId);
 
         var withHolingForms = _context.EmployeeWithholding.Include(e=>e.Field).Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year).ToList();
-        var w4Form = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.WFour).ToList();
+        var w4Form = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.WFourUnsigned).ToList(); // we use w4unsigned becuase the original employee withholding document is w4-unsigned  
 
         var fedFilingStatus = FilingStatusTypeModel.SingleOrMarriedFilingSeparately;
 
@@ -281,13 +281,12 @@ public class PayStubService : IPayStubService
         var w4TwoC = w4Form.Find(e => e.Field.FieldName == "2c");
         var w4Three = w4Form.Find(e => e.Field.FieldName == "3");
         var w4FourA = w4Form.Find(e => e.Field.FieldName == "4a");
-        var w4FourB = w4Form.Find(e => e.Field.FieldName == "4a");
-        var w4FourC = w4Form.Find(e => e.Field.FieldName == "4a");
-        var w4FourD = w4Form.Find(e => e.Field.FieldName == "4a");
+        var w4FourB = w4Form.Find(e => e.Field.FieldName == "4b");
+        var w4FourC = w4Form.Find(e => e.Field.FieldName == "4c");
 
         var employeeFederalRates = incomeTaxRates.Where(e => e.IncomeTaxType.ForEmployee &&
-        e.EffectiveYear == _currentYear && e.IncomeTaxType.StateId == null && (e.FilingStatusId == null ||
-        e.FilingStatusId == (int)fedFilingStatus)).ToList();
+        e.EffectiveYear == _currentYear && e.IncomeTaxType.StateId == null && 
+        e.FilingStatusId == (int)fedFilingStatus).ToList();
 
         var employerFederalRates = incomeTaxRates.Where(e => !e.IncomeTaxType.ForEmployee &&
         e.EffectiveYear == _currentYear && e.IncomeTaxType.StateId == null).ToList();
@@ -421,7 +420,7 @@ public class PayStubService : IPayStubService
     {
         var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
         var withHolingForms = _context.EmployeeWithholding.Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year);
-        var nc4 = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.NCFour);
+        var nc4 = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.NCFourUnsigned);
         var ncAnnualStandardDeductions = _staticDataService.GetStateStandardDeductionsByStateId(_stateId, _currentYear);
         var ncFilingStatus = FilingStatusTypeModel.SingleOrMarriedFilingSeparately;
 

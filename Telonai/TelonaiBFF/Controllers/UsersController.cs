@@ -194,18 +194,18 @@ public class UsersController : Controller
         return BadRequest();
     }
     
-    [HttpPost("checkUsernameAvailability/{username}")]
+    [HttpPost("user/{username}")]
     public async Task<IActionResult> CheckUserNameAvailability(string username)
     {
         if (!string.IsNullOrEmpty(username))
         {
             if (await _userService.CheckUsernameAvailability(username))
             {
-                return BadRequest("There is an existing username, Please try another username!");
+                return BadRequest("Invalid");
             }
             else
             {
-                return Ok("The username is available");
+                return Ok();
             }
         }
         else
