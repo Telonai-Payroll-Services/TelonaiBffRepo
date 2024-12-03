@@ -243,6 +243,9 @@ public class PayrollService : IPayrollService
                 });
             }
         }
+
+        _ = SendReminderForLatePayrolls();
+
         if (newPayrollsList.Count > 0)
         {
             _context.Payroll.AddRange(newPayrollsList);
@@ -250,6 +253,48 @@ public class PayrollService : IPayrollService
         }
 
         return newPayrollsList.Count;
+    }
+
+    public async Task SendReminderForLatePayrolls()
+    {
+        var now = DateOnly.FromDateTime(DateTime.Now);
+
+        var latePayrolls = _context.Payroll.Include(e => e.PayrollSchedule)
+            .Where(e => e.ScheduledRunDate < now && e.TrueRunDate == null)
+            .GroupBy(e => e.CompanyId)
+            .Where(g => g.Count() == 1) //This line will filter out those already created in the previous day
+            .Select(g => g.First()).ToList();
+
+        foreach (var payroll in latePayrolls)
+        {
+            var admins = (from person in _context.Person
+                          join employment in _context.Employment
+                          on person.Id equals employment.Id
+                          where person.CompanyId == payroll.CompanyId && employment.IsPayrollAdmin
+                          select new
+                          {
+                              person.Email,
+                              person.FirstName,
+                              person.LastName,
+                              ScheduledRunDate = payroll.ScheduledRunDate
+                          }).ToList();
+
+            foreach (var admin in admins)
+            {
+                _ = _mailSender.SendUsingAwsClientAsync(
+                    admin.Email,
+                    $"Time to run payroll",
+                    CreateHtmlEmailBodyForLatePayroll(admin.ScheduledRunDate.ToString("MMM/dd/yyyy"), $"{admin.FirstName} {admin.LastName}"),
+                    CreateTextEmailBodyForLatePayroll(admin.ScheduledRunDate.ToString("MMM/dd/yyyy"), $"{admin.FirstName} {admin.LastName}")
+                ).ContinueWith(task => {
+                    if (task.IsFaulted)
+                    {
+                        Console.Error.WriteLine($"Failed to send email to {admin.Email}: {task.Exception}");
+                    }
+                });
+            }
+
+        }
     }
 
     private static string CreateTextEmailBody(string scheduledDate, string receiverName)
@@ -268,6 +313,21 @@ public class PayrollService : IPayrollService
          + $"<p>Your payroll run date is on <strong>{scheduledDate}</strong>. To ensure your employees get paid on time, "
          + $"please run payroll, using our mobile app, on <strong>{scheduledDate}</strong>. "
          + $"<br/>Please do not reply to this email as it is not monitored.";
+    }
+    private static string CreateTextEmailBodyForLatePayroll(string scheduledDate, string receiverName)
+    {
+        return $"Time to Run Payroll"
+            + $"Dear {receiverName},\r\n"
+            + $"Your payroll run date has passed. It was on {scheduledDate}. Using our mobile app, please run payroll as soon as possible. Please note that your employees will not get paid until you run payroll. \r\n\n"
+            + $"Please do not reply to this email as it is not monitored. If you need assistance, please call our support team at 601-608-7025";
+    }
+
+    private static string CreateHtmlEmailBodyForLatePayroll(string scheduledDate, string receiverName)
+    {
+        return $"<h2>Time to Run Payroll</h2>"
+         + $"Dear {receiverName}, </br>"
+         + $"Your payroll run date has passed. It was on <strong>{scheduledDate}</strong>. Using our mobile app, please run payroll as soon as possible. Please note that your employees will not get paid until you run payroll."
+         + $"<br/><br/>Please do not reply to this email as it is not monitored. If you need assistance, please call our support team at <strong>601-608-7025</strong>";
     }
 
     /// <summary>
