@@ -194,7 +194,7 @@ public class UsersController : Controller
         return BadRequest();
     }
     
-    [HttpPost("user/{username}")]
+    [HttpPost("{username}")]
     public async Task<IActionResult> CheckUserNameAvailability(string username)
     {
         if (!string.IsNullOrEmpty(username))
