@@ -13,9 +13,9 @@ public interface IOtherMoneyReceivedService
 {
     OtherMoneyReceivedModel GetById(int id);
     List<OtherMoneyReceivedModel> GetByPayStubId(int payStubId, out int jobId);
-    void Update(int payStubId, OtherMoneyReceivedModel model);
-    void Create(int payStubId, OtherMoneyReceivedModel model);
-    void Delete(int id);
+    Task<bool> Update(int payStubId, OtherMoneyReceivedModel model);
+    Task<bool> Create(int payStubId, OtherMoneyReceivedModel model);
+    Task<bool> Delete(int id);
 }
 
 public class OtherMoneyReceivedService : IOtherMoneyReceivedService
@@ -35,7 +35,7 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
 
     public OtherMoneyReceivedModel GetById(int id)
     {
-        var obj = _context.OtherMoneyReceived.Where(e => e.Id==id);
+        var obj = _context.OtherMoneyReceived.Find(id);
         
         if (obj == null)
             return null;
@@ -55,7 +55,7 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
         return  _mapper.Map<List<OtherMoneyReceivedModel>>(obj.ToList());
     }
 
-    public void Create(int paystubId, OtherMoneyReceivedModel model)
+    public async Task<bool> Create(int paystubId, OtherMoneyReceivedModel model)
     {
         var dtoPayStub = GetPayStub(paystubId) ?? throw new KeyNotFoundException("PayStub not found");
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, dtoPayStub.Payroll.CompanyId);
@@ -78,10 +78,10 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
 
         dtoPayStub.OtherMoneyReceivedId=objOtherMoney.Id;
         _context.PayStub.Update(dtoPayStub);
-        _context.SaveChanges();
+        return  await _context.SaveChangesAsync() > 0;
     }
 
-    public void Update(int payStubId, OtherMoneyReceivedModel model)
+    public async Task<bool> Update(int payStubId, OtherMoneyReceivedModel model)
     {
         var dtoPayStub = GetPayStub(payStubId) ?? throw new KeyNotFoundException("PayStub not found");
 
@@ -99,8 +99,14 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
                 _context.SaveChanges();
                 obj.AdditionalOtherMoneyReceivedId = obj2.Select(e => e.Id).ToArray();
             }
-            _context.OtherMoneyReceived.Add(obj);
-            _context.SaveChanges();
+            else
+            {
+                _context.OtherMoneyReceived.Add(obj);
+                _context.SaveChanges();
+            }
+            
+            _context.PayStub.Update(dtoPayStub);
+            return await _context.SaveChangesAsync() > 0;
         }
         else
         {
@@ -116,19 +122,30 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
                 _context.SaveChanges();
                 objNew.AdditionalOtherMoneyReceivedId = obj2New.Select(e => e.Id).ToArray();
             }
-
-            _context.OtherMoneyReceived.Add(objNew);          
-            _context.SaveChanges();
+            else
+            {
+                _context.OtherMoneyReceived.Add(objNew);
+                _context.SaveChanges();
+            }
+            _context.PayStub.Update(dtoPayStub);
+            return await _context.SaveChangesAsync() > 0;
         }
-        _context.PayStub.Update(dtoPayStub);
-        _context.SaveChanges();
+       
     }
-    
-    public void Delete(int id)
+
+    public async Task<bool> Delete(int id)
     {
         var dto = GetOtherMoneyReceived(id);
-        _context.OtherMoneyReceived.Remove(dto);
-        _context.SaveChanges();
+        if (dto != null)
+        {
+            _context.OtherMoneyReceived.Remove(dto);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
    
     private OtherMoneyReceived GetOtherMoneyReceived(int id)
@@ -136,7 +153,7 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
         var dto = _context.OtherMoneyReceived.Find(id);
         return dto;
     }
-    private PayStub GetPayStub(int id)
+    public PayStub GetPayStub(int id)
     {
         var dto = _context.PayStub.Include(e=>e.OtherMoneyReceived).Include(e=>e.Payroll).FirstOrDefault(e=>e.Id==id);
         return dto;
