@@ -76,7 +76,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
     public InvitationModel GetAllByActivaionCodeAndInviteeEmail(string activationCode, string email)
     {
         var dto = _context.Invitation.Include(e => e.Job).Include(e => e.Country)
-            .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode) &&
+            .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow);
 
         return _mapper.Map<InvitationModel>(dto ?? throw new AppException("Invalid Activation Code or Email"));
@@ -84,21 +84,21 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
     public Invitation GetAllByActivaionCodeAndInviteeEmail2(string activationCode, string email)
     {
         var dto = _context.Invitation.Include(e => e.Job).Include(e => e.Country)
-            .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode) &&
+            .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow);
 
         return dto ?? throw new AppException("Invalid Activation Code or Email");
     }
     public Invitation GetByActivaionCodeAndInviteeEmail(string activationCode, string email, string taxId)
     {
-        var dto = _context.Invitation.FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode) &&
+        var dto = _context.Invitation.FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow && e.TaxId == taxId);
 
         return dto ?? throw new AppException("Invalid Activation Code");
     }
     public InvitationModel GetByActivaionCodeAndInviteeEmail(string activationCode, string email)
     {
-        var dto = _context.Invitation.FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode) &&
+        var dto = _context.Invitation.FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow);
 
         return _mapper.Map<InvitationModel>(dto ?? throw new AppException("Invalid Activation Code or Email"));
@@ -193,8 +193,8 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         {
             var activationCode = GetActivationCode(invitation.Id);
             await _mailSender.SendUsingAwsClientAsync(model.Email, $"Activation Request by {companyName}",
-                CreateHtmlEmailBoby(activationCode, companyName, $"{model.FirstName} {model.LastName}"),
-                CreateTextEmailBoby(activationCode, companyName, $"{model.FirstName} {model.LastName}"));
+                CreateHtmlEmailBoby(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"),
+                CreateTextEmailBoby(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"));
             return invitation;
         }
         catch

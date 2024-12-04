@@ -127,7 +127,7 @@ public class DataContext : DbContext
     public virtual DbSet<Job> Job { get; set; }
     public virtual DbSet<TimecardUsa> TimecardUsa { get; set; }
     public DbSet<TimecardUsaNote> TimecardUsaNote { get; set; }
-    public DbSet<Invitation> Invitation { get; set; }
+    public virtual DbSet<Invitation> Invitation { get; set; }
     public DbSet<Zipcode> Zipcode { get; set; }
     public DbSet<RoleType> RoleType { get; set; }
     public virtual DbSet<PayrollSchedule> PayrollSchedule { get; set; }
