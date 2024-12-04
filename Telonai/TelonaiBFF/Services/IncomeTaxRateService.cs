@@ -1,6 +1,7 @@
 namespace TelonaiWebApi.Services;
 
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
@@ -44,7 +45,7 @@ public class IncomeTaxRateService : IIncomeTaxRateService<IncomeTaxRateModel, In
     {
         try
         {
-            var dto = _context.IncomeTaxRate.Where(e => e.IncomeTaxType.CountryId == countryId && e.EffectiveYear == DateTime.Now.Year).ToList();
+            var dto = _context.IncomeTaxRate.Include(e => e.IncomeTaxType).Where(e => e.IncomeTaxType.CountryId == countryId && e.EffectiveYear == DateTime.Now.Year).ToList();
 
             return dto;
         }
