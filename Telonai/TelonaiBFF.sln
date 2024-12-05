@@ -7,10 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelonaiWebApi", "TelonaiBFF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelonaiWebAPI.UnitTest", "TelonaiWebApi.UnitTest\TelonaiWebAPI.UnitTest.csproj", "{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MefClientSdkConsole", "MefClientSdkConsole\MefClientSdkConsole.csproj", "{55AA1907-7F0D-4E12-9907-4673B5E434FD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeFWCFClient", "..\..\..\..\..\Downloads\IRS_A2A_Toolkit20241030174705\Version_15\Version_15.0\MeF_Client_SDK\dotNET\source\src\MeFWCFClient.csproj", "{7EF46ABD-E592-43A6-8512-32753D64EE78}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,14 +21,6 @@ Global
 		{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0447ABAC-4A5B-4B0C-8A49-54582E29C80E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{55AA1907-7F0D-4E12-9907-4673B5E434FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{55AA1907-7F0D-4E12-9907-4673B5E434FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{55AA1907-7F0D-4E12-9907-4673B5E434FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{55AA1907-7F0D-4E12-9907-4673B5E434FD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7EF46ABD-E592-43A6-8512-32753D64EE78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7EF46ABD-E592-43A6-8512-32753D64EE78}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7EF46ABD-E592-43A6-8512-32753D64EE78}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7EF46ABD-E592-43A6-8512-32753D64EE78}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
