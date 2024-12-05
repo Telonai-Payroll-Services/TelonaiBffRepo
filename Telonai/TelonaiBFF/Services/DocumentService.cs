@@ -361,7 +361,7 @@ public class DocumentService : IDocumentService
 
         return Tuple.Create(document, dto.FileName, dto.EffectiveDate);
     }
-    private async Task<Guid> SaveGeneratedUnsignedW4Pdf(string fileName, byte[] file, DocumentTypeModel documentType)
+    private async Task<Guid> SaveGeneratedUnsignedPdf(string fileName, byte[] file, DocumentTypeModel documentType)
     {
 
         var fileBytes = file;
@@ -475,7 +475,7 @@ public class DocumentService : IDocumentService
             .FirstOrDefault(e => e.FieldId == employee.FieldId && e.EmploymentId == employee.EmploymentId &&
             !e.Deactivated && e.WithholdingYear == employee.WithholdingYear);
 
-        if (withholding == null || (dto.EffectiveDate > DateOnly.FromDateTime(DateTime.UtcNow) && withholding.EffectiveDate > DateOnly.FromDateTime(DateTime.UtcNow)))
+        if (withholding == null || (dto.EffectiveDate > DateOnly.FromDateTime(DateTime.UtcNow) && withholding.EffectiveDate < dto.EffectiveDate))
         {
             _context.EmployeeWithholding.Add(dto);
 
@@ -607,7 +607,7 @@ public class DocumentService : IDocumentService
         var documentForDisplay = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.WFourUnsigned.ToString(),
             document.Id.ToString());
         var fileForDisplay = await SetPdfFormFilds(model, documentForDisplay, filingStatus.Item1, emp, true);
-        var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes, DocumentTypeModel.WFourUnsigned);
+        var doumentId = await SaveGeneratedUnsignedPdf(document.FileName, fileBytes, DocumentTypeModel.WFourUnsigned);
         var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
 
         string prefix = "Step1c_FilingStatus_";
@@ -660,6 +660,7 @@ public class DocumentService : IDocumentService
         var employeeAtCompany = _context.Employment.FirstOrDefault(e => e.PersonId == _person.Id && e.Job.CompanyId == _person.CompanyId);
         var effectiveDate = GetInvitationDateForEmployee(employeeAtCompany.PersonId);
         var employeeWithholdingModel = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_person, documentId, fieldId, fieldValue, documentModel, employeeAtCompany.Id, effectiveDate);
+        
         return employeeWithholdingModel;
 
     }
@@ -683,6 +684,21 @@ public class DocumentService : IDocumentService
          employeeWithHodingModel4A,
          employeeWithHodingModel4B,
          employeeWithHodingModel4C,
+        };
+        return employeeWithHodingModelList;
+    }
+
+    private async Task<List<EmployeeWithholdingModel>> CreatemployeeWithholdingNC4Models(Guid documentId, string filingStatus, NC4Form model, DocumentModel documentModel)
+    {
+        var employeeWithHodingModel1 = CreateEmployeeWithholdingModel(documentId, 10, model.FilingStatus.ToString(), documentModel);
+        var employeeWithHodingModel2 = CreateEmployeeWithholdingModel(documentId, 11, model.AdditionalAmt.ToString(), documentModel);
+        var employeeWithHodingModel3 = CreateEmployeeWithholdingModel(documentId, 12, model.NumberOfAllowance.ToString(), documentModel);
+        
+        var employeeWithHodingModelList = new List<EmployeeWithholdingModel>
+        {
+         employeeWithHodingModel1,
+         employeeWithHodingModel2,
+         employeeWithHodingModel3,
         };
         return employeeWithHodingModelList;
     }
@@ -727,23 +743,27 @@ public class DocumentService : IDocumentService
 
         var fileBytes = await SetNC4PdfFormFilds(model, documentResult, filingStatus.Item2, emp, false);
 
-        var doumentId = await SaveGeneratedUnsignedW4Pdf(document.FileName, fileBytes, DocumentTypeModel.NCFourUnsigned);
+        var documentId = await SaveGeneratedUnsignedPdf(document.FileName, fileBytes, DocumentTypeModel.NCFourUnsigned);
         var documentForDisplay = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.NCFourUnsigned.ToString(),
             document.Id.ToString());
         var fileForDisplay = await SetNC4PdfFormFilds(model, documentForDisplay, filingStatus.Item2, emp, true);
-        var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
+        var doumentModel = await CreateDocumentModel(documentId, document.FileName, document.EffectiveDate);
 
         string prefix = "Step1c_FilingStatus_";
         string result = filingStatus.Item2.Substring(prefix.Length);
-        var employeeWithHodingModel1C = CreateEmployeeWithholdingModel(doumentId, 1, result, doumentModel);
-        await CreateEmployeeWithholdingAsync(employeeWithHodingModel1C);
+        var employeeWithhodingModelList = await CreatemployeeWithholdingNC4Models(documentId, result, model, doumentModel);
+
+        foreach (EmployeeWithholdingModel employee in employeeWithhodingModelList)
+        {
+            await CreateEmployeeWithholdingAsync(employee);
+        }
 
         emp.SignUpStatusTypeId = (int)SignUpStatusTypeModel.UserStartedSubmittingStateFour;
         _context.Employment.Update(emp);
         await _context.SaveChangesAsync();
 
 
-        return new W4PdfResult { FileBytes = fileForDisplay, DocumentId = doumentId };
+        return new W4PdfResult { FileBytes = fileForDisplay, DocumentId = documentId };
 
     }
     private async Task<byte[]> SetNC4PdfFormFilds(NC4Form model, Stream documentStream, string filingStatus, Employment employee, bool formFlattening)

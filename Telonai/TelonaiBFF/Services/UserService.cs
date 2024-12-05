@@ -11,6 +11,7 @@ using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using System.Data;
 using Amazon.CognitoIdentityProvider.Model;
 using Org.BouncyCastle.Asn1.Ocsp;
+using System.Reflection.Metadata.Ecma335;
 
 public interface IUserService
 {
@@ -22,6 +23,7 @@ public interface IUserService
     Task<string> ConfirmAccount(string username, string code);
     Task ForgotPasswordRequest(string username);
     Task ForgotPasswordResponse(string username, string code, string newPassword);
+    Task<bool> CheckUsernameAvailability(string username);
 
 }
 
@@ -212,6 +214,15 @@ public class UserService : IUserService
         await _signInManager.SignOutAsync();
         _logger.LogInformation("User logged out.");       
     }
+
+
+    public async Task<bool> CheckUsernameAvailability(string username)
+    {
+        var userName = await _userManager.FindByNameAsync(username);        
+        var isUsernameExist =  (userName != null) ? true : false;
+        return isUsernameExist;
+    }
+
     private async Task<IdentityResult> CreateUser(CognitoUser user, User inputUser, int companyId, int jobId, string role)
     {
         // Retrieves a new user with the pool configuration set up

@@ -41,28 +41,49 @@ public class OtherIncomeController : ControllerBase
     }
 
     [HttpPost("paystub/{paystubId}")]
-    public IActionResult Create(int paystubId, [FromBody]OtherMoneyReceivedModel model)
+    public async Task<IActionResult> Create(int paystubId, [FromBody]OtherMoneyReceivedModel model)
     {
-        _otherIncomeService.Create(paystubId,model);
-        return Ok();
+        var isOtherIncomeSaved = await _otherIncomeService.Create(paystubId,model);
+        if(isOtherIncomeSaved)
+        {
+            return Ok("Other income for the provide paystub is registered successfully.");
+        }
+        else
+        {
+            return NotFound("There is not paystub registered with provided payStubId.")
+;        }
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int paystubId, [FromBody]OtherMoneyReceivedModel model)
+    public async Task<IActionResult> Update(int paystubId, [FromBody]OtherMoneyReceivedModel model)
     {
         //var stub = _otherIncomeService.GetById(paystubId);
         //_scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, stub.PayStub.Payroll.CompanyId);
 
-        _otherIncomeService.Update(paystubId,model);
-        return Ok(new { message = "OtherIncome updated." });
+        var result = await _otherIncomeService.Update(paystubId,model);
+        if(result)
+        {
+            return Ok(new { message = "OtherIncome updated." });
+        }
+        else
+        {
+            return NotFound("Not able to update other income");
+        }
     }
 
 
     [HttpDelete("{id}")]
     [Authorize(Policy = "SystemAdmin")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        _otherIncomeService.Delete(id);
-        return Ok(new { message = "OtherIncome deleted." });
+        var result = await _otherIncomeService.Delete(id);
+        if(result)
+        {
+            return Ok(new { message = "OtherIncome deleted." });
+        }
+        else
+        {
+            return NotFound("There is no other income registered under the provided id.");
+        }
     }
 }

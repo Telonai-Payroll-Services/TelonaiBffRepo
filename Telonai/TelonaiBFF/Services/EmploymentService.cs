@@ -15,6 +15,7 @@ public interface IEmploymentService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     Task DeleteAsync(int id, int companyId);
     IList<EmploymentModel> GetAllEmployees();
     IList<EmploymentModel> GetAllCompanyEmployees(int companyId);
+    IList<EmploymentModel> GetByEmail(string email);
 }
 
 public class EmploymentService : IEmploymentService<EmploymentModel,Employment>
@@ -46,6 +47,13 @@ public class EmploymentService : IEmploymentService<EmploymentModel,Employment>
     {
         var obj = _context.Employment.Include(e => e.Job).ThenInclude(e => e.Company).Where(e => e.PersonId == personId &&
         !e.Deactivated);
+        var result = _mapper.Map<IList<EmploymentModel>>(obj);
+        return result;
+    }
+
+    public  IList<EmploymentModel> GetByEmail(string email)
+    {
+        var obj = _context.Employment.Include(e => e.Person).Include(e => e.Job).ThenInclude(e => e.Company).Where(e => e.Person.Email == email && !e.Deactivated);
         var result = _mapper.Map<IList<EmploymentModel>>(obj);
         return result;
     }
