@@ -1,6 +1,7 @@
 namespace TelonaiWebApi.Services;
 
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 
@@ -21,7 +22,7 @@ public class StateStandardDeductionService : IStateStandardDeductionService
 
     public List<StateStandardDeduction> GetByStateId(int stateId, int year)
     {
-        var dto = _context.StateStandardDeduction.OrderByDescending(e=>e.EffectiveYear).Where(e => e.StateId == stateId && e.EffectiveYear==year).ToList();
+        var dto = _context.StateStandardDeduction.Include(s => s.FilingStatus).OrderByDescending(e=>e.EffectiveYear).Where(e => e.StateId == stateId && e.EffectiveYear==year).ToList();
 
         return dto;
     }
