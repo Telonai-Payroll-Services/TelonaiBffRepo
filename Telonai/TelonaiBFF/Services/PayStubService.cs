@@ -121,7 +121,7 @@ public class PayStubService : IPayStubService
 
     public async Task<Stream> GetDocumentByDocumentId(Guid documentId)
     {
-        var pdfManager = new DocumentManager();
+        var pdfManager = new DocumentManager(_context);
 
         var result = await pdfManager.GetPayStubByIdAsync(documentId.ToString());
         return result;
@@ -130,7 +130,7 @@ public class PayStubService : IPayStubService
     public async Task GeneratePayStubPdfs(int payrollId, int companyId)
     {
         var dTime = DateTime.UtcNow;
-        var pdfManager = new DocumentManager();
+        var pdfManager = new DocumentManager(_context);
         var payroll = _context.Payroll.Include(e => e.PayrollSchedule).Include(e => e.Company).ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
             .ThenInclude(e => e.State).FirstOrDefault(e => e.Id == payrollId && e.CompanyId == companyId)
             ?? throw new AppException("Payroll not found");
@@ -390,7 +390,6 @@ public class PayStubService : IPayStubService
                         new IncomeTax
                         {
                             Amount = futaTax,
-                            IncomeTaxType = item.IncomeTaxType,
                             IncomeTaxTypeId = item.IncomeTaxTypeId,
                             PayStubId = stub.Id,
                             YtdAmount = futaTax + previous?.YtdAmount ?? 0
@@ -406,7 +405,6 @@ public class PayStubService : IPayStubService
                         new IncomeTax
                         {
                             Amount = ssOrMediTax,
-                            IncomeTaxType = item.IncomeTaxType,
                             IncomeTaxTypeId = item.IncomeTaxTypeId,
                             PayStubId = stub.Id,
                             YtdAmount = ssOrMediTax + previous?.YtdAmount ?? 0
@@ -421,6 +419,7 @@ public class PayStubService : IPayStubService
     }
 
     private async Task<PayStub> CalculateStateWitholdingAsync(PayStub stub, List<AdditionalOtherMoneyReceived> additionalMoney)
+    {
     {
         var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
         var withHolingForms = _context.EmployeeWithholding.Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year);
@@ -461,7 +460,6 @@ public class PayStubService : IPayStubService
                     new IncomeTax
                     {
                         Amount = netCurrentTax,
-                        IncomeTaxType = item.IncomeTaxType,
                         IncomeTaxTypeId = item.IncomeTaxTypeId,
                         PayStubId = stub.Id,
                         YtdAmount = netCurrentTax + previous?.YtdAmount ?? 0
@@ -486,7 +484,6 @@ public class PayStubService : IPayStubService
                     new IncomeTax
                     {
                         Amount = sutaTax,
-                        IncomeTaxType = item.IncomeTaxType,
                         IncomeTaxTypeId = item.IncomeTaxTypeId,
                         PayStubId = stub.Id,
                         YtdAmount = sutaTax + previous?.YtdAmount ?? 0
