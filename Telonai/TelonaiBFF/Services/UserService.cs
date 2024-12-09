@@ -215,6 +215,17 @@ public class UserService : IUserService
         _logger.LogInformation("User logged out.");       
     }
 
+    public async Task SendForgetenUsername(string email)
+    {
+        //Fetch user information using registered email address.
+        var user = await _userManager.FindByEmailAsync(email) ?? throw new AppException("Invalid Username");
+        if(user != null)
+        {
+            //Send username informaiton via email address
+
+        }
+    }
+
 
     public async Task<bool> CheckUsernameAvailability(string username)
     {

@@ -214,6 +214,11 @@ public class UsersController : Controller
         }
     }
 
+    public async Task<IActionResult> ForgetUsername(string email)
+    {
+
+    }
+
     private async Task<PersonModel> CreateProfileFromUserAsync(User user, int companyId)
     {
         var p = new Person
