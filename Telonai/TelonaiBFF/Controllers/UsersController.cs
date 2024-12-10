@@ -214,9 +214,18 @@ public class UsersController : Controller
         }
     }
 
+    [HttpPost("email/{email}")]
     public async Task<IActionResult> ForgetUsername(string email)
     {
-
+        var forgetUsernameResult = await _userService.SendForgettenUsername(email);
+        if (forgetUsernameResult)
+        {
+           return Ok("Your username was delivered to your email address.Check your email, please.");
+        }
+        else
+        {
+            return NotFound("There is not username registered with the provided email address");
+        }
     }
 
     private async Task<PersonModel> CreateProfileFromUserAsync(User user, int companyId)
