@@ -398,4 +398,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-/Telonai/TelonaiBFF/aws-logger-errors.txt
+aws-logger-errors.txt
