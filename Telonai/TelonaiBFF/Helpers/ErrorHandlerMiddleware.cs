@@ -30,7 +30,7 @@ public class ErrorHandlerMiddleware
             var result = "";
             var response = context.Response;
             response.ContentType = "application/json";
-            _logger.LogError(error.ToString());
+            
 
             switch (error)
             {
@@ -38,13 +38,18 @@ public class ErrorHandlerMiddleware
                     // custom application error            
                     response.StatusCode = (int)HttpStatusCode.BadRequest;
                     result = JsonSerializer.Serialize(new { message = error?.Message });
+                    _logger.LogError(error.ToString());
                     break;
                 case KeyNotFoundException e:
                     response.StatusCode = (int)HttpStatusCode.NotFound;
+                    result = JsonSerializer.Serialize(new { message = error?.Message });
+                    _logger.LogError(HttpStatusCode.NotFound + ". " + error.ToString());
                     break;
                 default:
                     // unhandled error
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    result = JsonSerializer.Serialize(new { message = "We encountered a snag. Please try again later." });
+                    _logger.LogError(HttpStatusCode.InternalServerError + ". " + error.ToString());
                     break;
             }
 
