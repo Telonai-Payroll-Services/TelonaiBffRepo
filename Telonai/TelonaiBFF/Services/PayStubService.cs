@@ -345,6 +345,7 @@ public class PayStubService : IPayStubService
                     new IncomeTax
                     {
                         Amount = addlAmount,
+                        IncomeTaxType = item.IncomeTaxType,
                         IncomeTaxTypeId = item.IncomeTaxTypeId,
                         PayStubId = stub.Id,
                         YtdAmount = addlAmount + previous?.YtdAmount ?? 0
@@ -359,6 +360,7 @@ public class PayStubService : IPayStubService
                 new IncomeTax
                 {
                     Amount = amount,
+                    IncomeTaxType = item.IncomeTaxType,
                     IncomeTaxTypeId = item.IncomeTaxTypeId,
                     PayStubId = stub.Id,
                     YtdAmount = amount + previous?.YtdAmount ?? 0
@@ -390,6 +392,7 @@ public class PayStubService : IPayStubService
                         new IncomeTax
                         {
                             Amount = futaTax,
+                            IncomeTaxType = item.IncomeTaxType,
                             IncomeTaxTypeId = item.IncomeTaxTypeId,
                             PayStubId = stub.Id,
                             YtdAmount = futaTax + previous?.YtdAmount ?? 0
@@ -405,6 +408,7 @@ public class PayStubService : IPayStubService
                         new IncomeTax
                         {
                             Amount = ssOrMediTax,
+                            IncomeTaxType = item.IncomeTaxType,
                             IncomeTaxTypeId = item.IncomeTaxTypeId,
                             PayStubId = stub.Id,
                             YtdAmount = ssOrMediTax + previous?.YtdAmount ?? 0
@@ -419,7 +423,6 @@ public class PayStubService : IPayStubService
     }
 
     private async Task<PayStub> CalculateStateWitholdingAsync(PayStub stub, List<AdditionalOtherMoneyReceived> additionalMoney)
-    {
     {
         var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
         var withHolingForms = _context.EmployeeWithholding.Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year);
@@ -439,7 +442,7 @@ public class PayStubService : IPayStubService
 
         var employeeStateRates = incomeTaxRates.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null).ToList();
         var employerStateRates = incomeTaxRates.Where(e => !e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null).ToList();
-        
+
         //calculate employee taxes
         foreach (var item in employeeStateRates)
         {
@@ -460,13 +463,14 @@ public class PayStubService : IPayStubService
                     new IncomeTax
                     {
                         Amount = netCurrentTax,
+                        IncomeTaxType = item.IncomeTaxType,
                         IncomeTaxTypeId = item.IncomeTaxTypeId,
                         PayStubId = stub.Id,
                         YtdAmount = netCurrentTax + previous?.YtdAmount ?? 0
                     }
                 );
         }
-        
+
 
         //Calculate employer taxes now
         foreach (var item in employerStateRates)
@@ -484,6 +488,7 @@ public class PayStubService : IPayStubService
                     new IncomeTax
                     {
                         Amount = sutaTax,
+                        IncomeTaxType = item.IncomeTaxType,
                         IncomeTaxTypeId = item.IncomeTaxTypeId,
                         PayStubId = stub.Id,
                         YtdAmount = sutaTax + previous?.YtdAmount ?? 0

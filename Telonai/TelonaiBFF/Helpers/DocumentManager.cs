@@ -267,8 +267,6 @@ public class DocumentManager : IDocumentManager
         AddCellToBody(_childTableLayout2, "Year To Date", count, _fontNormal);
         var incomeTaxType = new IncomeTaxType();
 
-        var allIncomeTaxes = _incomeTaxes.ForEach(_context.IncomeTax.Include(i => i.IncomeTaxType).Find(i)); 
-
         foreach (var incomeTax in _incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId == null))
         {
             count++;
