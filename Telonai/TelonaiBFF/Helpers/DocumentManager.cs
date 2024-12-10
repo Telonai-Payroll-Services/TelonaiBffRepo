@@ -13,6 +13,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using TelonaiWebApi.Models;
 using Microsoft.OpenApi.Extensions;
+using Microsoft.EntityFrameworkCore;
 
 public interface IDocumentManager
 {
@@ -43,12 +44,13 @@ public class DocumentManager : IDocumentManager
     private readonly AmazonS3Client _s3Client = null;
     private readonly TransferUtility _transferUtility = null;
     private readonly string _bucketName = "telonai-documents";
+    private readonly DataContext _context;
 
-
-    public DocumentManager()
+    public DocumentManager(DataContext context)
     {
         _s3Client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
         _transferUtility = new TransferUtility(_s3Client);
+        _context = context;
     }
 
     public async Task<Stream> GetPayStubByIdAsync(string id)
@@ -279,6 +281,7 @@ public class DocumentManager : IDocumentManager
         AddCellToBody(_childTableLayout2, "Deductions", count, _fontBold);
         AddCellToBody(_childTableLayout2, "This Period", count, _fontNormal);
         AddCellToBody(_childTableLayout2, "Year To Date", count, _fontNormal);
+        var incomeTaxType = new IncomeTaxType();
 
         foreach (var incomeTax in _incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId == null))
         {

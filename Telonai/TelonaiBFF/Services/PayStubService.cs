@@ -121,7 +121,7 @@ public class PayStubService : IPayStubService
 
     public async Task<Stream> GetDocumentByDocumentId(Guid documentId)
     {
-        var pdfManager = new DocumentManager();
+        var pdfManager = new DocumentManager(_context);
 
         var result = await pdfManager.GetPayStubByIdAsync(documentId.ToString());
         return result;
@@ -130,7 +130,7 @@ public class PayStubService : IPayStubService
     public async Task GeneratePayStubPdfs(int payrollId, int companyId)
     {
         var dTime = DateTime.UtcNow;
-        var pdfManager = new DocumentManager();
+        var pdfManager = new DocumentManager(_context);
         var payroll = _context.Payroll.Include(e => e.PayrollSchedule).Include(e => e.Company).ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
             .ThenInclude(e => e.State).FirstOrDefault(e => e.Id == payrollId && e.CompanyId == companyId)
             ?? throw new AppException("Payroll not found");
@@ -345,6 +345,7 @@ public class PayStubService : IPayStubService
                     new IncomeTax
                     {
                         Amount = addlAmount,
+                        IncomeTaxType = item.IncomeTaxType,
                         IncomeTaxTypeId = item.IncomeTaxTypeId,
                         PayStubId = stub.Id,
                         YtdAmount = addlAmount + previous?.YtdAmount ?? 0
@@ -359,6 +360,7 @@ public class PayStubService : IPayStubService
                 new IncomeTax
                 {
                     Amount = amount,
+                    IncomeTaxType = item.IncomeTaxType,
                     IncomeTaxTypeId = item.IncomeTaxTypeId,
                     PayStubId = stub.Id,
                     YtdAmount = amount + previous?.YtdAmount ?? 0
@@ -469,6 +471,7 @@ public class PayStubService : IPayStubService
                 );
         }
         
+
 
         //Calculate employer taxes now
         foreach (var item in employerStateRates)
