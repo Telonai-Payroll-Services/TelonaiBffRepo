@@ -12,6 +12,9 @@ using System.Data;
 using Amazon.CognitoIdentityProvider.Model;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.VisualBasic;
+using System.Security.Cryptography;
+using TelonaiWebApi.Entities;
 
 public interface IUserService
 {
@@ -24,6 +27,7 @@ public interface IUserService
     Task ForgotPasswordRequest(string username);
     Task ForgotPasswordResponse(string username, string code, string newPassword);
     Task<bool> CheckUsernameAvailability(string username);
+    Task<bool> SendForgettenUsername(string email);
 
 }
 
@@ -35,9 +39,11 @@ public class UserService : IUserService
     private readonly ILogger<UserService> _logger;
     private readonly CognitoUserPool _pool;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IMailSender _mailSender;
+    private readonly IPersonService<PersonModel,Person> _personService;
 
-    public UserService(UserManager<CognitoUser> userManager, SignInManager<CognitoUser> signInManager,
-        ILogger<UserService> logger, CognitoUserPool pool, IHttpContextAccessor httpContextAccessor)
+    public UserService(UserManager<CognitoUser> userManager, SignInManager<CognitoUser> signInManager,ILogger<UserService> logger, 
+                      CognitoUserPool pool, IHttpContextAccessor httpContextAccessor, IMailSender mailSender, IPersonService<PersonModel, Person> personService)
     {
         _userManager = userManager as CognitoUserManager<CognitoUser>;
         _signInManager = signInManager;
@@ -45,6 +51,8 @@ public class UserService : IUserService
         _pool = pool;
         _httpContextAccessor = httpContextAccessor;
         _signInManager2 = signInManager as CognitoSignInManager<CognitoUser>;
+        _mailSender = mailSender;
+        _personService = personService;
     }
 
 
@@ -215,6 +223,25 @@ public class UserService : IUserService
         _logger.LogInformation("User logged out.");       
     }
 
+    public async Task<bool> SendForgettenUsername(string email)
+    {
+        //Fetch user information using registered email address.
+        var user = await _userManager.FindByEmailAsync(email) ?? throw new AppException("Invalid Username");
+        if(user != null)
+        {
+            //Get person detail information using email address.
+            var person = await _personService.GetByEmailAsync(email);
+            var fullname = $"{person.FirstName} {person.LastName}";
+            string subject = "Forget username response";
+            //Sending username via provided email address.
+            await _mailSender.SendUsingAwsClientAsync(email, subject, CreateHtmlEmailBody(fullname,user.Username), CreateTextEmailBody(fullname, user.Username));
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
     public async Task<bool> CheckUsernameAvailability(string username)
     {
@@ -251,5 +278,27 @@ public class UserService : IUserService
         }
 
         return result;
+    }
+
+    private static string CreateTextEmailBody(string fullName, string username)
+    {
+        return $"Dear {fullName} \r\n" +
+              "We received a request to retrieve the username associated with this email address." +
+              $"Your username is: { username}" +
+              $"If you did not request this information, please ignore this email.Your account remains secure, and no further action is required." +
+              $"If you have any questions or need further assistance, feel free to contact our support team at support@telonai.com." +
+              $"Best regards, " +
+              $"Telonai Payroll Service.";
+    }
+
+    private static string CreateHtmlEmailBody(string fullName, string username)
+    {
+       return $"<h1>Dear {fullName}</h1>" +
+              $"<br/>We received a request to retrieve the username associated with this email address." +
+              $"<br/><p>Your username is: <b>{username}</b></p>" +
+              $"<br/>If you did not request this information, please ignore this email.Your account remains secure, and no further action is required." +
+              $"<br/>If you have any questions or need further assistance, feel free to contact our support team at support@telonai.com." +
+              $"<br/>Best regards, " +
+              $"<br/>Telonai Payroll Service.";
     }
 }

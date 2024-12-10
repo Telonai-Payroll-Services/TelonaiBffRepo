@@ -64,7 +64,6 @@ public class MailSender : IMailSender
         }
     }
 
-
     private SendEmailRequest CreateRequest(string to, string subject, string htmlBody, string textBody)
     {
         return new SendEmailRequest
