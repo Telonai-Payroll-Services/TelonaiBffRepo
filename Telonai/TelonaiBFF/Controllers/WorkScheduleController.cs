@@ -61,7 +61,7 @@ public class WorkScheduleController : ControllerBase
         var pattern = "/((1[0-2]|0?[1-9]):([0-5][0-9]) ?([AaPp][Mm]))/\r\n";
 
         if( Regex.IsMatch(model.StartTime, pattern))
-            throw new AppException("Invalid schedule strat-time");
+            throw new AppException("Invalid schedule start-time");
         if (Regex.IsMatch(model.EndTime, pattern))
             throw new AppException("Invalid schedule end-time");
 
