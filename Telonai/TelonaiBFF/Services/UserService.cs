@@ -179,10 +179,12 @@ public class UserService : IUserService
         }
         else //This means I am new at the current company
         {
-            if (role == UserRole.User && jobId<1)
+            if (role == UserRole.User && jobId<1) //JobId==0 means employer is not creating the company profile
                 throw new AppException("You are not authorized by your company to perform this operation.");
 
-            var newScope = $"C{companyId}Role{role}J{jobId}";
+            var newScope = $"C{companyId}Role{role}J{jobId}," + currentCompanyScope;
+            newScope = existingScope.Replace(currentCompanyScope, newScope);
+
             user.Attributes.Add("custom:scope", newScope);
             return await _userManager.UpdateAsync(user);
         }
