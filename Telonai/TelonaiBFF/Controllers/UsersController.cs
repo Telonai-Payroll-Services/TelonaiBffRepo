@@ -230,17 +230,17 @@ public class UsersController : Controller
                 }
                 else
                 {
-                    return NotFound("There is not username registered with the provided email address");
+                    return NotFound();
                 }
             }
             else
             {
-                return BadRequest("Please enter a valid email address.");
+                throw new ApplicationException("Please enter a valid email address.");
             }
         }
         else
         {
-            return BadRequest("Please enter email address.");
+            throw new ApplicationException("Please enter email address.");
         }
 
     }
