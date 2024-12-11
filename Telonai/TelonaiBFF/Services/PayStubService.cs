@@ -442,7 +442,7 @@ public class PayStubService : IPayStubService
 
         var employeeStateRates = incomeTaxRates.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null).ToList();
         var employerStateRates = incomeTaxRates.Where(e => !e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null).ToList();
-
+        
         //calculate employee taxes
         foreach (var item in employeeStateRates)
         {
@@ -470,6 +470,7 @@ public class PayStubService : IPayStubService
                     }
                 );
         }
+        
 
 
         //Calculate employer taxes now
