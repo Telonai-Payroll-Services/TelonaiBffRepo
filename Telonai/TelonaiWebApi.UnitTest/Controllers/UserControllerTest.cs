@@ -41,8 +41,10 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             BaseUser user = new BaseUser();
             user.Username = "birass";
             user.Password = "Biras@739313";
-
-            _userService.Setup(x => x.LoginAsync(user.Username, user.Password, true)).ReturnsAsync(It.IsAny<Tuple<CognitoUser, SignInManagerResponse>>);
+            user.RememberMe = true;
+            Tuple<CognitoUser, SignInManagerResponse> userInfo = It.Is<Tuple<CognitoUser, SignInManagerResponse>>(user => user != null);
+         
+            _userService.Setup(x => x.LoginAsync(user.Username, user.Password, true)).ReturnsAsync(userInfo);
            
             //Act
             var result = await _usersController.Login(user);
