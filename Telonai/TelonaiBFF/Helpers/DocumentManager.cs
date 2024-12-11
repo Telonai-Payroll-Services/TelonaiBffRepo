@@ -87,6 +87,11 @@ public class DocumentManager : IDocumentManager
    public async Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived,
     List<AdditionalOtherMoneyReceived> additionalMoneyReceived, List<IncomeTax> incomeTaxes)
     {
+        if (payStub == null) 
+        {
+            throw new AppException("PayStub not found"); 
+        }
+
         var documentId = Guid.NewGuid();
         var doc = new iTextSharp.text.Document(PageSize.A4, 50, 50, 50, 50);
 
@@ -95,6 +100,7 @@ public class DocumentManager : IDocumentManager
         _additionalMoneyReceived = additionalMoneyReceived;
 
         _payStub = payStub;
+
         _person = payStub.Employment.Person;
         _company = payStub.Payroll.Company;
 
@@ -283,19 +289,22 @@ public class DocumentManager : IDocumentManager
         AddCellToBody(_childTableLayout2, "Year To Date", count, _fontNormal);
         var incomeTaxType = new IncomeTaxType();
 
-        foreach (var incomeTax in _incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId == null))
+        if (_incomeTaxes != null)
         {
-            count++;
-            AddCellToBody(_childTableLayout2, incomeTax.IncomeTaxType.Name.ToString(), count, _fontNormal);
-            AddCellToBody(_childTableLayout2, incomeTax.Amount.ToString("0.00"), count, _fontNormal);
-            AddCellToBody(_childTableLayout2, incomeTax.YtdAmount.ToString("0.00"), count, _fontNormal);
-        }
-        foreach (var incomeTax in _incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null))
-        {
-            count++;
-            AddCellToBody(_childTableLayout2, incomeTax.IncomeTaxType.Name.ToString(), count, _fontNormal);
-            AddCellToBody(_childTableLayout2, incomeTax.Amount.ToString("0.00"), count, _fontNormal);
-            AddCellToBody(_childTableLayout2, incomeTax.YtdAmount.ToString("0.00"), count, _fontNormal);
+            foreach (var incomeTax in _incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId == null))
+            {
+                count++;
+                AddCellToBody(_childTableLayout2, incomeTax.IncomeTaxType.Name.ToString(), count, _fontNormal);
+                AddCellToBody(_childTableLayout2, incomeTax.Amount.ToString("0.00"), count, _fontNormal);
+                AddCellToBody(_childTableLayout2, incomeTax.YtdAmount.ToString("0.00"), count, _fontNormal);
+            }
+            foreach (var incomeTax in _incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null))
+            {
+                count++;
+                AddCellToBody(_childTableLayout2, incomeTax.IncomeTaxType.Name.ToString(), count, _fontNormal);
+                AddCellToBody(_childTableLayout2, incomeTax.Amount.ToString("0.00"), count, _fontNormal);
+                AddCellToBody(_childTableLayout2, incomeTax.YtdAmount.ToString("0.00"), count, _fontNormal);
+            }
         }
         count++;
         AddCellToBody(_childTableLayout1, "", count, _fontBold);
@@ -306,8 +315,6 @@ public class DocumentManager : IDocumentManager
 
         count++;
         AddCellToBody(_childTableLayout2, "Net Pay", count, _fontBold);
-        AddCellToBody(_childTableLayout2, "", count, _fontNormal);
-        AddCellToBody(_childTableLayout2, "", count, _fontNormal);
         AddCellToBody(_childTableLayout2, _payStub.NetPay.ToString("0.00"), count, _fontBold);
         AddCellToBody(_childTableLayout2, _payStub.YtdNetPay.ToString("0.00"), count, _fontBold);
         _tableLayout.AddCell(_childTableLayout2);
