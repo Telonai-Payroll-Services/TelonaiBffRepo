@@ -7,6 +7,7 @@ using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
 using TelonaiWebApi.Entities;
 using Amazon.Extensions.CognitoAuthentication;
+using System.Text.RegularExpressions;
 
 [ApiController]
 [Route("[controller]")]
@@ -212,6 +213,36 @@ public class UsersController : Controller
         {
             return Ok("Please provide the username to check whether it is available or not");
         }
+    }
+
+    [HttpPost("email/{email}")]
+    public async Task<IActionResult> ForgetUsername(string email)
+    {
+        if (!string.IsNullOrEmpty(email))
+        {
+            string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            if (Regex.IsMatch(email, pattern))
+            {
+                var forgetUsernameResult = await _userService.SendForgettenUsername(email);
+                if (forgetUsernameResult)
+                {
+                    return Ok("Your username was delivered to your email address.Check your email, please.");
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                throw new ApplicationException("Please enter a valid email address.");
+            }
+        }
+        else
+        {
+            throw new ApplicationException("Please enter email address.");
+        }
+
     }
 
     private async Task<PersonModel> CreateProfileFromUserAsync(User user, int companyId)
