@@ -18,6 +18,7 @@ public class Person : BaseTracker
     public string Ssn { get; set; }
     public bool Deactivated { get; set; }
     public int CompanyId { get; set; }
+    public bool is2percentshareholder { get; set; }
     public Company Company { get; set; }
     public virtual Zipcode Zipcode { get; set; }
     public virtual int INineVerificationStatusId { get; set; }

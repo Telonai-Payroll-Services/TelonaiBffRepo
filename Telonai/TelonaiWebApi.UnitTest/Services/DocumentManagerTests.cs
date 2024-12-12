@@ -16,11 +16,12 @@ namespace TelonaiWebAPI.UnitTest.Services
 {
     public class DocumentManagerTests
     {
-        private readonly DocumentManager _documentManager;
-
+        private readonly DocumentManager _documentManager; 
+        private readonly Mock<DataContext> _mockDataContext;
         public DocumentManagerTests()
         {
-            _documentManager = new DocumentManager();
+            _mockDataContext = new Mock<DataContext>();
+            _documentManager = new DocumentManager(_mockDataContext.Object);
         }
 
         [Fact]
