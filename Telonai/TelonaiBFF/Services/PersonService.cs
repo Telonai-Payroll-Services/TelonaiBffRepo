@@ -82,7 +82,7 @@ public class PersonService : IPersonService<PersonModel,Person>
 
     public async Task<PersonModel> GetByEmailAsync(string email)
     {
-        var obj = await  _context.Person.FirstOrDefaultAsync(e=>e.Email==email && !e.Deactivated);
+        var obj = _context.Person.FirstOrDefault(e=>e.Email.ToLower() == email.ToLower() && !e.Deactivated);
         var result = _mapper.Map<PersonModel>(obj);
         return result;
     }
