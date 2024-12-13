@@ -255,6 +255,8 @@ public class UsersController : Controller
             Email = user?.Email,
             MobilePhone = user?.MobilePhone,
             CompanyId = companyId,
+            BankAccountNumber = user?.BankAccountNumber,
+            RoutingNumber = user?.RoutingNumber,
             INineVerificationStatusId = (int)INineVerificationStatusModel.INineNotSubmitted
         };
         return await _personService.CreateAsync(p);
