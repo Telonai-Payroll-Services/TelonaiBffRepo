@@ -73,6 +73,7 @@ public class UsersController : Controller
             if (personList != null && personList.Count > 0)
             {
                 loginResult.FullName = $"{personList.First().FirstName} {personList.First().LastName}";
+                loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(personList.First().Id);
                 loginResult.Employments = _employmentService.GetByEmail(email).ToList();
             }
 
