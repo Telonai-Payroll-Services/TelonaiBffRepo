@@ -161,15 +161,14 @@ public class PayStubService : IPayStubService
                 additionalMoneyReceived = _context.AdditionalOtherMoneyReceived.Where(e => additionalMoneyReceivedIds.Contains(e.Id)).ToList();
                 var paymentExemptFromFutaTax = additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0);
                 payStub.NetPay = payStub.GrossPay;
-
-                if (!payStub.Employment.IsTenNinetyNine)
+                var is2percentShareHolder = payStub.Employment.Person.is2percentshareholder;
+                if (!payStub.Employment.IsTenNinetyNine && !is2percentShareHolder)
                 {
                     await CalculateFederalWitholdingsAsync(payStub, additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0).ToList());
                     await CalculateStateWitholdingAsync(payStub, additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0).ToList());
                     _context.IncomeTax.AddRange(_newIncomeTaxesToHold);
                     _context.SaveChanges();
                 }
-
                 //Create PDFs 
                 docId = await pdfManager.CreatePayStubPdfAsync(payStub, payStub.OtherMoneyReceived, additionalMoneyReceived, _newIncomeTaxesToHold.ToList());
                 var doc = new Document { Id = docId, DocumentTypeId = (int)DocumentTypeModel.PayStub, FileName = string.Format("PayStub-" + payStub.Id + "-" + dTime.ToString("yyyyMMddmmss") + ".pdf") };
