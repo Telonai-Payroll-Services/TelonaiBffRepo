@@ -40,6 +40,8 @@ public class PersonModel
     public int ZipcodeId { get; set; }
     public string Zipcode { get; set; }
     public bool is2percentshareholder { get; set; }
+    public string RoutingNumber { get; set; }
+    public string BankAccountNumber { get; set; }
     public INineVerificationStatusModel INineVerificationStatus { get; set; }
     public StateWithholdingDocumentStatusModel StateWithholdingDocumentStatus { get; set; }
     public WFourWithholdingDocumentStatusModel WFourWithholdingDocumentStatus { get; set; }
