@@ -42,9 +42,14 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             user.Username = "birass";
             user.Password = "Biras@739313";
             user.RememberMe = true;
-            Tuple<CognitoUser, SignInManagerResponse> userInfo = It.Is<Tuple<CognitoUser, SignInManagerResponse>>(user => user != null);
+            // Setup the CognitoUser and SignInManagerResponse mocks
+            var mockCognitoUser = new Mock<CognitoUser>();
+            mockCognitoUser.Setup(x => x.Username).Returns("mockUsername");
+
+            // Create the Tuple
+            var mockTuple = Tuple.Create(mockCognitoUser.Object, SignInManagerResponse.LoginSucceeded);
          
-            _userService.Setup(x => x.LoginAsync(user.Username, user.Password, true)).ReturnsAsync(userInfo);
+            _userService.Setup(x => x.LoginAsync(user.Username, user.Password, true)).ReturnsAsync(mockTuple);
            
             //Act
             var result = await _usersController.Login(user);
