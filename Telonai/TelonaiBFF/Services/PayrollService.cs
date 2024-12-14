@@ -14,7 +14,7 @@ public interface IPayrollService
     PayrollModel GetCurrentPayroll( int companyId);
     PayrollModel GetPreviousPayroll(int companyId);
     DateOnly GetFirstPayrollRunDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId);
-    DateOnly GetFirstPaycheckDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId);
+    List<DateOnly> GetFirstPaycheckDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId);
 
     PayrollModel GetById(int id);
     Task<int> CreateNextPayrollForAll(int countryId);
@@ -422,7 +422,15 @@ public class PayrollService : IPayrollService
         return nextRunDate; //Note: for weekly and bi-weekly this date falls on Wednesday, but the check date will be on Friday
     }
 
-    public DateOnly GetFirstPaycheckDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId)
+    /// <summary>
+    /// For weekly and bi-weekly this date falls on Wednesday, but the check date will be on Friday
+    /// </summary>
+    /// <param name="frequency"></param>
+    /// <param name="scheduleStartDate"></param>
+    /// <param name="countryId"></param>
+    /// <returns>List of possible first paycheck dates</returns>
+    /// <exception cref="AppException"></exception>
+    public List<DateOnly> GetFirstPaycheckDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId)
     {
         var daysInMonth = DateTime.DaysInMonth(scheduleStartDate.Year, scheduleStartDate.Month);
 
@@ -432,25 +440,27 @@ public class PayrollService : IPayrollService
         {
             case PayrollScheduleTypeModel.Monthly:
                 nextPaycheckDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
-                return AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
+                return new List<DateOnly> { AvoidHolidaysAndWeekends(nextPaycheckDate, countryId) };
             case PayrollScheduleTypeModel.SemiMonthly:
                 if (scheduleStartDate.Day < 16)
                     nextPaycheckDate = scheduleStartDate.AddDays(15 - scheduleStartDate.Day);
                 else
                     nextPaycheckDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
-                return AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
+                return new List<DateOnly> { AvoidHolidaysAndWeekends(nextPaycheckDate, countryId) };
             case PayrollScheduleTypeModel.Biweekly:
-                nextPaycheckDate = GetNextWednesday(scheduleStartDate).AddDays(7+2);//paycheck date is normally 2 days later
-                nextPaycheckDate = AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
-                break;
+                nextPaycheckDate = GetNextWednesday(scheduleStartDate).AddDays(2);//paycheck date is 2 days after payroll is run
+                var nextPaycheckDate2 = nextPaycheckDate.AddDays(7);
+                return new List<DateOnly> {
+                    AvoidHolidaysAndWeekends(nextPaycheckDate, countryId),
+                    AvoidHolidaysAndWeekends(nextPaycheckDate2, countryId)
+                };
             case PayrollScheduleTypeModel.Weekly:
                 nextPaycheckDate = GetNextWednesday(scheduleStartDate).AddDays(2); //paycheck date is normally 2 days later
-                nextPaycheckDate = AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
-                break;
+                return new List<DateOnly> { AvoidHolidaysAndWeekends(nextPaycheckDate, countryId) };                
             case 0:
                 throw new AppException("Payroll schedule not defined");
         }
-        return nextPaycheckDate; //Note: for weekly and bi-weekly this date falls on Wednesday, but the check date will be on Friday
+        return null;
     }
 
     public async Task CreateNextPaystubForAllCurrentPayrollsAsync()
@@ -477,11 +487,12 @@ public class PayrollService : IPayrollService
     }
     private static DateOnly GetNextWednesday(DateOnly date)
     {
-        var days = date.DayOfWeek - DayOfWeek.Wednesday;
-        if (days > 0)
-            return date.AddDays(7 - days);
+        var numberOfdaysFromWednesday = date.DayOfWeek - DayOfWeek.Wednesday;
+        
+        if (numberOfdaysFromWednesday > 0)
+            return date.AddDays(7 - numberOfdaysFromWednesday);
 
-        return date.AddDays(-days);
+        return date.AddDays(-numberOfdaysFromWednesday);
     }
 
     private DateOnly AvoidHolidaysAndWeekends(DateOnly date, int countryId)
