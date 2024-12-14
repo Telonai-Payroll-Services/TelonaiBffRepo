@@ -260,6 +260,14 @@ public class UsersController : Controller
             //RoutingNumber = user?.RoutingNumber,
             INineVerificationStatusId = (int)INineVerificationStatusModel.INineNotSubmitted
         };
+        var exstingPerson=await _personService.GetByEmailAsync(user?.Email);
+        if (exstingPerson != null) 
+        {
+            p.FirstName = exstingPerson?.FirstName;
+            p.LastName = exstingPerson?.LastName;
+            p.MiddleName = exstingPerson?.MiddleName;
+        }
+        
         return await _personService.CreateAsync(p);
     }
 
