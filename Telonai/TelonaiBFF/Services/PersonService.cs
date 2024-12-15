@@ -149,7 +149,7 @@ public class PersonService : IPersonService<PersonModel,Person>
                 _context.Employment.Update(emp);
             }
         }
-        _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
     }
 
     public void Update(int id, PersonModel model)
@@ -163,7 +163,7 @@ public class PersonService : IPersonService<PersonModel,Person>
             person.AddressLine2 = string.IsNullOrWhiteSpace(model.AddressLine2) ? person.AddressLine2 : model.AddressLine2;
             person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
             person.Ssn = string.IsNullOrWhiteSpace(model.Ssn) ? person.Ssn : model.Ssn;
-            if (model.ZipcodeId != null && model.ZipcodeId > 0)
+            if (model.ZipcodeId > 0)
             {
                 if (person.Zipcode == null)
                 {

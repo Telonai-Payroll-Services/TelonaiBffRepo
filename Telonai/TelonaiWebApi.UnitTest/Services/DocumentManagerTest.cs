@@ -37,12 +37,13 @@ namespace UnitTests
             var incomeTaxes = _fixture.Build<IncomeTax>()
                                           .With(t => t.PayStub, payStub)
                                           .CreateMany(5)
-                                          .ToList();             
-                var result = await _documentManager.CreatePayStubPdfAsync(payStub, otherReceived, additionalMoneyReceived, incomeTaxes);
-      
-                Assert.NotEqual(Guid.Empty, result);
-             
+                                          .ToList();
+            var result = await _documentManager.CreatePayStubPdfAsync(payStub, otherReceived, additionalMoneyReceived, incomeTaxes);
+
+            Assert.NotEqual(Guid.Empty, result);
+
         }
+
         [Theory, CustomAutoData]
         public async Task CreatePayStubPdfAsync_ShouldHandleNullAdditionalMoneyReceived(
             PayStub payStub,
