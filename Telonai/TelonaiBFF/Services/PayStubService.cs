@@ -1,5 +1,6 @@
 namespace TelonaiWebApi.Services;
 
+using Amazon.SQS.Model;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Asn1.Ocsp;
@@ -296,7 +297,12 @@ public class PayStubService : IPayStubService
 
         //Calculate Federal Tax to withhold
         var hasMultipleJobs = !string.IsNullOrWhiteSpace(w4TwoC.FieldValue);
-        var annualAmount = stub.GrossPay * _numberOfPaymentsInYear + double.Parse(w4FourA.FieldValue);
+
+        var reimbursement = stub.OtherMoneyReceived.Reimbursement;        
+        var grossPayAfterReimbursement = stub.GrossPay - reimbursement;
+
+        var annualAmount = grossPayAfterReimbursement * _numberOfPaymentsInYear + double.Parse(w4FourA.FieldValue);
+
         var deduction = double.Parse(w4FourB.FieldValue) * (hasMultipleJobs ? 0 : w4OneC.FieldValue.Contains("Jointly") ? 12900 : 8600);//TO DO The hard coded values should come from database 
         var adjustedAnnualWageAmount = annualAmount - deduction;
 
@@ -352,7 +358,7 @@ public class PayStubService : IPayStubService
                 continue;
             }
 
-            var amount = stub.GrossPay * item.Rate;
+            var amount = grossPayAfterReimbursement * item.Rate; 
             stub.NetPay = stub.NetPay - amount;
 
             _newIncomeTaxesToHold.Add(
@@ -370,7 +376,7 @@ public class PayStubService : IPayStubService
 
         //************************Lets calculate taxes for employer now*******************//
 
-        var employerRates = employerFederalRates.Where(e => e.Minimum < Math.Round(stub.GrossPay) && e.Maximum > Math.Round(stub.GrossPay));
+        var employerRates = employerFederalRates.Where(e => e.Minimum < Math.Round(grossPayAfterReimbursement) && e.Maximum > Math.Round(stub.GrossPay));
         var paymentExemptFromFuta = additionalMoney.Where(e => e.ExemptFromFutaTaxTypeId > 0).Sum(e => e.Amount);
         var paymentExemptFromSocialAndMedi = additionalMoney.Where(e =>
         e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.DependentCare ||
