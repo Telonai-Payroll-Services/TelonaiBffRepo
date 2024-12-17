@@ -68,13 +68,13 @@ public class UsersController : Controller
             }
 
             var email = result.Item1.Attributes["email"];
-            var personList = await _personService.GetListByEmailAsync(email);
-
-            if (personList != null && personList.Count > 0)
+            var employments = _employmentService.GetByEmail(email).ToList();
+            var personId = employments.Select(e => e.PersonId).Distinct().ToList();
+            if (employments != null && employments.Count > 0)
             {
-                loginResult.FullName = $"{personList.First().FirstName} {personList.First().LastName}";
-                loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(personList.First().Id);
-                loginResult.Employments = _employmentService.GetByEmail(email).ToList();
+                loginResult.FullName = employments.First().Person;
+                loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(personId);
+                loginResult.Employments = employments;
             }
 
             return Ok(loginResult);
@@ -260,6 +260,14 @@ public class UsersController : Controller
             //RoutingNumber = user?.RoutingNumber,
             INineVerificationStatusId = (int)INineVerificationStatusModel.INineNotSubmitted
         };
+        var exstingPerson=await _personService.GetByEmailAsync(user?.Email);
+        if (exstingPerson != null) 
+        {
+            p.FirstName = exstingPerson?.FirstName;
+            p.LastName = exstingPerson?.LastName;
+            p.MiddleName = exstingPerson?.MiddleName;
+        }
+        
         return await _personService.CreateAsync(p);
     }
 

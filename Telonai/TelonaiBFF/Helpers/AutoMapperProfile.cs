@@ -101,7 +101,9 @@ public class AutoMapperProfile : Profile
         CreateMap<Employment, EmploymentModel>()
             .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.Job.CompanyId))
             .ForMember(dest => dest.SignUpStatusType, opt => opt.MapFrom(src => (SignUpStatusTypeModel)(src.SignUpStatusTypeId ?? 0)))
-            .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Job.Company.Name));
+            .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Job.Company.Name))
+            .ForMember(dest => dest.Person, opt => opt.MapFrom(src => $"{src.Person.FirstName} {src.Person.LastName}"));
+
         CreateMap<EmploymentModel, Employment>()
              .ForMember(dest => dest.Id, opt => opt.Ignore())
              .ForMember(dest => dest.SignUpStatusType, opt => opt.Ignore())
