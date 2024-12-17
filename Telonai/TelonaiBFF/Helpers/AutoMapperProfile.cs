@@ -371,5 +371,8 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.AgentField, opt => opt.Ignore())
              .ForMember(dest => dest.Id, opt => opt.Ignore());
 
+        CreateMap<MobileAppVersionModel, MobileAppVersion>();
+        CreateMap<MobileAppVersion, MobileAppVersionModel>();
+
     }
 }
