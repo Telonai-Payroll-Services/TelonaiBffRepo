@@ -31,14 +31,16 @@ namespace TelonaiWebApi.Services
 
         public async Task<MobileAppVersionModel> GetLatestAppVersion(int platform)
         {
-            var versions = _context.MobileAppVersion.Where((version) => version.Platform == platform).ToList();
-            versions.OrderByDescending(ver => ver.Id).ToList();// createdDate
-            return _mapper.Map<MobileAppVersionModel>(versions.FirstOrDefault());
+            var version = _context.MobileAppVersion
+                .Where((version) => version.Platform == platform)
+                .OrderByDescending(ver => ver.Id)
+                .FirstOrDefault();// createdDate
+            return _mapper.Map<MobileAppVersionModel>(version);
         }
 
         public async Task<MobileAppVersion> CreateAsync(MobileAppVersionModel model)
         {
-            var version = _context.MobileAppVersion.FirstOrDefault(e => e.AppVersion == model.AppVersion && e.BuildNumber == model.BuildNumber && e.Platform == (int) model.Platform);
+            var version = _context.MobileAppVersion.FirstOrDefault(e => e.AppVersion == model.AppVersion && e.BuildNumber == model.BuildNumber && e.Platform == (int)model.Platform);
             var result = _mapper.Map<MobileAppVersion>(model);
 
             if (version == null)
@@ -62,7 +64,7 @@ namespace TelonaiWebApi.Services
             _context.MobileAppVersion.Update(result);
             await _context.SaveChangesAsync();
         }
-        
+
         public async Task DeleteAsync(int id)
         {
             var result = await _context.MobileAppVersion.FindAsync(id) ?? throw new AppException("Mobile app version not found");

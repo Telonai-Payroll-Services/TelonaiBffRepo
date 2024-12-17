@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TelonaiWebApi.Entities
 {
-    public class MobileAppVersion
+    public class MobileAppVersion : BaseTracker
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
