@@ -32,8 +32,7 @@ public class MobileAppVersionController : ControllerBase
         if (version == null) return NotFound();
 
         //TODO: Add the links to google store and appstore
-        version.ApplePath = "";
-        version.GooglePath = "";
+        version.AppPath = platform == 1 ? "google play store path" : "app store path";
 
         return Ok(version);
     }
