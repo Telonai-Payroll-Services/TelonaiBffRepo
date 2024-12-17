@@ -18,7 +18,7 @@ public interface ITimecardUsaService
     TimecardUsaModel GetOpenTimeCard(int personId);
     Task<List<TimecardUsaModel>> GetTimeCardsByPayrollId(int companyId, int payrollId);
     Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequence(int companyId, int payrollSequece);
-    Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmail(string email, int payrollSequece, int companyId);
+    Task<List<TimecardUsaModel>> GetCurrentTimeCards(string email, int companyId);
     Task<List<TimecardUsaModel>> GetTimeCardsByPayrollIdAndEmployee(int companyId, int payrollId, int employeeId);
     Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmployee(int companyId, int payrollSequece, int employeeId);
 
@@ -124,19 +124,16 @@ public class TimecardUsaService : ITimecardUsaService
         var result = _mapper.Map<List<TimecardUsaModel>>(obj);
         return result;
     }
-    public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmail(string email, int payrollSequece,  int companyId)
+
+    public async Task<List<TimecardUsaModel>> GetCurrentTimeCards(string email, int companyId)
     {
-        var personId = _context.Person.FirstOrDefault(e => e.Email == email && e.CompanyId==companyId)?.Id;
+        var personId = _context.Person.FirstOrDefault(e => e.Email == email && e.CompanyId == companyId)?.Id;
 
-        Payroll currentPayroll;
-
-        if (payrollSequece == 0)
-            currentPayroll =  await _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefaultAsync(e => e.CompanyId == companyId);
-        else
-            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).Skip(payrollSequece).FirstOrDefault(e => e.CompanyId == companyId);
-
-        var runDate = currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MinValue);
-        var obj = _context.TimecardUsa.Where(e => e.ClockIn < runDate && e.Job.CompanyId == companyId && e.PersonId == personId);
+        var currentPayroll = await _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
+            .FirstOrDefaultAsync(e => e.CompanyId == companyId);
+        
+        var startDate = currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue);
+        var obj = _context.TimecardUsa.Where(e => e.ClockIn > startDate && e.Job.CompanyId == companyId && e.PersonId == personId);
         var result = _mapper.Map<List<TimecardUsaModel>>(obj);
         return result;
     }
@@ -183,8 +180,8 @@ public class TimecardUsaService : ITimecardUsaService
              throw new AppException("You are not authorized to perform this action.");
        
 
-        var person = _context.Person.First(e => e.Email == email && !e.Deactivated);
-        var obj = _context.TimecardUsa.FirstOrDefault(e => e.PersonId == person.Id && e.ClockOut == null);
+        var personId = _context.Employment.First(e => e.Person.Email == email && e.JobId == jobId && !e.Deactivated).PersonId;
+        var obj = _context.TimecardUsa.FirstOrDefault(e => e.PersonId == personId && e.ClockOut == null);
         if (obj != null)
         {
             var clockoutTime = DateTime.UtcNow;
@@ -198,7 +195,7 @@ public class TimecardUsaService : ITimecardUsaService
         {
             obj = new TimecardUsa
             {
-                PersonId = person.Id,
+                PersonId = personId,
                 JobId = jobId,
                 ClockIn = DateTime.UtcNow
             };

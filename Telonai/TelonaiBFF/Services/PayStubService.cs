@@ -162,7 +162,7 @@ public class PayStubService : IPayStubService
                 additionalMoneyReceived = _context.AdditionalOtherMoneyReceived.Where(e => additionalMoneyReceivedIds.Contains(e.Id)).ToList();
                 var paymentExemptFromFutaTax = additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0);
                 payStub.NetPay = payStub.GrossPay;
-                var is2percentShareHolder = payStub.Employment.Person.is2percentshareholder;
+                var is2percentShareHolder = payStub.Employment.Person.IsTwopercentshareholder;
                 if (!payStub.Employment.IsTenNinetyNine && !is2percentShareHolder)
                 {
                     await CalculateFederalWitholdingsAsync(payStub, additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0).ToList());
