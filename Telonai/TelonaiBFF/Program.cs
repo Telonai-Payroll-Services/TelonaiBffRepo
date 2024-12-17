@@ -95,6 +95,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<ICompanyContactService, CompanyContactService>();
     services.AddScoped<IEmployerSubscriptionService, EmployerSubscriptionService>();
     services.AddScoped<IAgentService, AgentService>();
+    services.AddScoped<IMobileAppVersionService, MobileAppVersionService>();
 
 
     services.AddEndpointsApiExplorer();

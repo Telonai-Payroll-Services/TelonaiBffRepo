@@ -168,5 +168,6 @@ public class DataContext : DbContext
     public DbSet<EmployerSubscription> EmployerSubscription { get; set; }
     public DbSet<AgentField> AgentField { get; set; }
     public DbSet<AgentFieldValue> AgentFieldValue { get; set; }
+    public DbSet<MobileAppVersion> MobileAppVersion { get; set; }
 
 }
