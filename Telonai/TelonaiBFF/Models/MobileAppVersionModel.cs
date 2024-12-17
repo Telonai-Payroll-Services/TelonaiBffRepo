@@ -13,8 +13,7 @@ namespace TelonaiWebApi.Models
         public bool RecommendForUpdate { get; set; }
         public bool Status { get; set; }
         public PlatForm Platform { get; set; }
-        public string ApplePath { get; set; }
-        public string GooglePath { get; set; }
+        public string AppPath { get; set; }
     }
 
     public enum PlatForm
