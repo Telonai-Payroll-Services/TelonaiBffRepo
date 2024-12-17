@@ -15,7 +15,7 @@ public interface ITimecardUsaService
     IEnumerable<TimecardUsaModel> GetReport(int companyId, DateTime startTime, DateTime endTime);
     TimecardUsaModel GetOpenTimeCard(string email, int jobId);
     TimecardUsaModel GetOpenTimeCard(string email);
-    TimecardUsaModel GetOpenTimeCard(int personId);
+    TimecardUsaModel GetOpenTimeCard(List<int> personIds);
     Task<List<TimecardUsaModel>> GetTimeCardsByPayrollId(int companyId, int payrollId);
     Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequence(int companyId, int payrollSequece);
     Task<List<TimecardUsaModel>> GetCurrentTimeCards(string email, int companyId);
@@ -133,15 +133,15 @@ public class TimecardUsaService : ITimecardUsaService
             .FirstOrDefaultAsync(e => e.CompanyId == companyId);
         
         var startDate = currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue);
-        var obj = _context.TimecardUsa.Where(e => e.ClockIn > startDate && e.Job.CompanyId == companyId && e.PersonId == personId);
+        var obj = _context.TimecardUsa.Where(e => e.ClockIn >= startDate && e.Job.CompanyId == companyId && e.PersonId == personId);
         var result = _mapper.Map<List<TimecardUsaModel>>(obj);
         return result;
     }
 
     public TimecardUsaModel GetOpenTimeCard(string email, int jobId)
     {
-        var person = _context.Person.First(e => e.Email == email && !e.Deactivated);
-        var obj = _context.TimecardUsa.FirstOrDefault(e => e.PersonId == person.Id && e.JobId == jobId && e.ClockOut == null);
+        var personIds = _context.Person.Where(e => e.Email == email && !e.Deactivated).Select(e=>e.Id);
+        var obj = _context.TimecardUsa.FirstOrDefault(e => personIds.Contains(e.PersonId) && e.JobId == jobId && e.ClockOut == null);
         if (obj == null)
             return null;
 
@@ -150,17 +150,18 @@ public class TimecardUsaService : ITimecardUsaService
 
     public TimecardUsaModel GetOpenTimeCard(string email)
     {
-        var person = _context.Person.First(e => e.Email == email && !e.Deactivated);
-        var obj = _context.TimecardUsa.FirstOrDefault(e => e.PersonId == person.Id && e.ClockOut == null);
+        var personIds = _context.Person.Where(e => e.Email == email && !e.Deactivated).Select(e => e.Id);
+        var obj = _context.TimecardUsa.FirstOrDefault(e => personIds.Contains(e.PersonId) && e.ClockOut == null);
+        
         if (obj == null)
             return null;
 
         return _mapper.Map<TimecardUsaModel>(obj);
     }
 
-    public TimecardUsaModel GetOpenTimeCard(int personId)
+    public TimecardUsaModel GetOpenTimeCard(List<int> personIds)
     {
-        var obj = _context.TimecardUsa.FirstOrDefault(e => e.PersonId == personId && e.ClockOut == null);
+        var obj = _context.TimecardUsa.FirstOrDefault(e => personIds.Contains(e.PersonId) && e.ClockOut == null);
         if (obj == null)
             return null;
 
