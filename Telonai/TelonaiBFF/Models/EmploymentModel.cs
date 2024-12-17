@@ -24,5 +24,6 @@ public class EmploymentModel:BaseTracker
     public SignUpStatusTypeModel SignUpStatusType { get; set; }
     public bool Deactivated { get; set; }
     public int WithholdingDueInDays { get; set; } = 3;
+    public string InternalEmployeeID { get; set; }
 
 }
