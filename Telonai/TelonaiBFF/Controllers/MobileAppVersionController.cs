@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize()]
+[AllowAnonymous]
 public class MobileAppVersionController : ControllerBase
 {
     private readonly IMobileAppVersionService _mobileAppVersionService;

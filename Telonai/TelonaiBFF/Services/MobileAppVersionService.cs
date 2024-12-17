@@ -32,9 +32,9 @@ namespace TelonaiWebApi.Services
         public async Task<MobileAppVersionModel> GetLatestAppVersion(int platform)
         {
             var version = _context.MobileAppVersion
-                .Where((version) => version.Platform == platform)
+                .Where((version) => version.Platform == platform && version.Status)
                 .OrderByDescending(ver => ver.Id)
-                .FirstOrDefault();// createdDate
+                .FirstOrDefault();
             return _mapper.Map<MobileAppVersionModel>(version);
         }
 
