@@ -99,7 +99,7 @@ public class PayrollService : IPayrollService
     public PayrollModel GetCurrentPayroll(int companyId)
     {
         Payroll obj;
-        var payrolls = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).Where(e =>
+        var payrolls = _context.Payroll.Include(e => e.PayrollSchedule).OrderByDescending(e => e.ScheduledRunDate).Where(e =>
         e.StartDate <= DateOnly.FromDateTime(DateTime.Now) && e.TrueRunDate == null && e.CompanyId == companyId).ToList();
 
         if (payrolls == null || payrolls.Count == 0)
