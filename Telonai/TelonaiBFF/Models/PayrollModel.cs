@@ -6,7 +6,7 @@ public class PayrollModel
 {
     public int Id { get; set; }
     public int CompanyId { get; set; }
-    public PayrollScheduleModel PayrollSchedule { get; set; }
+    public string PayrollScheduleType { get; set; }
     public DateTime? TrueRunDate { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime ScheduledRunDate { get; set; }

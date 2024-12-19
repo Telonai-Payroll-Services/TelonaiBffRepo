@@ -125,6 +125,7 @@ public class PayrollService : IPayrollService
     public PayrollModel GetById(int id)
     {
         var obj = GetPayroll(id);
+        if (obj == null) return null;
         var result = _mapper.Map<PayrollModel>(obj);
         return result;
     }
@@ -534,7 +535,7 @@ public class PayrollService : IPayrollService
     }
     private Payroll GetPayroll(int id)
     {
-        var dto = _context.Payroll.Find(id);
+        var dto = _context.Payroll.Include(e=>e.PayrollSchedule).FirstOrDefault(e=>e.Id==id);
         return dto;
     }
 
