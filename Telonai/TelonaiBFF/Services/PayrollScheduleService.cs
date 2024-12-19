@@ -65,9 +65,9 @@ public class PayrollScheduleService : IPayrollScheduleService
         {
             throw new AppException("Invalid payroll first-run date");
         }
-        var now = DateOnly.FromDateTime(DateTime.Now);
-        var currentSchedule = _context.PayrollSchedule.OrderByDescending(e=>e.StartDate).FirstOrDefault(e => e.CompanyId == model.CompanyId && (e.EndDate != null ||
-        e.EndDate >= now));
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var currentSchedule = _context.PayrollSchedule.OrderByDescending(e => e.FirstRunDate).FirstOrDefault(e => e.CompanyId == model.CompanyId
+        && (e.EndDate != null || e.EndDate >= today) && e.StartDate <= today);
 
         //update the currently active schedule  with end-date
         if (currentSchedule != null)
@@ -99,6 +99,7 @@ public class PayrollScheduleService : IPayrollScheduleService
 
         _context.PayrollSchedule.Add(newSchedule);
         _context.SaveChanges();
+        
         //Create the first payroll for the new schedule.
         //If there is existing payroll to be run, close it
         var existingPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefault();
@@ -108,21 +109,19 @@ public class PayrollScheduleService : IPayrollScheduleService
             {
                 existingPayroll.ScheduledRunDate = newSchedule.StartDate.AddDays(-1);
             }
-            if (existingPayroll.ScheduledRunDate >= newSchedule.StartDate)
-            {
-                existingPayroll.ScheduledRunDate = newSchedule.StartDate.AddDays(-1);
-            }
         }
 
-        var payroll = new Payroll
-         {
-             PayrollScheduleId = newSchedule.Id,
-             StartDate = newSchedule.StartDate,
-             ScheduledRunDate = newSchedule.FirstRunDate,
-             CompanyId = newSchedule.CompanyId
-        };
-        
-        _context.Payroll.Add(payroll);
+        if (existingPayroll == null || existingPayroll.ScheduledRunDate<today.AddDays(1)) //If it is more than 1 day in the future, the lambda will create it
+        {
+            var payroll = new Payroll
+            {
+                PayrollScheduleId = newSchedule.Id,
+                StartDate = newSchedule.StartDate,
+                ScheduledRunDate = newSchedule.FirstRunDate,
+                CompanyId = newSchedule.CompanyId
+            };
+            _context.Payroll.Add(payroll);
+        }
         _context.SaveChanges();
         return;
     }
