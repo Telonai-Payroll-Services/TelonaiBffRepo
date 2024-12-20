@@ -1033,7 +1033,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             var payrollModel = new PayrollModel()
             {
                 Id = payrollId,
-                CompanyId = companyId,
+                CompanyId = companyId, 
                 PayrollSchedule = new PayrollScheduleModel()
                 {
                     Id = 12,

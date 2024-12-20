@@ -25,5 +25,6 @@ public class DepositScheduleType : IdValuePair { }
 public class CheckedBoxSixteenType : IdValuePair { }
 public class QuarterType : IdValuePair { }
 public class ExemptFromFutaTaxType : IdValuePair { }
-
 public class BankAccountType : IdValuePair { }
+public class DayOffType : IdValuePair { }
+public class DayOffPayType : IdValuePair { }

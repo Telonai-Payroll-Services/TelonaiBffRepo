@@ -39,7 +39,8 @@ public class ScopedAuthorization : IScopedAuthorization
 
         throw new UnauthorizedAccessException();
     }
-    public  void ValidateByCompanyId(ClaimsPrincipal principal, AuthorizationType authType, int companyId)
+
+        public  void ValidateByCompanyId(ClaimsPrincipal principal, AuthorizationType authType, int companyId)
     {        
         var scope = principal.Claims.First(e => e.Type == "custom:scope").Value;
         var desiredScope = "SystemAdmin";

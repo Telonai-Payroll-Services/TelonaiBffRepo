@@ -169,5 +169,8 @@ public class DataContext : DbContext
     public DbSet<AgentField> AgentField { get; set; }
     public DbSet<AgentFieldValue> AgentFieldValue { get; set; }
     public DbSet<MobileAppVersion> MobileAppVersion { get; set; }
+    public DbSet<DayOffRequest> DayOffRequest { get; set; }
+    public DbSet<DayOffType> DayoffType { get; set; }
+    public DbSet<DayOffPayType> DayOffPayType { get; set; }
 
 }
