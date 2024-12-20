@@ -87,11 +87,23 @@ public class UsersController : Controller
     [HttpPost("changepassword")]
     public async Task<IActionResult> ChangePassword(UserChangePasswordModel user)
     {
-        if (ModelState.IsValid)
+
+        if (ModelState.IsValid && user != null)
         {
-            await _userService.ChangePasswordAsync(user.Username, user.OldPassword, user.NewPassword);
+            var result = await _userService.ChangePasswordAsync(user.Username, user.OldPassword, user.NewPassword);
+            if(result)
+            {
+                return Ok("Your password changed successfully");
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
-        return Ok();
+        else
+        {
+            return BadRequest();
+        }
     }
 
 

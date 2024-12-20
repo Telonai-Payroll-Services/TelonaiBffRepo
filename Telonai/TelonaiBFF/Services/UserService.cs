@@ -18,7 +18,7 @@ using TelonaiWebApi.Entities;
 
 public interface IUserService
 {
-    Task ChangePasswordAsync(string username, string oldPassword, string newPassword);
+    Task<bool> ChangePasswordAsync(string username, string oldPassword, string newPassword);
     Task<Tuple<CognitoUser, SignInManagerResponse>> LoginAsync(string username, string password, bool rememberMe);
     Task LogOutAsync();
     Task<IdentityResult> SignUpAsync(User user, UserRole userRole, int companyId, int jobId);
@@ -137,15 +137,19 @@ public class UserService : IUserService
         var user = await _userManager.FindByNameAsync(username) ?? throw new AppException("Invalid Username");
         await user.ConfirmForgotPasswordAsync(code, newPassword);
     }
-    public async Task ChangePasswordAsync(string username, string oldPassword, string newPassword)
+    public async Task<bool> ChangePasswordAsync(string username, string oldPassword, string newPassword)
     {
-
         var result = await _signInManager.PasswordSignInAsync(username, oldPassword, false, lockoutOnFailure: false);
 
         if (result.Succeeded)
         {
             var user = await _userManager.FindByNameAsync(username);
             await user.ChangePasswordAsync(oldPassword, newPassword);
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 

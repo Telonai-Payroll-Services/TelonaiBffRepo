@@ -15,6 +15,7 @@ using TelonaiWebApi.Entities;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
 using TelonaiWebAPI.UnitTest.Helper;
+using Amazon.Extensions.CognitoAuthentication;
 
 public class UsersControllerTests
 {
@@ -25,6 +26,7 @@ public class UsersControllerTests
     private readonly Mock<IEmploymentService<EmploymentModel, Employment>> _mockEmploymentService;
     private readonly Mock<IPersonService<PersonModel, Person>> _mockPersonService;
     private readonly Mock<ITimecardUsaService> _mockTimecardService;
+    private readonly Mock<CognitoUser> _mockCongnitoUser;
 
     public UsersControllerTests()
     {
@@ -149,11 +151,52 @@ public class UsersControllerTests
         Assert.Equal(employment.PersonId, result.PersonId); 
     }
 
-        private async Task InvokePrivateMethodAsync(MethodInfo method, object obj, params object[] parameters)
+    [Theory, CustomAutoData]
+    public async Task ChangePassword_PassedCorrectUserpasword_ReturnsOk(string username)
+    {
+        //Arrange
+        var changePaswordModel = new UserChangePasswordModel()
+        {
+            Username = "birass",
+            NewPassword = "123@Test",
+            OldPassword = "321#Test"
+        };
+        _mockUserService.Setup(x => x.ChangePasswordAsync(changePaswordModel.Username, changePaswordModel.OldPassword, changePaswordModel.NewPassword)).ReturnsAsync(true);
+
+        //Act
+        var result = await _controller.ChangePassword(changePaswordModel);
+
+        //Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var returnedResult  = Assert.IsType<string>(okResult.Value);
+        Assert.Equal("Your password changed successfully", returnedResult);
+    }
+
+    [Theory, CustomAutoData]
+    public async Task ChangePassword_PassedNullUserChangePaswordData_ReturnsBadRequest(string username)
+    {
+        //Arrange
+        UserChangePasswordModel changePaswordModel = null;
+
+        //Act
+        var apiResult = await _controller.ChangePassword(changePaswordModel);
+
+        //Assert
+        var result = Assert.IsType<BadRequestResult>(apiResult);
+        Assert.Equal(result.StatusCode, 400);
+    }
+
+    [Theory, CustomAutoData]
+    public async Task Logout_LogoutLoggedInUser_ReturnOkResult()
+    {
+        //
+    }
+
+    private async Task InvokePrivateMethodAsync(MethodInfo method, object obj, params object[] parameters)
     {
         var result = method.Invoke(obj, parameters);
         if (result is Task task)
-        {
+        { 
             await task;
         }
     }
@@ -165,4 +208,7 @@ public class UsersControllerTests
             return await task;
         } 
         throw new InvalidOperationException("Method did not return a Task<T>"); }
+
+
+
 }
