@@ -97,7 +97,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IAgentService, AgentService>();
     services.AddScoped<IMobileAppVersionService, MobileAppVersionService>();
     services.AddScoped<IDayOffRequestService<DayOffRequestModel, DayOffRequest>, DayOffRequestService>();
-
+    services.AddScoped<IDayOffService, DayOffService>();
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen();
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());
@@ -170,5 +170,5 @@ var app = builder.Build();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
 
-//app.Run("http://localhost:5000");
-app.Run();
+app.Run("http://localhost:5000");
+//app.Run();

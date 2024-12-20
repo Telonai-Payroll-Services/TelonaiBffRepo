@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using TelonaiWebApi.Entities;
 using Newtonsoft.Json;
 using Amazon.SecretsManager.Extensions.Caching;
+using TelonaiWebApi.Models;
 
 public class DataContext : DbContext
 {
@@ -170,7 +171,5 @@ public class DataContext : DbContext
     public DbSet<AgentFieldValue> AgentFieldValue { get; set; }
     public DbSet<MobileAppVersion> MobileAppVersion { get; set; }
     public DbSet<DayOffRequest> DayOffRequest { get; set; }
-    public DbSet<DayOffType> DayoffType { get; set; }
-    public DbSet<DayOffPayType> DayOffPayType { get; set; }
-
+    public virtual DbSet<DayOffType> DayoffType { get; set; }
 }

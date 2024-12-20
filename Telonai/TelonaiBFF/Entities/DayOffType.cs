@@ -1,6 +1,6 @@
-﻿namespace TelonaiWebApi.Models
+﻿namespace TelonaiWebApi.Entities
 {
-    public class DayOffTypeModel
+    public class DayOffType
     {
         public int Id { get; set; }
 
