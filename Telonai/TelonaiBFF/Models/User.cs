@@ -21,5 +21,12 @@ namespace TelonaiWebApi.Models
         public string Password { get; set; }
 
         public string MobilePhone { get; set; }
+
+        [JsonRequired]
+        public string BankAccountNumber { get; set; }
+        
+        [JsonRequired]
+        public string RoutingNumber { get; set; }
+
     }
 }

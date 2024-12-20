@@ -50,7 +50,7 @@ public class TimecardUsaController : ControllerBase
     public async Task<IActionResult> GetCurrentByTimeForUser(int companyId)
     {
         var email = Request.HttpContext.User?.Claims.First(e => e.Type == "email").Value;
-        var timecard = await _timecardService.GetTimeCardsByPayrollSequenceAndEmail(email, 0, companyId);
+        var timecard = await _timecardService.GetCurrentTimeCards(email, companyId);
         return Ok(timecard);
     }
 

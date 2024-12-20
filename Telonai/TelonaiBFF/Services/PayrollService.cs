@@ -1,5 +1,6 @@
 namespace TelonaiWebApi.Services;
 
+using Amazon.SimpleEmail.Model;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -14,7 +15,7 @@ public interface IPayrollService
     PayrollModel GetCurrentPayroll( int companyId);
     PayrollModel GetPreviousPayroll(int companyId);
     DateOnly GetFirstPayrollRunDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId);
-    DateOnly GetFirstPaycheckDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId);
+    List<DateOnly> GetFirstPaycheckDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId);
 
     PayrollModel GetById(int id);
     Task<int> CreateNextPayrollForAll(int countryId);
@@ -32,11 +33,15 @@ public class PayrollService : IPayrollService
     private readonly DataContext _context;
     private readonly IMapper _mapper;
     private readonly IPayStubService _payStubService;
+    private readonly IMailSender _mailSender;
+    private readonly ILogger<PayrollService> _logger;
 
-    public PayrollService(DataContext context, IMapper mapper)
+    public PayrollService(DataContext context, IMapper mapper, IMailSender mailSender, ILogger<PayrollService> logger)
     {
         _context = context;
         _mapper = mapper;
+        _mailSender = mailSender;
+        _logger = logger;
     }
 
     public List<PayrollModel> GetLatestByCount(int companyId, int count)
@@ -94,7 +99,7 @@ public class PayrollService : IPayrollService
     public PayrollModel GetCurrentPayroll(int companyId)
     {
         Payroll obj;
-        var payrolls = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).Where(e =>
+        var payrolls = _context.Payroll.Include(e => e.PayrollSchedule).OrderByDescending(e => e.ScheduledRunDate).Where(e =>
         e.StartDate <= DateOnly.FromDateTime(DateTime.Now) && e.TrueRunDate == null && e.CompanyId == companyId).ToList();
 
         if (payrolls == null || payrolls.Count == 0)
@@ -120,6 +125,7 @@ public class PayrollService : IPayrollService
     public PayrollModel GetById(int id)
     {
         var obj = GetPayroll(id);
+        if (obj == null) return null;
         var result = _mapper.Map<PayrollModel>(obj);
         return result;
     }
@@ -133,30 +139,31 @@ public class PayrollService : IPayrollService
     {
         var newPayrollsList = new List<Payroll>();
 
-        var now = DateOnly.FromDateTime(DateTime.Now);
+        var today = DateOnly.FromDateTime(DateTime.Now);
 
         //Get the latest payroll schedule for all companies.
-        //This gets the schedules that have already started or will start in the next 2 days
+        //This gets the schedules that have already started or will start in the next 3 days
 
-        var twoDaysFromNow = now.AddDays(2);
+        var threeDaysFromNow = today.AddDays(3);
 
-        var paySchedules = _context.PayrollSchedule.OrderByDescending(e => e.FirstRunDate).Where(e => e.StartDate <= twoDaysFromNow
-            && (e.EndDate == null || e.EndDate > twoDaysFromNow))
+        var paySchedules = _context.PayrollSchedule.OrderByDescending(e => e.FirstRunDate)
+            .Where(e => e.StartDate <= threeDaysFromNow
+            && (e.EndDate == null || e.EndDate > threeDaysFromNow))
             .GroupBy(e => e.CompanyId)
             .Select(g => g.First()).ToList();
 
         var currentPayrolls = _context.Payroll.Include(e => e.PayrollSchedule)
-        .Where(e => e.ScheduledRunDate >= now)
-        .GroupBy(e => e.CompanyId)
-        .Where(g => g.Count() ==1) //This line will filter out those already created in the previous day
-        .Select(g => g.First()).ToList();
+            .Where(e => e.ScheduledRunDate >= today && e.ScheduledRunDate <= threeDaysFromNow)
+            .GroupBy(e => e.CompanyId)
+            .Where(g => g.Count() == 1) //This line will filter out those already created in the previous day
+            .Select(g => g.First()).ToList();
 
         foreach (var payroll in currentPayrolls)
         {
-            var newSchedule = paySchedules.Where(e => e.CompanyId == payroll.CompanyId).OrderByDescending(e=>e.Id).FirstOrDefault();
+            var newSchedule = paySchedules.Where(e => e.CompanyId == payroll.CompanyId).OrderByDescending(e => e.Id).FirstOrDefault();
             var existingSchedule = payroll.PayrollSchedule;
             var scheduleChanged = newSchedule.Id != existingSchedule.Id;
-                        
+
             var nextPayrollRunDate = payroll.PayrollSchedule.StartDate;
             var nextPayrollStartDate = payroll.PayrollSchedule.StartDate;
 
@@ -165,7 +172,6 @@ public class PayrollService : IPayrollService
                 nextPayrollRunDate = newSchedule.FirstRunDate;
                 nextPayrollStartDate = newSchedule.StartDate;
             }
-
             else
             {
                 var freq = (PayrollScheduleTypeModel)newSchedule.PayrollScheduleTypeId;
@@ -206,7 +212,7 @@ public class PayrollService : IPayrollService
                 }
             }
             var nextPayroll = new Payroll
-            { 
+            {
                 PayrollScheduleId = newSchedule.Id,
                 ScheduledRunDate = nextPayrollRunDate,
                 StartDate = nextPayrollStartDate,
@@ -215,6 +221,7 @@ public class PayrollService : IPayrollService
 
             newPayrollsList.Add(nextPayroll);
         }
+
         if (newPayrollsList.Count > 0)
         {
             _context.Payroll.AddRange(newPayrollsList);
@@ -223,7 +230,113 @@ public class PayrollService : IPayrollService
 
         return newPayrollsList.Count;
     }
+    private async Task Send()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
 
+        //send email to the owner
+        var payrolls = _context.Payroll.Include(e => e.PayrollSchedule)
+            .Where(e => e.ScheduledRunDate >= today && e.ScheduledRunDate<today.AddDays(3))
+            .GroupBy(e => e.CompanyId)
+            .Select(g => g.First()).ToList();
+        foreach (var payroll in payrolls)
+        {
+            var admins = (from person in _context.Person
+                          join employment in _context.Employment
+                          on person.Id equals employment.PersonId
+                          where person.CompanyId == payroll.CompanyId && employment.IsPayrollAdmin
+                          select new
+                          {
+                              person.Email,
+                              person.FirstName,
+                              person.LastName,
+                              payroll.ScheduledRunDate
+                          }).ToList();
+
+            foreach (var admin in admins)
+            {
+                if (payroll.ScheduledRunDate == today)
+                {
+                    _ = SendReminderForCurrentPayroll(admin.Email, admin.FirstName, admin.LastName, admin.ScheduledRunDate.ToString("MMM/dd/yyyy"));
+                }
+                else
+                {
+                    _ = SendReminderForLatePayroll(admin.Email,admin.FirstName,admin.LastName,admin.ScheduledRunDate.ToString("MMM/dd/yyyy"));
+                }
+            }
+        }
+       
+    }
+
+    private async Task SendReminderForCurrentPayroll(string email, string firstName, string lastName, string scheduledRunDate)
+    {
+        _ = _mailSender.SendUsingAwsClientAsync(
+                      email, $"Time to run payroll",
+                      CreateHtmlEmailBody(scheduledRunDate, $"{firstName} {lastName}"),
+                      CreateTextEmailBody(scheduledRunDate, $"{firstName} {lastName}")
+                  ).ContinueWith(task =>
+                  {
+                      if (task.IsFaulted)
+                      {
+                          _logger.LogError($"Failed to send email to {email}: {task.Exception}");
+                      }
+                  });
+    }
+        private async Task SendReminderForLatePayroll(string email, string firstName, string lastName, string scheduledRunDate)
+    {
+        _ = _mailSender.SendUsingAwsClientAsync(
+            email,
+            $"Time to run payroll",
+            CreateHtmlEmailBodyForLatePayroll(scheduledRunDate, $"{firstName} {lastName}"),
+            CreateTextEmailBodyForLatePayroll(scheduledRunDate, $"{firstName} {lastName}")
+        ).ContinueWith(task =>
+        {
+            if (task.IsFaulted)
+            {
+                _logger.LogError($"Failed to send email to {email}: {task.Exception}");
+            }
+        });
+    }
+
+       
+    private static string CreateTextEmailBody(string scheduledDate, string receiverName)
+    {
+        return $"Time to Run Payroll"
+            + $"Dear {receiverName},\r\n"
+            + $"Today, {scheduledDate}, is your payroll run date. To ensure your employees get paid on time, please run payroll, "
+            + $"today, after close of business. You may run it right now or anytime before close of business if " 
+            + "you know the hours your employees will work today. If so, make sure to enter the expected hours " 
+            + "on the page you approve timecards. \r\n"
+            + $"Please do not reply to this email as it is not monitored.";
+    }
+
+    private static string CreateHtmlEmailBody(string scheduledDate, string receiverName)
+    {
+        return $"<h2>Time to Run Payroll</h2>"
+         + $"Dear {receiverName}, </br>"
+         + $"<p>Today, <strong>{scheduledDate}<strong>, is your payroll run date. To ensure your employees get paid on time, "
+         + $"please run payroll today, after close of business. You may run it right now or anytime before close of business if "
+         + "you know the hours your employees will work today. If so, make sure to enter the expected hours "
+         + "on the page you approve timecards."
+         + $"<br/>Please do not reply to this email as it is not monitored.";
+    }
+    private static string CreateTextEmailBodyForLatePayroll(string scheduledDate, string receiverName)
+    {
+        return $"Time to Run Payroll"
+            + $"Dear {receiverName},\r\n"
+            + $"Your payroll run date has passed. It was on {scheduledDate}. Please run payroll as soon as possible, using our mobile app."
+            + "Please note that your employees will not get paid until you run payroll. \r\n\n"
+            + $"Please do not reply to this email as it is not monitored. If you need assistance, please call our support team at 601-608-7025";
+    }
+
+    private static string CreateHtmlEmailBodyForLatePayroll(string scheduledDate, string receiverName)
+    {
+        return $"<h2>Time to Run Payroll</h2>"
+         + $"Dear {receiverName}, </br>"
+         + $"Your payroll run date has passed. It was on <strong>{scheduledDate}</strong>. Please run payroll as soon as possible, using our mobile app."
+         + "Please note that your employees will not get paid until you run payroll."
+         + $"<br/><br/>Please do not reply to this email as it is not monitored. If you need assistance, please call our support team at <strong>601-608-7025</strong>";
+    }
 
     /// <summary>
     /// Creates  the first payroll that will be run by a manager after a week,month, etc,
@@ -317,7 +430,15 @@ public class PayrollService : IPayrollService
         return nextRunDate; //Note: for weekly and bi-weekly this date falls on Wednesday, but the check date will be on Friday
     }
 
-    public DateOnly GetFirstPaycheckDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId)
+    /// <summary>
+    /// For weekly and bi-weekly this date falls on Wednesday, but the check date will be on Friday
+    /// </summary>
+    /// <param name="frequency"></param>
+    /// <param name="scheduleStartDate"></param>
+    /// <param name="countryId"></param>
+    /// <returns>List of possible first paycheck dates</returns>
+    /// <exception cref="AppException"></exception>
+    public List<DateOnly> GetFirstPaycheckDate(PayrollScheduleTypeModel frequency, DateOnly scheduleStartDate, int countryId)
     {
         var daysInMonth = DateTime.DaysInMonth(scheduleStartDate.Year, scheduleStartDate.Month);
 
@@ -327,25 +448,27 @@ public class PayrollService : IPayrollService
         {
             case PayrollScheduleTypeModel.Monthly:
                 nextPaycheckDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
-                return AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
+                return new List<DateOnly> { AvoidHolidaysAndWeekends(nextPaycheckDate, countryId) };
             case PayrollScheduleTypeModel.SemiMonthly:
                 if (scheduleStartDate.Day < 16)
                     nextPaycheckDate = scheduleStartDate.AddDays(15 - scheduleStartDate.Day);
                 else
                     nextPaycheckDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
-                return AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
+                return new List<DateOnly> { AvoidHolidaysAndWeekends(nextPaycheckDate, countryId) };
             case PayrollScheduleTypeModel.Biweekly:
-                nextPaycheckDate = GetNextWednesday(scheduleStartDate).AddDays(7+2);//paycheck date is normally 2 days later
-                nextPaycheckDate = AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
-                break;
+                nextPaycheckDate = GetNextWednesday(scheduleStartDate).AddDays(2);//paycheck date is 2 days after payroll is run
+                var nextPaycheckDate2 = nextPaycheckDate.AddDays(7);
+                return new List<DateOnly> {
+                    AvoidHolidaysAndWeekends(nextPaycheckDate, countryId),
+                    AvoidHolidaysAndWeekends(nextPaycheckDate2, countryId)
+                };
             case PayrollScheduleTypeModel.Weekly:
                 nextPaycheckDate = GetNextWednesday(scheduleStartDate).AddDays(2); //paycheck date is normally 2 days later
-                nextPaycheckDate = AvoidHolidaysAndWeekends(nextPaycheckDate, countryId);
-                break;
+                return new List<DateOnly> { AvoidHolidaysAndWeekends(nextPaycheckDate, countryId) };                
             case 0:
                 throw new AppException("Payroll schedule not defined");
         }
-        return nextPaycheckDate; //Note: for weekly and bi-weekly this date falls on Wednesday, but the check date will be on Friday
+        return null;
     }
 
     public async Task CreateNextPaystubForAllCurrentPayrollsAsync()
@@ -372,16 +495,20 @@ public class PayrollService : IPayrollService
     }
     private static DateOnly GetNextWednesday(DateOnly date)
     {
-        var days = date.DayOfWeek - DayOfWeek.Wednesday;
-        if (days > 0)
-            return date.AddDays(7 - days);
+        var numberOfdaysFromWednesday = date.DayOfWeek - DayOfWeek.Wednesday;
+        
+        if (numberOfdaysFromWednesday > 0)
+            return date.AddDays(7 - numberOfdaysFromWednesday);
 
-        return date.AddDays(-days);
+        return date.AddDays(-numberOfdaysFromWednesday);
     }
 
     private DateOnly AvoidHolidaysAndWeekends(DateOnly date, int countryId)
     {
         var holidays = _context.Holiday.Where(e => e.CountryId == countryId && e.Date.Year == date.Year).ToList();
+
+        //subtract one day to allow for the 1 day delay in ACH payments
+        date = date.AddDays(-1);
 
         if (holidays.Any(e => e.Date == date))
             date = date.AddDays(-1);
@@ -396,7 +523,7 @@ public class PayrollService : IPayrollService
         else if (date.DayOfWeek == DayOfWeek.Sunday)
             date = date.AddDays(-2);
 
-        //Repeat holiday checks because moving it from the weekend may have brought it a holiday
+        //Repeat holiday checks because moving it from the weekend may have brought it to a holiday
         if (holidays.Any(e => e.Date == date))
             date = date.AddDays(-1);
 
@@ -408,7 +535,7 @@ public class PayrollService : IPayrollService
     }
     private Payroll GetPayroll(int id)
     {
-        var dto = _context.Payroll.Find(id);
+        var dto = _context.Payroll.Include(e=>e.PayrollSchedule).FirstOrDefault(e=>e.Id==id);
         return dto;
     }
 

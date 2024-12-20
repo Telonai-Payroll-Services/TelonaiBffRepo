@@ -23,5 +23,6 @@ public class Employment: BaseTracker
 
     public virtual SignUpStatusType SignUpStatusType { get; set; }
     public bool Deactivated { get; set; }
+    public string InternalEmployeeID { get; set; }
 
 }

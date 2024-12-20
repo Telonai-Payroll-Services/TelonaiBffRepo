@@ -109,6 +109,11 @@ public class DocumentsController : ControllerBase
             return BadRequest("No file uploaded.");
         }
 
+        if (documentType.ToString().EndsWith("Unsigned"))
+        {
+            return BadRequest("Invalid Document Type.");
+        }
+
         using (Stream stream = new MemoryStream())
         {
             file.CopyTo(stream);
@@ -129,6 +134,11 @@ public class DocumentsController : ControllerBase
         if (file == null || file.Length == 0)
         {
             return BadRequest("No file uploaded.");
+        }
+
+        if (!documentType.ToString().EndsWith("Unsigned"))
+        {
+            return BadRequest("Invalid Document Type.");
         }
 
         using (Stream stream = new MemoryStream())

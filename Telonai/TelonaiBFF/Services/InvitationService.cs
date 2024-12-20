@@ -76,7 +76,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
     public InvitationModel GetAllByActivaionCodeAndInviteeEmail(string activationCode, string email)
     {
         var dto = _context.Invitation.Include(e => e.Job).Include(e => e.Country)
-            .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode) &&
+            .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow);
 
         return _mapper.Map<InvitationModel>(dto ?? throw new AppException("Invalid Activation Code or Email"));
@@ -84,21 +84,21 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
     public Invitation GetAllByActivaionCodeAndInviteeEmail2(string activationCode, string email)
     {
         var dto = _context.Invitation.Include(e => e.Job).Include(e => e.Country)
-            .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode) &&
+            .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow);
 
         return dto ?? throw new AppException("Invalid Activation Code or Email");
     }
     public Invitation GetByActivaionCodeAndInviteeEmail(string activationCode, string email, string taxId)
     {
-        var dto = _context.Invitation.FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode) &&
+        var dto = _context.Invitation.FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow && e.TaxId == taxId);
 
         return dto ?? throw new AppException("Invalid Activation Code");
     }
     public InvitationModel GetByActivaionCodeAndInviteeEmail(string activationCode, string email)
     {
-        var dto = _context.Invitation.FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode) &&
+        var dto = _context.Invitation.FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow);
 
         return _mapper.Map<InvitationModel>(dto ?? throw new AppException("Invalid Activation Code or Email"));
@@ -193,8 +193,8 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         {
             var activationCode = GetActivationCode(invitation.Id);
             await _mailSender.SendUsingAwsClientAsync(model.Email, $"Activation Request by {companyName}",
-                CreateHtmlEmailBoby(activationCode, companyName, $"{model.FirstName} {model.LastName}"),
-                CreateTextEmailBoby(activationCode, companyName, $"{model.FirstName} {model.LastName}"));
+                CreateHtmlEmailBoby(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"),
+                CreateTextEmailBoby(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"));
             return invitation;
         }
         catch
@@ -242,8 +242,8 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         return "Activate your account\r\n"
                 + $"Dear {recieverName},\r\n"
                 + $"You are invited by {senderCompanyName} to activate your Telonai account. "
-                + $"To activate your account, you need to download and install the Telonai app. "
-               // + "If you are an IOS (iPhone) user, download the app from https://aws.amazon.com/ses .\r\n"
+                + $"To activate your account,  download and install the Telonai app. "
+                + "If you are an IOS (iPhone) user, download the app from https://testflight.apple.com/join/fCywB8KM .\r\n"
                 + "If you are an Android user, download the app from https://play.google.com/apps/internaltest/4701723557107848335 .\r\n"
                 + $"When prompted for activation code, please enter {activationCode} .";                
     }
@@ -252,8 +252,8 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
     {
         return $"<h1>Activate your account</h1>" 
          + $"Dear {recieverName}, </br><p>You are invited by <strong>{senderCompanyName}</strong> to activate your Telonai account. " 
-         + $"<br/>To activate your account, you need to download and install the <strong>Telonai</strong> app."
-        // + "<br/>If you are an IOS (iPhone) user, download the app from:  <a href='https://aws.amazon.com/ses'> App Store </a> ."
+         + $"<br/>To activate your account, download and install the <strong>Telonai</strong> app."
+         + "<br/>If you are an IOS (iPhone) user, download the app from:  <a href='https://testflight.apple.com/join/fCywB8KM'> App Store </a> ."
          + "<br/>If you are an Android user, download the app from: <a href='https://play.google.com/apps/internaltest/4701723557107848335'> Google Play </a> ."
          + $"<br/>When prompted for activation code, please enter <strong>{activationCode}</strong> .";
     }

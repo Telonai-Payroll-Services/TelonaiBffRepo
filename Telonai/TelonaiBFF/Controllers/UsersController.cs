@@ -7,6 +7,7 @@ using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
 using TelonaiWebApi.Entities;
 using Amazon.Extensions.CognitoAuthentication;
+using System.Text.RegularExpressions;
 
 [ApiController]
 [Route("[controller]")]
@@ -67,17 +68,13 @@ public class UsersController : Controller
             }
 
             var email = result.Item1.Attributes["email"];
-            var personList = await _personService.GetListByEmailAsync(email);
-
-            if (personList != null && personList.Count > 0)
+            var employments = _employmentService.GetByEmail(email).ToList();
+            var personId = employments.Select(e => e.PersonId).Distinct().ToList();
+            if (employments != null && employments.Count > 0)
             {
-                loginResult.FullName = $"{personList.First().FirstName} {personList.First().LastName}";
-                loginResult.Employments = _employmentService.GetByEmail(email).ToList();
-                //foreach (var person in personList)
-                //{
-                //    //loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(person.Id);
-                    
-                //}
+                loginResult.FullName = employments.First().Person;
+                loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(personId);
+                loginResult.Employments = employments;
             }
 
             return Ok(loginResult);
@@ -199,24 +196,54 @@ public class UsersController : Controller
         return BadRequest();
     }
     
-    [HttpPost("checkUsernameAvailability/{username}")]
+    [HttpPost("{username}")]
     public async Task<IActionResult> CheckUserNameAvailability(string username)
     {
         if (!string.IsNullOrEmpty(username))
         {
             if (await _userService.CheckUsernameAvailability(username))
             {
-                return BadRequest("There is an existing username, Please try another username!");
+                return BadRequest("Invalid");
             }
             else
             {
-                return Ok("The username is available");
+                return Ok();
             }
         }
         else
         {
             return Ok("Please provide the username to check whether it is available or not");
         }
+    }
+
+    [HttpPost("email/{email}")]
+    public async Task<IActionResult> ForgetUsername(string email)
+    {
+        if (!string.IsNullOrEmpty(email))
+        {
+            string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            if (Regex.IsMatch(email, pattern))
+            {
+                var forgetUsernameResult = await _userService.SendForgettenUsername(email);
+                if (forgetUsernameResult)
+                {
+                    return Ok("Your username was delivered to your email address.Check your email, please.");
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                throw new ApplicationException("Please enter a valid email address.");
+            }
+        }
+        else
+        {
+            throw new ApplicationException("Please enter email address.");
+        }
+
     }
 
     private async Task<PersonModel> CreateProfileFromUserAsync(User user, int companyId)
@@ -229,8 +256,18 @@ public class UsersController : Controller
             Email = user?.Email,
             MobilePhone = user?.MobilePhone,
             CompanyId = companyId,
+            //BankAccountNumber = user?.BankAccountNumber,
+            //RoutingNumber = user?.RoutingNumber,
             INineVerificationStatusId = (int)INineVerificationStatusModel.INineNotSubmitted
         };
+        var exstingPerson=await _personService.GetByEmailAsync(user?.Email);
+        if (exstingPerson != null) 
+        {
+            p.FirstName = exstingPerson?.FirstName;
+            p.LastName = exstingPerson?.LastName;
+            p.MiddleName = exstingPerson?.MiddleName;
+        }
+        
         return await _personService.CreateAsync(p);
     }
 

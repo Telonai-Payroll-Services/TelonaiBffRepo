@@ -67,6 +67,7 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
 
         CreateMap<Payroll, PayrollModel>()
+           .ForMember(dest => dest.PayrollScheduleType, opt => opt.MapFrom(src => (PayrollScheduleTypeModel)src.PayrollSchedule.PayrollScheduleTypeId))
            .ForMember(dest => dest.ScheduledRunDate, opt => opt.MapFrom(src => src.ScheduledRunDate.ToDateTime(TimeOnly.MinValue)))
            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)));
 
@@ -83,7 +84,7 @@ public class AutoMapperProfile : Profile
         CreateMap<PayrollSchedule, PayrollScheduleModel>()
             .ForMember(dest => dest.Compnay, opt => opt.MapFrom(src => src.Company.Name))
             .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)))
-            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate.Value.ToDateTime(TimeOnly.MinValue))); ;
+            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate.Value.ToDateTime(TimeOnly.MinValue)));
         //.ForMember(dest => dest.PayrollScheduleType, opt => opt.MapFrom(src => (PayrollScheduleTypeModel)src.PayrollScheduleTypeId));
 
         CreateMap<PayrollScheduleModel, PayrollSchedule>()
@@ -101,7 +102,9 @@ public class AutoMapperProfile : Profile
         CreateMap<Employment, EmploymentModel>()
             .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.Job.CompanyId))
             .ForMember(dest => dest.SignUpStatusType, opt => opt.MapFrom(src => (SignUpStatusTypeModel)(src.SignUpStatusTypeId ?? 0)))
-            .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Job.Company.Name));
+            .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Job.Company.Name))
+            .ForMember(dest => dest.Person, opt => opt.MapFrom(src => $"{src.Person.FirstName} {src.Person.LastName}"));
+
         CreateMap<EmploymentModel, Employment>()
              .ForMember(dest => dest.Id, opt => opt.Ignore())
              .ForMember(dest => dest.SignUpStatusType, opt => opt.Ignore())
@@ -127,6 +130,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.MapFrom(src => (StateWithholdingDocumentStatusModel)src.StateWithholdingDocumentStatusId))
             .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
+            .ForMember(dest => dest.Ssn, opt => opt.MapFrom(src => $"*****{src.Ssn.Substring(5)}"))
             .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.Zipcode.City.StateId));
 
         CreateMap<PersonModel, Person>()
@@ -369,6 +373,11 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.Person, opt => opt.Ignore())
              .ForMember(dest => dest.AgentField, opt => opt.Ignore())
              .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+        CreateMap<MobileAppVersionModel, MobileAppVersion>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+        CreateMap<MobileAppVersion, MobileAppVersionModel>();
 
     }
 }
