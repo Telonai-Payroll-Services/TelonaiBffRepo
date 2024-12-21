@@ -385,7 +385,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.DayOffPayTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffPayType)));
 
         CreateMap<DayOffRequest, DayOffRequestModel>()
-        .ForMember(dest => dest.DayOffType, opt => opt.MapFrom(src => (DayOffTypeModel)src.DayOffTypeId))
+        .ForMember(dest => dest.DayOffType, opt => opt.MapFrom(src => (DayOffTypes)src.DayOffTypeId))
         .ForMember(dest => dest.DayOffPayType, opt => opt.MapFrom(src => (DayOffPayTypeModel)src.DayOffPayTypeId));
     }
 }

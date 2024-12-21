@@ -16,13 +16,15 @@ public class DayOffRequestController : ControllerBase
     private readonly IDayOffRequestService<DayOffRequestModel, DayOffRequest> _service;
     private readonly ILogger<DayOffRequestController> _logger;
     private readonly IScopedAuthorization _scopedAuthrorization;
+    private readonly IDayOffTypeService _dayOffTypeService; 
 
     public DayOffRequestController(IDayOffRequestService<DayOffRequestModel, DayOffRequest> service, 
-        ILogger<DayOffRequestController> logger, IScopedAuthorization scopedAuthrorization)
+        ILogger<DayOffRequestController> logger, IScopedAuthorization scopedAuthrorization, IDayOffTypeService dayOffService)
     {
         _service = service;
         _logger = logger;
         _scopedAuthrorization = scopedAuthrorization;
+        _dayOffTypeService = dayOffService;
     }
 
     [Authorize]
@@ -66,5 +68,33 @@ public class DayOffRequestController : ControllerBase
     {
         _service.DeleteAsync(id);
         return Ok(new { message = "Day-off Request deleted" });
+    }
+
+    [HttpGet("GetAllDayOffTypes")]
+    public IActionResult GetAllDayOffTypes()
+    {
+        var dayOffTypes = _dayOffTypeService.GetAllDayOffType();
+        if(dayOffTypes != null)
+        {
+           return Ok(dayOffTypes);
+        }
+        else
+        {
+           return NotFound("There are no day off types registered.");
+        }
+    }
+
+    [HttpGet("GetDayOffTypesById/{id}")]
+    public  IActionResult GetDayOffTypeById(int id)
+    {
+        var dayOffType =  _dayOffTypeService.GetDayOffTypeById(id);
+        if (dayOffType != null)
+        {
+            return Ok(dayOffType);
+        }
+        else
+        {
+            return NotFound("There is any day off types registered.");
+        }
     }
 }
