@@ -27,3 +27,4 @@ public class QuarterType : IdValuePair { }
 public class ExemptFromFutaTaxType : IdValuePair { }
 public class BankAccountType : IdValuePair { }
 public class DayOffPayType : IdValuePair { }
+public class DayOffType : IdValuePair { }   

@@ -97,7 +97,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IAgentService, AgentService>();
     services.AddScoped<IMobileAppVersionService, MobileAppVersionService>();
     services.AddScoped<IDayOffRequestService<DayOffRequestModel, DayOffRequest>, DayOffRequestService>();
-    services.AddScoped<IDayOffService, DayOffService>();
+    services.AddScoped<IDayOffTypeService, DayOffTypeService>();
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen();
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());

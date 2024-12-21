@@ -6,7 +6,7 @@ using TelonaiWebApi.Helpers;
 public class DayOffRequestModel: BaseTracker
 {
     public int Id { get; set; }
-    public DayOffTypeModel DayOffType { get; set; }
+    public DayOffTypes DayOffType { get; set; }
     public DayOffPayTypeModel DayOffPayType { get; set; }
     public string Comment { get; set; }
     public int EmploymentId { get; set; }

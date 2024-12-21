@@ -14,5 +14,4 @@ public class DayOffRequest: BaseTracker
     public bool? IsApproved { get; set; }
     public bool IsCancelled { get; set; }
     public Employment Employment { get; set; }
-    public DayOffType dayOffType { get; set; }
 }

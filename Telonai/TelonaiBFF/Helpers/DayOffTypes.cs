@@ -1,7 +1,7 @@
 namespace TelonaiWebApi.Helpers;
 
 
-public enum DayOffTypeModel
+public enum DayOffTypes
 {
     SickLeave = 1,
     Bereavement,

@@ -16,10 +16,10 @@ public class DayOffRequestController : ControllerBase
     private readonly IDayOffRequestService<DayOffRequestModel, DayOffRequest> _service;
     private readonly ILogger<DayOffRequestController> _logger;
     private readonly IScopedAuthorization _scopedAuthrorization;
-    private readonly IDayOffService _dayOffTypeService; 
+    private readonly IDayOffTypeService _dayOffTypeService; 
 
     public DayOffRequestController(IDayOffRequestService<DayOffRequestModel, DayOffRequest> service, 
-        ILogger<DayOffRequestController> logger, IScopedAuthorization scopedAuthrorization, IDayOffService dayOffService)
+        ILogger<DayOffRequestController> logger, IScopedAuthorization scopedAuthrorization, IDayOffTypeService dayOffService)
     {
         _service = service;
         _logger = logger;
@@ -71,9 +71,9 @@ public class DayOffRequestController : ControllerBase
     }
 
     [HttpGet("GetAllDayOffTypes")]
-    public async Task<IActionResult> GetAllDayOffTypes()
+    public IActionResult GetAllDayOffTypes()
     {
-        var dayOffTypes = await _dayOffTypeService.GetAllDayOffType();
+        var dayOffTypes = _dayOffTypeService.GetAllDayOffType();
         if(dayOffTypes != null)
         {
            return Ok(dayOffTypes);
@@ -85,9 +85,9 @@ public class DayOffRequestController : ControllerBase
     }
 
     [HttpGet("GetDayOffTypesById/{id}")]
-    public async Task<IActionResult> GetDayOffTypeById(int id)
+    public  IActionResult GetDayOffTypeById(int id)
     {
-        var dayOffType = await _dayOffTypeService.GetDayOffTypeById(id);
+        var dayOffType =  _dayOffTypeService.GetDayOffTypeById(id);
         if (dayOffType != null)
         {
             return Ok(dayOffType);
