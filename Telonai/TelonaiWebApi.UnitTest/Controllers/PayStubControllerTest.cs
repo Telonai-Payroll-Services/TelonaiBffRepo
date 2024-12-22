@@ -1034,7 +1034,6 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             {
                 Id = payrollId,
                 CompanyId = companyId, 
-                
             };
 
             var payStubModel = new List<PayStubModel>()

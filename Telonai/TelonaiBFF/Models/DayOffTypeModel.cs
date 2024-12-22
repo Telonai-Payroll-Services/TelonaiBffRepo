@@ -1,15 +1,9 @@
-namespace TelonaiWebApi.Models;
-
-
-public enum DayOffTypeModel
+﻿namespace TelonaiWebApi.Models
 {
-    SickLeave =1,
-    Bereavement,
-    ParentalLeave,
-    Vacation,
-    Holiday,
-    JuryDuty,
-    VotingDay,
-    MilitaryLeave,
-    Other
+    public class DayOffTypeModel
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
+    }
 }

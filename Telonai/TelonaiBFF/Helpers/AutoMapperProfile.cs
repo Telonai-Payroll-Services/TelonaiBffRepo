@@ -259,7 +259,7 @@ public class AutoMapperProfile : Profile
 
         CreateMap<Invitation, InvitationStatusModel>()
          .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FirstName + " " + src.LastName))
-         .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.UpdatedBy == null ? "Invitation Sent" : "Completed"));
+         .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.UpdatedDate == null ? "Invitation Sent" : "Completed"));
 
         CreateMap<Invitation, InvitationModel>()
             .ForMember(dest => dest.Employment, opt => opt.Ignore())
@@ -385,7 +385,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.DayOffPayTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffPayType)));
 
         CreateMap<DayOffRequest, DayOffRequestModel>()
-        .ForMember(dest => dest.DayOffType, opt => opt.MapFrom(src => (DayOffTypeModel)src.DayOffTypeId))
+        .ForMember(dest => dest.DayOffType, opt => opt.MapFrom(src => (DayOffTypes)src.DayOffTypeId))
         .ForMember(dest => dest.DayOffPayType, opt => opt.MapFrom(src => (DayOffPayTypeModel)src.DayOffPayTypeId));
     }
 }
