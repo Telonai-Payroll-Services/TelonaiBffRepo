@@ -15,15 +15,15 @@ public class InvitationsController : ControllerBase
 {
     private readonly IInvitationService<InvitationModel, Invitation> _service;
     private readonly ILogger<InvitationsController> _logger;
-    private readonly IScopedAuthorization _scopedAuthrorization;
+    private readonly IScopedAuthorization _scopedAuthorization;
     private readonly IEmployerSubscriptionService _employerSubscriptionservice;
 
     public InvitationsController(IInvitationService<InvitationModel, Invitation> service, 
-        ILogger<InvitationsController> logger, IScopedAuthorization scopedAuthrorization, IEmployerSubscriptionService employerSubscriptionservice)
+        ILogger<InvitationsController> logger, IScopedAuthorization scopedAuthorization, IEmployerSubscriptionService employerSubscriptionservice)
     {
         _service = service;
         _logger = logger;
-        _scopedAuthrorization = scopedAuthrorization;
+        _scopedAuthorization = scopedAuthorization;
         _employerSubscriptionservice = employerSubscriptionservice;
     }
 
@@ -32,7 +32,7 @@ public class InvitationsController : ControllerBase
     public IActionResult GetById(Guid id)
     {
         var result = _service.GetById(id);
-        _scopedAuthrorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, result.JobId.Value);
+        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, result.JobId.Value);
 
         return Ok(result);
     }
@@ -80,7 +80,7 @@ public class InvitationsController : ControllerBase
     [HttpPost]
     public IActionResult InviteEmployee([FromBody] InvitationModel model)
     {
-        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, model.Employment.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, model.Employment.CompanyId);
         _service.CreateAsync(model,true);        
         return Ok();
     }

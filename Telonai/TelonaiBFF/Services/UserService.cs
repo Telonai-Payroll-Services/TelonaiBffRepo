@@ -129,7 +129,7 @@ public class UserService : IUserService
 
     public async Task ForgotPasswordRequest(string username)
     {
-        var user = await _userManager.FindByNameAsync(username) ?? throw new AppException("Invalid Username");
+        var user = await _userManager.FindByNameAsync(username) ?? throw new AppException("Invalid Username");        
         await user.ForgotPasswordAsync();             
     }
     public async Task ForgotPasswordResponse(string username,  string code, string newPassword)

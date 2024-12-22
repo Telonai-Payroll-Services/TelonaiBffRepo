@@ -25,6 +25,7 @@ public class UsersControllerTests
     private readonly Mock<IEmploymentService<EmploymentModel, Employment>> _mockEmploymentService;
     private readonly Mock<IPersonService<PersonModel, Person>> _mockPersonService;
     private readonly Mock<ITimecardUsaService> _mockTimecardService;
+    private readonly Mock<IDayOffRequestService<DayOffRequestModel, DayOffRequest>> _mockDayOffRequestService;
 
     public UsersControllerTests()
     {
@@ -34,13 +35,15 @@ public class UsersControllerTests
         _mockEmploymentService = _fixture.Freeze<Mock<IEmploymentService<EmploymentModel, Employment>>>();
         _mockPersonService = _fixture.Freeze<Mock<IPersonService<PersonModel, Person>>>();
         _mockTimecardService = _fixture.Freeze<Mock<ITimecardUsaService>>();
+        _mockDayOffRequestService = _fixture.Freeze<Mock<IDayOffRequestService<DayOffRequestModel, DayOffRequest>>>();
 
         _controller = new UsersController(
             _mockUserService.Object,
             _mockPersonService.Object,
             _mockInvitationService.Object,
             _mockEmploymentService.Object,
-            _mockTimecardService.Object
+            _mockTimecardService.Object,
+            _mockDayOffRequestService.Object
         );
     }
 
