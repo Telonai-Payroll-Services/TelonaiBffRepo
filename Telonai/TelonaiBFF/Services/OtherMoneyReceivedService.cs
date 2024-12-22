@@ -57,27 +57,59 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
 
     public async Task<bool> Create(int paystubId, OtherMoneyReceivedModel model)
     {
-        var dtoPayStub = GetPayStub(paystubId) ?? throw new KeyNotFoundException("PayStub not found");
-        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, dtoPayStub.Payroll.CompanyId);
+        var currentPayStub = GetPayStub(paystubId) ?? throw new KeyNotFoundException("PayStub not found");
+        var companyId = currentPayStub.Payroll.CompanyId;
+        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, companyId);
 
-        dtoPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.AdditionalOtherMoneyReceived?.Sum(e => e.Amount) ?? 0; 
+        currentPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.AdditionalOtherMoneyReceived?.Sum(e => e.Amount) ?? 0;
 
-        var objOtherMoney = _mapper.Map<OtherMoneyReceived>(model);
+        var previousPayStub = _context.PayStub.Include(e => e.OtherMoneyReceived).Include(e => e.Payroll).FirstOrDefault(e => e.Id < currentPayStub.Id
+        && e.Payroll.CompanyId == companyId);
 
+        //Now get the additional money received. Not that we avoided calculating the YTD intentionally.
+        //We will not display on the paystubs the YTD for each additional money received.
+        //Instead, we display the total Additional money received for the current paystub
+
+        List<AdditionalOtherMoneyReceived> currentAdditional = null;
 
         if (model.AdditionalOtherMoneyReceived != null)
         {
-            var objAdditional = _mapper.Map<List<AdditionalOtherMoneyReceived>>(model.AdditionalOtherMoneyReceived);
-            objAdditional.ForEach(e => e.PayStubId = paystubId);
-            _context.AdditionalOtherMoneyReceived.AddRange(objAdditional);
+            currentAdditional = _mapper.Map<List<AdditionalOtherMoneyReceived>>(model.AdditionalOtherMoneyReceived);
+            _context.AdditionalOtherMoneyReceived.AddRange(currentAdditional);
             _context.SaveChanges();
-            objOtherMoney.AdditionalOtherMoneyReceivedId = objAdditional.Select(e => e.Id).ToArray();
         }
-        _context.OtherMoneyReceived.Add(objOtherMoney);
+
+        OtherMoneyReceived dtoOtherMoney = null;
+
+        if (currentPayStub.OtherMoneyReceived == null)
+        {
+            dtoOtherMoney = _mapper.Map<OtherMoneyReceived>(model);
+            dtoOtherMoney.YtdCreditCardTips = previousPayStub?.OtherMoneyReceived?.YtdCreditCardTips ?? dtoOtherMoney.CreditCardTips;
+            dtoOtherMoney.YtdCashTips = previousPayStub?.OtherMoneyReceived?.YtdCashTips ?? dtoOtherMoney.CreditCardTips;
+            dtoOtherMoney.YtdReimbursement = previousPayStub?.OtherMoneyReceived?.YtdReimbursement ?? dtoOtherMoney.CreditCardTips;
+
+            if (currentAdditional.Any())
+                dtoOtherMoney.AdditionalOtherMoneyReceivedId = currentAdditional.Select(e => e.Id).ToArray();
+
+            _context.OtherMoneyReceived.Add(dtoOtherMoney);
+        }
+        else
+        {
+            dtoOtherMoney = currentPayStub.OtherMoneyReceived;
+            dtoOtherMoney.YtdCreditCardTips = previousPayStub?.OtherMoneyReceived?.YtdCreditCardTips ?? dtoOtherMoney.CreditCardTips;
+            dtoOtherMoney.YtdCashTips = previousPayStub?.OtherMoneyReceived?.YtdCashTips ?? dtoOtherMoney.CreditCardTips;
+            dtoOtherMoney.YtdReimbursement = previousPayStub?.OtherMoneyReceived?.YtdReimbursement ?? dtoOtherMoney.CreditCardTips;
+
+            if (currentAdditional.Any())
+                dtoOtherMoney.AdditionalOtherMoneyReceivedId = currentAdditional.Select(e => e.Id).ToArray();
+
+            _context.OtherMoneyReceived.Update(dtoOtherMoney);
+        }
+       
         _context.SaveChanges();
 
-        dtoPayStub.OtherMoneyReceivedId=objOtherMoney.Id;
-        _context.PayStub.Update(dtoPayStub);
+        currentPayStub.OtherMoneyReceivedId= dtoOtherMoney.Id;
+        _context.PayStub.Update(currentPayStub);
         return  await _context.SaveChangesAsync() > 0;
     }
 
