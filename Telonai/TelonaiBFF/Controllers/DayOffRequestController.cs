@@ -16,7 +16,7 @@ public class DayOffRequestController : ControllerBase
 
     private readonly IDayOffRequestService<DayOffRequestModel, DayOffRequest> _service;
     private readonly ILogger<DayOffRequestController> _logger;
-    private readonly IScopedAuthorization _scopedAuthrorization;
+    private readonly IScopedAuthorization _scopedAuthorization;
     private readonly IDayOffTypeService _dayOffTypeService; 
 
     public DayOffRequestController(IDayOffRequestService<DayOffRequestModel, DayOffRequest> service, 
@@ -24,7 +24,7 @@ public class DayOffRequestController : ControllerBase
     {
         _service = service;
         _logger = logger;
-        _scopedAuthrorization = scopedAuthrorization;
+        _scopedAuthorization = scopedAuthrorization;
         _dayOffTypeService = dayOffService;
     }
 
