@@ -386,6 +386,7 @@ public class AutoMapperProfile : Profile
 
         CreateMap<DayOffRequest, DayOffRequestModel>()
         .ForMember(dest => dest.DayOffType, opt => opt.MapFrom(src => (DayOffTypes)src.DayOffTypeId))
-        .ForMember(dest => dest.DayOffPayType, opt => opt.MapFrom(src => (DayOffPayTypeModel)src.DayOffPayTypeId));
+        .ForMember(dest => dest.DayOffPayType, opt => opt.MapFrom(src => (DayOffPayTypeModel)src.DayOffPayTypeId))
+        .ForMember(dest => dest.Name, opt => opt.MapFrom(src => $"{src.Employment.Person.LastName} {src.Employment.Person.FirstName}"));
     }
 }
