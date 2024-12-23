@@ -43,31 +43,29 @@ public class OtherIncomeController : ControllerBase
     [HttpPost("paystub/{paystubId}")]
     public async Task<IActionResult> Create(int paystubId, [FromBody]OtherMoneyReceivedModel model)
     {
-        var isOtherIncomeSaved = await _otherIncomeService.Create(paystubId,model);
+        var isOtherIncomeSaved = await _otherIncomeService.CreateOrUpdate(paystubId,model);
         if(isOtherIncomeSaved)
         {
-            return Ok("Other income for the provide paystub is registered successfully.");
+            return Ok("Additional earning added successfully.");
         }
         else
         {
-            return NotFound("There is not paystub registered with provided payStubId.")
+            return NotFound("Not able to add additional earning")
 ;        }
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int paystubId, [FromBody]OtherMoneyReceivedModel model)
     {
-        //var stub = _otherIncomeService.GetById(paystubId);
-        //_scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, stub.PayStub.Payroll.CompanyId);
-
-        var result = await _otherIncomeService.Update(paystubId,model);
+       //No Authorization here. It is done in the service
+        var result = await _otherIncomeService.CreateOrUpdate(paystubId,model);
         if(result)
         {
-            return Ok(new { message = "OtherIncome updated." });
+            return Ok(new { message = "Additional earning updated successfully." });
         }
         else
         {
-            return NotFound("Not able to update other income");
+            return NotFound("Not able to update additional earning");
         }
     }
 
