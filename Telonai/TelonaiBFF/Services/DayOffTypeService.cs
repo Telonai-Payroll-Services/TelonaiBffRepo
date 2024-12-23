@@ -5,6 +5,7 @@ using TelonaiWebApi.Models;
 using TelonaiWebApi.Helpers;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System.ComponentModel;
+using Microsoft.OpenApi.Extensions;
 namespace TelonaiWebApi.Services
 {
     public interface IDayOffTypeService
@@ -50,7 +51,8 @@ namespace TelonaiWebApi.Services
                                     .Select(e => new DayOffTypeModel
                                     {
                                         Id = (int)e,
-                                        Name = GetEnumDescription(e),
+                                        DisplayName = GetEnumDescription(e),
+                                        Name = e.ToString()
                                     }).ToList();
             return DayOffTypes;
         }
