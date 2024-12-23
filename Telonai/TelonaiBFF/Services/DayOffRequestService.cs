@@ -1,6 +1,7 @@
 namespace TelonaiWebApi.Services;
 
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
@@ -91,7 +92,7 @@ public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,Day
     {
         var thirtyDaysAgo =DateOnly.FromDateTime(DateTime.Today).AddDays(-31);
         var obj = _context.DayOffRequest.Where(e => e.Employment.Job.CompanyId == companyId && !e.IsCancelled &&
-        e.ToDate> thirtyDaysAgo)?.ToList();
+        e.ToDate> thirtyDaysAgo).Include(d => d.Employment.Person)?.ToList();
 
         var result = _mapper.Map<List<DayOffRequestModel>>(obj);
         return result;
