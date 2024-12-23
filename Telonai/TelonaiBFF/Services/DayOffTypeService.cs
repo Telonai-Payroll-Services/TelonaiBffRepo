@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Helpers;
+using Microsoft.EntityFrameworkCore.Metadata;
+using System.ComponentModel;
 namespace TelonaiWebApi.Services
 {
     public interface IDayOffTypeService
@@ -18,7 +20,7 @@ namespace TelonaiWebApi.Services
             var dayOffType = new DayOffTypeModel();
             var DayOffTypes = DayOffTypeService.ConvertEnumToList();
             dayOffType = DayOffTypes.Find(x => x.Id == id);
-            if(dayOffType != null)
+            if (dayOffType != null)
             {
                 return dayOffType;
             }
@@ -28,7 +30,7 @@ namespace TelonaiWebApi.Services
             }
         }
 
-        public  List<DayOffTypeModel> GetAllDayOffType()
+        public List<DayOffTypeModel> GetAllDayOffType()
         {
             var dayOffTypes = DayOffTypeService.ConvertEnumToList();
             if (dayOffTypes != null)
@@ -47,10 +49,18 @@ namespace TelonaiWebApi.Services
                                     .Cast<DayOffTypes>()
                                     .Select(e => new DayOffTypeModel
                                     {
-                                        Name = e.ToString(),
-                                        Id = (int)e
+                                        Id = (int)e,
+                                        Name = GetEnumDescription(e),
                                     }).ToList();
             return DayOffTypes;
+        }
+
+        private static string GetEnumDescription(Enum value)
+        {
+            var field = value.GetType().GetField(value.ToString());
+            var attribute = field.GetCustomAttributes(typeof(DescriptionAttribute), false)
+                             .FirstOrDefault() as DescriptionAttribute;
+            return attribute?.Description ?? value.ToString();
         }
     }
 }
