@@ -13,8 +13,7 @@ public interface IOtherMoneyReceivedService
 {
     OtherMoneyReceivedModel GetById(int id);
     List<OtherMoneyReceivedModel> GetByPayStubId(int payStubId, out int jobId);
-    Task<bool> Update(int payStubId, OtherMoneyReceivedModel model);
-    Task<bool> Create(int payStubId, OtherMoneyReceivedModel model);
+    Task<bool> CreateOrUpdate(int paystubId, OtherMoneyReceivedModel model);
     Task<bool> Delete(int id);
 }
 
@@ -55,84 +54,51 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
         return  _mapper.Map<List<OtherMoneyReceivedModel>>(obj.ToList());
     }
 
-    public async Task<bool> Create(int paystubId, OtherMoneyReceivedModel model)
+    public async Task<bool> CreateOrUpdate(int paystubId, OtherMoneyReceivedModel model)
     {
-        var dtoPayStub = GetPayStub(paystubId) ?? throw new KeyNotFoundException("PayStub not found");
-        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, dtoPayStub.Payroll.CompanyId);
+        var currentPayStub = GetPayStub(paystubId) ?? throw new KeyNotFoundException("PayStub not found");
+        var companyId = currentPayStub.Payroll.CompanyId;
+        _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, companyId);
 
-        dtoPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.AdditionalOtherMoneyReceived?.Sum(e => e.Amount) ?? 0; 
+        currentPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.AdditionalOtherMoneyReceived?.Sum(e => e.Amount) ?? 0;
 
-        var objOtherMoney = _mapper.Map<OtherMoneyReceived>(model);
+        var previousPayStub = _context.PayStub.Include(e => e.OtherMoneyReceived).Include(e => e.Payroll).FirstOrDefault(e => e.Id < currentPayStub.Id
+        && e.Payroll.CompanyId == companyId);
 
-
+        //First get the additional money received. Note that we intentionally don't calculate the ytd for additional money received.
+        //because the ytd is not displayed to the user at all. Instead, we get the total additional money received for each pay stub
+        List<AdditionalOtherMoneyReceived> currentAdditionalMoney = null;
         if (model.AdditionalOtherMoneyReceived != null)
         {
-            var objAdditional = _mapper.Map<List<AdditionalOtherMoneyReceived>>(model.AdditionalOtherMoneyReceived);
-            objAdditional.ForEach(e => e.PayStubId = paystubId);
-            _context.AdditionalOtherMoneyReceived.AddRange(objAdditional);
+            currentAdditionalMoney = _mapper.Map<List<AdditionalOtherMoneyReceived>>(model.AdditionalOtherMoneyReceived);
+            _context.AdditionalOtherMoneyReceived.AddRange(currentAdditionalMoney);
             _context.SaveChanges();
-            objOtherMoney.AdditionalOtherMoneyReceivedId = objAdditional.Select(e => e.Id).ToArray();
         }
-        _context.OtherMoneyReceived.Add(objOtherMoney);
+
+        //Now add the other-money-received passed as parameter. If there is existing one, cancel it
+        var dtoOtherMoney = _mapper.Map<OtherMoneyReceived>(model);
+        dtoOtherMoney.YtdCreditCardTips = previousPayStub?.OtherMoneyReceived?.YtdCreditCardTips ?? dtoOtherMoney.CreditCardTips;
+        dtoOtherMoney.YtdCashTips = previousPayStub?.OtherMoneyReceived?.YtdCashTips ?? dtoOtherMoney.CreditCardTips;
+        dtoOtherMoney.YtdReimbursement = previousPayStub?.OtherMoneyReceived?.YtdReimbursement ?? dtoOtherMoney.CreditCardTips;
+
+        if (currentAdditionalMoney.Any())
+            dtoOtherMoney.AdditionalOtherMoneyReceivedId = currentAdditionalMoney.Select(e => e.Id).ToArray();
+
+        _context.OtherMoneyReceived.Add(dtoOtherMoney);
+
+        if (currentPayStub.OtherMoneyReceived != null)
+        {
+            currentPayStub.OtherMoneyReceived.IsCancelled = true;
+            _context.OtherMoneyReceived.Update(currentPayStub.OtherMoneyReceived);
+        }
+
         _context.SaveChanges();
 
-        dtoPayStub.OtherMoneyReceivedId=objOtherMoney.Id;
-        _context.PayStub.Update(dtoPayStub);
-        return  await _context.SaveChangesAsync() > 0;
+        currentPayStub.OtherMoneyReceivedId = dtoOtherMoney.Id;
+        _context.PayStub.Update(currentPayStub);
+        return await _context.SaveChangesAsync() > 0;
     }
-
-    public async Task<bool> Update(int payStubId, OtherMoneyReceivedModel model)
-    {
-        var dtoPayStub = GetPayStub(payStubId) ?? throw new KeyNotFoundException("PayStub not found");
-
-        dtoPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.AdditionalOtherMoneyReceived?.Sum(e=>e.Amount)?? 0;
-
-        var obj = GetOtherMoneyReceived(dtoPayStub.OtherMoneyReceivedId.Value);
-
-        if (obj == null)
-        {
-            obj = _mapper.Map<OtherMoneyReceived>(model);
-            if (model.AdditionalOtherMoneyReceived != null)
-            {
-                var obj2 = _mapper.Map<List<AdditionalOtherMoneyReceived>>(model.AdditionalOtherMoneyReceived);
-                _context.AdditionalOtherMoneyReceived.AddRange(obj2);
-                _context.SaveChanges();
-                obj.AdditionalOtherMoneyReceivedId = obj2.Select(e => e.Id).ToArray();
-            }
-            else
-            {
-                _context.OtherMoneyReceived.Add(obj);
-                _context.SaveChanges();
-            }
-            
-            _context.PayStub.Update(dtoPayStub);
-            return await _context.SaveChangesAsync() > 0;
-        }
-        else
-        {
-            //cancell the existing one and create a new one
-            obj.IsCancelled = true;
-            _context.OtherMoneyReceived.Update(obj);
-
-            var objNew = _mapper.Map<OtherMoneyReceived>(model);
-            if (model.AdditionalOtherMoneyReceived != null)
-            {
-                var obj2New = _mapper.Map<List<AdditionalOtherMoneyReceived>>(model.AdditionalOtherMoneyReceived);
-                _context.AdditionalOtherMoneyReceived.AddRange(obj2New);
-                _context.SaveChanges();
-                objNew.AdditionalOtherMoneyReceivedId = obj2New.Select(e => e.Id).ToArray();
-            }
-            else
-            {
-                _context.OtherMoneyReceived.Add(objNew);
-                _context.SaveChanges();
-            }
-            _context.PayStub.Update(dtoPayStub);
-            return await _context.SaveChangesAsync() > 0;
-        }
-       
-    }
-
+    
     public async Task<bool> Delete(int id)
     {
         var dto = GetOtherMoneyReceived(id);

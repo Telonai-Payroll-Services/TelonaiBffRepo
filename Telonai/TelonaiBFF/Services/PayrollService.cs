@@ -562,8 +562,7 @@ public class PayrollService : IPayrollService
         var frequency = (PayrollScheduleTypeModel)currentPayroll.PayrollSchedule.PayrollScheduleTypeId;
 
         var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId &&
-        (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate
-        && e.EndDate > currentPayroll.StartDate))).ToList();
+        (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate))).ToList();
 
         foreach (var emp in employments)
         {
@@ -762,15 +761,18 @@ public class PayrollService : IPayrollService
     /// <exception cref="AppException"></exception>
     private Tuple<List<PayStub>, List<PayStub>> CompletePayStubsForCurrentPayroll(Payroll currentPayroll)
     {
-        var previousPayrollId = _context.Payroll.OrderByDescending(e=>e.Id).FirstOrDefault(e => e.Id < currentPayroll.Id)?.Id;
-        var previousPayStubs = _context.PayStub.Where(e => e.PayrollId == previousPayrollId).ToList();
-
-        var currentPayStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id).ToList();
-        var newPayStubs = new List<PayStub>();
         var companyId = currentPayroll.CompanyId;
-        var company= currentPayroll.Company;
+        var company = currentPayroll.Company;
         var currentYear = currentPayroll.ScheduledRunDate.Year;
 
+        var previousPayrollId = _context.Payroll.OrderByDescending(e => e.Id).FirstOrDefault(e => e.Id < currentPayroll.Id
+            && e.CompanyId == companyId)?.Id;
+
+        var previousPayStubs = _context.PayStub.Where(e => e.PayrollId == previousPayrollId).ToList();
+        var currentPayStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id).ToList();
+
+        var newPayStubs = new List<PayStub>();
+       
         var timecards = _context.TimecardUsa.Where(e => e.Job.CompanyId == companyId &&
         DateOnly.FromDateTime(e.ClockIn) >= currentPayroll.StartDate &&
         DateOnly.FromDateTime(e.ClockIn) <= currentPayroll.ScheduledRunDate).ToList();
@@ -778,8 +780,10 @@ public class PayrollService : IPayrollService
         if (timecards.Any(e => !e.IsApproved))
             throw new AppException("You have not approved all timecards");
                
-        var schedule = _context.PayrollSchedule.FirstOrDefault(e => e.CompanyId == companyId && (e.EndDate == null ||
-        e.EndDate < currentPayroll.ScheduledRunDate));        
+        var schedule = _context.PayrollSchedule.OrderByDescending(e=>e.StartDate).FirstOrDefault(e => e.CompanyId == companyId 
+        && e.StartDate <= currentPayroll.StartDate && (e.EndDate == null ||
+        e.EndDate >= currentPayroll.ScheduledRunDate));        
+
         var frequency = (PayrollScheduleTypeModel)schedule?.PayrollScheduleTypeId;
 
         var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId &&
