@@ -46,11 +46,11 @@ public class OtherIncomeController : ControllerBase
         var isOtherIncomeSaved = await _otherIncomeService.CreateOrUpdate(paystubId,model);
         if(isOtherIncomeSaved)
         {
-            return Ok("Additional earning added successfully.");
+            return Ok("Additional earnings added successfully.");
         }
         else
         {
-            return NotFound("Not able to add additional earning")
+            return NotFound("Not able to add additional earnings")
 ;        }
     }
 
@@ -61,11 +61,11 @@ public class OtherIncomeController : ControllerBase
         var result = await _otherIncomeService.CreateOrUpdate(paystubId,model);
         if(result)
         {
-            return Ok(new { message = "Additional earning updated successfully." });
+            return Ok(new { message = "Additional earnings updated successfully." });
         }
         else
         {
-            return NotFound("Not able to update additional earning");
+            return NotFound("Not able to update additional earnings");
         }
     }
 

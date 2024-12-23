@@ -132,11 +132,13 @@ public class PayStubService : IPayStubService
     {
         var dTime = DateTime.UtcNow;
         var pdfManager = new DocumentManager(_context);
-        var payroll = _context.Payroll.Include(e => e.PayrollSchedule).Include(e => e.Company).ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
-            .ThenInclude(e => e.State).FirstOrDefault(e => e.Id == payrollId && e.CompanyId == companyId)
+        var payroll = _context.Payroll.Include(e => e.PayrollSchedule).Include(e => e.Company)
+            .ThenInclude(e => e.Zipcode).ThenInclude(e => e.City).ThenInclude(e => e.State)
+            .FirstOrDefault(e => e.Id == payrollId && e.CompanyId == companyId)
             ?? throw new AppException("Payroll not found");
 
         _currentYear = payroll.ScheduledRunDate.Year;
+
         var docId = new Guid();
         var state = payroll.Company.Zipcode.City.State;
         _stateId = state.Id;
@@ -148,9 +150,10 @@ public class PayStubService : IPayStubService
         else if (schedule == PayrollScheduleTypeModel.SemiMonthly) { _numberOfPaymentsInYear = 24; }
         else if (schedule == PayrollScheduleTypeModel.Biweekly) { _numberOfPaymentsInYear = 26; }
 
-        var payStubs = _context.PayStub.Include(e => e.OtherMoneyReceived).Include(e => e.Employment).ThenInclude(e => e.Person)
-                .ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
-                .Where(e => e.PayrollId == payrollId) ?? throw new AppException("Pay stubs not found");
+        var payStubs = _context.PayStub.Include(e => e.OtherMoneyReceived).Include(e => e.Employment)
+            .ThenInclude(e => e.Person).ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
+            .Where(e => e.PayrollId == payrollId) ?? throw new AppException("Pay stubs not found");
+
         var additionalMoneyReceived = new List<AdditionalOtherMoneyReceived>();
         foreach (var payStub in payStubs.ToList())
         {
@@ -160,6 +163,7 @@ public class PayStubService : IPayStubService
                 //Calculate Federal and State Taxes
                 var additionalMoneyReceivedIds = payStub.OtherMoneyReceived?.AdditionalOtherMoneyReceivedId;
                 additionalMoneyReceived = _context.AdditionalOtherMoneyReceived.Where(e => additionalMoneyReceivedIds.Contains(e.Id)).ToList();
+                
                 var paymentExemptFromFutaTax = additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0);
                 payStub.NetPay = payStub.GrossPay;
                 var is2percentShareHolder = payStub.Employment.Person.IsTwopercentshareholder;

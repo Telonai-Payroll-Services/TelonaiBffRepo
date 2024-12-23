@@ -1,8 +1,5 @@
 ﻿namespace TelonaiWebApi.Controllers;
 
-using Amazon.Auth.AccessControlPolicy;
-using Amazon.Util.Internal;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TelonaiWebApi.Entities;
