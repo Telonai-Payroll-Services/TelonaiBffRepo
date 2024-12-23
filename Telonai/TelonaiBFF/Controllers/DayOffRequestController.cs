@@ -57,7 +57,7 @@ public class DayOffRequestController : ControllerBase
     [HttpGet("company/{id}")]
     public IActionResult GetByCompanyId(int id)
     {
-        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, id);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, id);
 
         var result = _service.GetByCompanyId(id);
         return Ok(result);
