@@ -16,7 +16,7 @@ public class DayOffRequestController : ControllerBase
 
     private readonly IDayOffRequestService<DayOffRequestModel, DayOffRequest> _service;
     private readonly ILogger<DayOffRequestController> _logger;
-    private readonly IScopedAuthorization _scopedAuthorization;
+    private readonly IScopedAuthorization _scopedAuthrorization;
     private readonly IDayOffTypeService _dayOffTypeService; 
 
     public DayOffRequestController(IDayOffRequestService<DayOffRequestModel, DayOffRequest> service, 
@@ -24,7 +24,7 @@ public class DayOffRequestController : ControllerBase
     {
         _service = service;
         _logger = logger;
-        _scopedAuthorization = scopedAuthrorization;
+        _scopedAuthrorization = scopedAuthrorization;
         _dayOffTypeService = dayOffService;
     }
 
@@ -57,7 +57,7 @@ public class DayOffRequestController : ControllerBase
     [HttpGet("company/{id}")]
     public IActionResult GetByCompanyId(int id)
     {
-        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, id);
+        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, id);
 
         var result = _service.GetByCompanyId(id);
         return Ok(result);
