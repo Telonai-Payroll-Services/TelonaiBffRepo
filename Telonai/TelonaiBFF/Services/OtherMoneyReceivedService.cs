@@ -76,26 +76,25 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
         }
 
         //Now add the other-money-received passed as parameter. If there is existing one, cancel it
-        var dtoOtherMoney = _mapper.Map<OtherMoneyReceived>(model);
-        dtoOtherMoney.YtdCreditCardTips = previousPayStub?.OtherMoneyReceived?.YtdCreditCardTips ?? dtoOtherMoney.CreditCardTips;
-        dtoOtherMoney.YtdCashTips = previousPayStub?.OtherMoneyReceived?.YtdCashTips ?? dtoOtherMoney.CreditCardTips;
-        dtoOtherMoney.YtdReimbursement = previousPayStub?.OtherMoneyReceived?.YtdReimbursement ?? dtoOtherMoney.CreditCardTips;
+        var dtoNewOtherMoney = _mapper.Map<OtherMoneyReceived>(model);
+        dtoNewOtherMoney.YtdCreditCardTips = previousPayStub?.OtherMoneyReceived?.YtdCreditCardTips > 0 ? previousPayStub.OtherMoneyReceived.YtdCreditCardTips
+            + dtoNewOtherMoney.CreditCardTips : dtoNewOtherMoney.CreditCardTips;
+
+        dtoNewOtherMoney.YtdCashTips = previousPayStub?.OtherMoneyReceived?.YtdCashTips > 0 ? previousPayStub.OtherMoneyReceived.YtdCashTips +
+            dtoNewOtherMoney.CreditCardTips : dtoNewOtherMoney.CreditCardTips;
+
+        dtoNewOtherMoney.YtdReimbursement = previousPayStub?.OtherMoneyReceived?.YtdReimbursement > 0 ? previousPayStub.OtherMoneyReceived.YtdReimbursement
+            + dtoNewOtherMoney.CreditCardTips : dtoNewOtherMoney.CreditCardTips;
 
         if (currentAdditionalMoney.Any())
-            dtoOtherMoney.AdditionalOtherMoneyReceivedId = currentAdditionalMoney.Select(e => e.Id).ToArray();
+            dtoNewOtherMoney.AdditionalOtherMoneyReceivedId = currentAdditionalMoney.Select(e => e.Id).ToArray();
 
-        _context.OtherMoneyReceived.Add(dtoOtherMoney);
-
-        if (currentPayStub.OtherMoneyReceived != null)
-        {
-            currentPayStub.OtherMoneyReceived.IsCancelled = true;
-            _context.OtherMoneyReceived.Update(currentPayStub.OtherMoneyReceived);
-        }
-
+        _context.OtherMoneyReceived.Add(dtoNewOtherMoney);
         _context.SaveChanges();
 
-        currentPayStub.OtherMoneyReceivedId = dtoOtherMoney.Id;
+        currentPayStub.OtherMoneyReceivedId = dtoNewOtherMoney.Id;
         _context.PayStub.Update(currentPayStub);
+
         return await _context.SaveChangesAsync() > 0;
     }
     

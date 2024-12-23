@@ -39,16 +39,18 @@ public class PayStubService : IPayStubService
     private int _stateId;
     private int _currentYear;
     private readonly IPersonService<PersonModel, Person> _personService;
-    private ILogger<PayStubService> _logger;
+    private readonly ILogger<PayStubService> _logger;
+    private readonly IDocumentManager _documentManager;
 
     public PayStubService(DataContext context, IMapper mapper, IStaticDataService staticDataService
-        , IPersonService<PersonModel, Person> personService, ILogger<PayStubService> logger)
+        , IPersonService<PersonModel, Person> personService, ILogger<PayStubService> logger, IDocumentManager documentManager)
     {
         _context = context;
         _mapper = mapper;
         _staticDataService = staticDataService;
         _personService = personService;
         _logger = logger;
+        _documentManager = documentManager;
     }
 
     public List<PayStubModel> GetCurrentByCompanyId(int CompanyId)
@@ -131,7 +133,6 @@ public class PayStubService : IPayStubService
     public async Task GeneratePayStubPdfs(int payrollId, int companyId)
     {
         var dTime = DateTime.UtcNow;
-        var pdfManager = new DocumentManager(_context);
         var payroll = _context.Payroll.Include(e => e.PayrollSchedule).Include(e => e.Company)
             .ThenInclude(e => e.Zipcode).ThenInclude(e => e.City).ThenInclude(e => e.State)
             .FirstOrDefault(e => e.Id == payrollId && e.CompanyId == companyId)
@@ -145,6 +146,7 @@ public class PayStubService : IPayStubService
         _countryId = state.CountryId;
 
         var schedule = (PayrollScheduleTypeModel)payroll.PayrollSchedule.PayrollScheduleTypeId;
+
         if (schedule == PayrollScheduleTypeModel.Weekly) { _numberOfPaymentsInYear = 52; }
         else if (schedule == PayrollScheduleTypeModel.Monthly) { _numberOfPaymentsInYear = 12; }
         else if (schedule == PayrollScheduleTypeModel.SemiMonthly) { _numberOfPaymentsInYear = 24; }
@@ -155,9 +157,11 @@ public class PayStubService : IPayStubService
             .Where(e => e.PayrollId == payrollId) ?? throw new AppException("Pay stubs not found");
 
         var additionalMoneyReceived = new List<AdditionalOtherMoneyReceived>();
+
         foreach (var payStub in payStubs.ToList())
         {
             //To Do: We should add a validation that an income tax is created or not.
+            //TO DO: Cerate paystub only for those employees a paystub is not created
             try
             {
                 //Calculate Federal and State Taxes
@@ -175,7 +179,7 @@ public class PayStubService : IPayStubService
                     _context.SaveChanges();
                 }
                 //Create PDFs 
-                docId = await pdfManager.CreatePayStubPdfAsync(payStub, payStub.OtherMoneyReceived, additionalMoneyReceived, _newIncomeTaxesToHold.ToList());
+                docId = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, _newIncomeTaxesToHold.ToList());
                 var doc = new Document { Id = docId, DocumentTypeId = (int)DocumentTypeModel.PayStub, FileName = string.Format("PayStub-" + payStub.Id + "-" + dTime.ToString("yyyyMMddmmss") + ".pdf") };
                 _context.Document.Add(doc);
                 _context.SaveChanges();
@@ -273,8 +277,8 @@ public class PayStubService : IPayStubService
         var previousIncomeTaxes = _context.IncomeTax.OrderByDescending(e => e.CreatedDate).Where(
             e => e.CreatedDate.Year == _currentYear && !e.PayStub.IsCancelled && e.PayStub.EmploymentId == stub.EmploymentId);
 
-        var withHolingForms = _context.EmployeeWithholding.Include(e => e.Field).Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year).ToList();
-        var w4Form = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.WFourUnsigned).ToList(); // we use w4unsigned becuase the original employee withholding document is w4-unsigned  
+        var withHolingForms = _context.EmployeeWithholding.Include(e => e.Field).Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == _currentYear).ToList();
+        var w4Form = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.WFourUnsigned).ToList(); // we use w4unsigned because the original employee withholding document is w4-unsigned  
 
         var fedFilingStatus = FilingStatusTypeModel.SingleOrMarriedFilingSeparately;
 
@@ -282,7 +286,9 @@ public class PayStubService : IPayStubService
         var w4OneC = w4Form.Find(e => e.Field.FieldName == "1c");
 
         if (!Enum.TryParse(w4OneC?.FieldValue, out fedFilingStatus))
+        {
             throw new InvalidDataException($"Invalid filing status [{w4OneC}]");
+        }
 
         var w4TwoC = w4Form.Find(e => e.Field.FieldName == "2c");
         var w4Three = w4Form.Find(e => e.Field.FieldName == "3");

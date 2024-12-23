@@ -24,16 +24,18 @@ namespace TelonaiWebAPI.UnitTest.Services
         private readonly PayStubService _mockPayStubService;
         private readonly Mock<IPersonService<PersonModel,Person>> _mockPersonService;
         private readonly Mock<ILogger<PayStubService>> _mockLogger;
+            private readonly Mock<IDocumentManager> _mockDocumentManager;
 
         public PayStubServiceTests()
         {
             _mockDataContext = new Mock<DataContext>();
             _mockMapper = new Mock<IMapper>();
             _mockIStaticDataService = new Mock<IStaticDataService>();
-            _mockPersonService  = new Mock<IPersonService<PersonModel, Person>>();
+            _mockDocumentManager = new Mock<IDocumentManager>();
+            _mockPersonService = new Mock<IPersonService<PersonModel, Person>>();
             _mockLogger= new Mock<ILogger<PayStubService>>();
             _mockPayStubService = new PayStubService(_mockDataContext.Object, _mockMapper.Object, _mockIStaticDataService.Object,
-                _mockPersonService.Object, _mockLogger.Object);
+                _mockPersonService.Object, _mockLogger.Object, _mockDocumentManager.Object);
         }
 
         #region GetCurrentByCompanyId
