@@ -165,7 +165,7 @@ public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,Day
     {
         if (dayOffRequest.IsApproved == null && dayOffRequest.IsCancelled != true)
         {
-            dayOffRequest.IsApproved = approveDayOffRequest.IApproved;
+            dayOffRequest.IsApproved = approveDayOffRequest.IsApproved;
             _context.Update(dayOffRequest);
             return await _context.SaveChangesAsync() > 0;
         }
