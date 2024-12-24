@@ -27,7 +27,6 @@ namespace UnitTests
         [Theory, CustomAutoData]
         public async Task CreatePayStubPdfAsync_ShouldCreateAndUploadPdf(
             PayStub payStub,
-            OtherMoneyReceived otherReceived,
             List<AdditionalOtherMoneyReceived> additionalMoneyReceived)
         {
 
@@ -38,7 +37,7 @@ namespace UnitTests
                                           .With(t => t.PayStub, payStub)
                                           .CreateMany(5)
                                           .ToList();
-            var result = await _documentManager.CreatePayStubPdfAsync(payStub, otherReceived, additionalMoneyReceived, incomeTaxes);
+            var result = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, incomeTaxes);
 
             Assert.NotEqual(Guid.Empty, result);
 
@@ -56,15 +55,14 @@ namespace UnitTests
                                       .CreateMany(5)
                                       .ToList();
        
-            var result = await _documentManager.CreatePayStubPdfAsync(payStub, otherReceived, null, incomeTaxes);
+            var result = await _documentManager.CreatePayStubPdfAsync(payStub, null, incomeTaxes);
        
             Assert.NotEqual(Guid.Empty, result);
            
         }
         [Theory, CustomAutoData]
         public async Task CreatePayStubPdfAsync_ShouldHandleEmptyAdditionalMoneyReceived(
-            PayStub payStub,
-            OtherMoneyReceived otherReceived)
+            PayStub payStub)
         {
             SetupPayStub(payStub);
 
@@ -74,7 +72,7 @@ namespace UnitTests
                                       .ToList();
 
 
-            var result = await _documentManager.CreatePayStubPdfAsync(payStub, otherReceived, new List<AdditionalOtherMoneyReceived>(), incomeTaxes);
+            var result = await _documentManager.CreatePayStubPdfAsync(payStub, new List<AdditionalOtherMoneyReceived>(), incomeTaxes);
 
             Assert.NotEqual(Guid.Empty, result);
           
@@ -91,20 +89,19 @@ namespace UnitTests
                                       .CreateMany(5)
                                       .ToList();
 
-            var result = await _documentManager.CreatePayStubPdfAsync(payStub, null, additionalMoneyReceived, incomeTaxes);
+            var result = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, incomeTaxes);
 
             Assert.NotEqual(Guid.Empty, result);
         }
         [Theory, CustomAutoData]
         public async Task CreatePayStubPdfAsync_ShouldHandleValidData(
             PayStub payStub,
-            OtherMoneyReceived otherReceived,
             List<AdditionalOtherMoneyReceived> additionalMoneyReceived,
             List<IncomeTax> incomeTaxes)
         {
             SetupPayStub(payStub);
 
-            var result = await _documentManager.CreatePayStubPdfAsync(payStub, otherReceived, additionalMoneyReceived, incomeTaxes);
+            var result = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, incomeTaxes);
 
             Assert.NotEqual(Guid.Empty, result);         
         }
@@ -114,7 +111,7 @@ namespace UnitTests
         {
             SetupPayStub(payStub);
 
-            var result = await _documentManager.CreatePayStubPdfAsync(payStub, null, new List<AdditionalOtherMoneyReceived>(), new List<IncomeTax>());
+            var result = await _documentManager.CreatePayStubPdfAsync(payStub, new List<AdditionalOtherMoneyReceived>(), new List<IncomeTax>());
 
             Assert.NotEqual(Guid.Empty, result);         
         }
@@ -125,7 +122,7 @@ namespace UnitTests
               List<IncomeTax> incomeTaxes)
         {
             var exception = await Assert.ThrowsAsync<AppException>(() =>
-                _documentManager.CreatePayStubPdfAsync(null, otherReceived, additionalMoneyReceived, incomeTaxes));
+                _documentManager.CreatePayStubPdfAsync(null, additionalMoneyReceived, incomeTaxes));
 
             Assert.Equal("PayStub not found", exception.Message);
         }
@@ -133,12 +130,11 @@ namespace UnitTests
         [Theory, CustomAutoData]
         public async Task CreatePayStubPdfAsync_ShouldHandleEmptyIncomeTaxes(
             PayStub payStub,
-            OtherMoneyReceived otherReceived,
             List<AdditionalOtherMoneyReceived> additionalMoneyReceived)
         {
             SetupPayStub(payStub);
 
-            var result = await _documentManager.CreatePayStubPdfAsync(payStub, otherReceived, additionalMoneyReceived, new List<IncomeTax>());
+            var result = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, new List<IncomeTax>());
 
             Assert.NotEqual(Guid.Empty, result);         
         }
@@ -148,7 +144,7 @@ namespace UnitTests
         {
             SetupPayStub(payStub);
 
-            var result = await _documentManager.CreatePayStubPdfAsync(payStub, null, null, null);
+            var result = await _documentManager.CreatePayStubPdfAsync(payStub, null, null);
 
             Assert.NotEqual(Guid.Empty, result);         
         }
