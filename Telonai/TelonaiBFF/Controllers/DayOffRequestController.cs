@@ -135,7 +135,7 @@ public class DayOffRequestController : ControllerBase
         }
     }
 
-    [HttpPut("Cancel")]
+    [HttpPut("Cancel/{id}")]
     public async Task<IActionResult> CancelDayOffRequest(int id)
     {
         var result = await _service.CancelDayOffRequest(id);
