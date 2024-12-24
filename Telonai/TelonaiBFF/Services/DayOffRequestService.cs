@@ -163,7 +163,7 @@ public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,Day
 
     public async Task<bool> ApproveDayOffRequest(ApproveDayOffRequest approveDayOffRequest, DayOffRequest dayOffRequest)
     {
-        if (dayOffRequest.IsApproved == null)
+        if (dayOffRequest.IsApproved == null && dayOffRequest.IsCancelled != true)
         {
             dayOffRequest.IsApproved = approveDayOffRequest.IApproved;
             _context.Update(dayOffRequest);
