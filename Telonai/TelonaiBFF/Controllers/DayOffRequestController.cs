@@ -120,7 +120,8 @@ public class DayOffRequestController : ControllerBase
             var result = await _service.ApproveDayOffRequest(approveDayOffRequest, dayOffRequest);
             if (result)
             {
-                string message = approveDayOffRequest.IApproved ? "The dayoff request of the employee is approved successfully" : "The dayoff request of the employee is rejected successfully";
+                string message = approveDayOffRequest.IApproved ? "The dayoff request of the employee is approved successfully":
+                                                                  "The dayoff request of the employee is rejected successfully";
                 return Ok(message);
             }
             else
