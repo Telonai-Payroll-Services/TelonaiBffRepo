@@ -17,9 +17,9 @@ public class DayOffRequestController : ControllerBase
     private readonly IDayOffRequestService<DayOffRequestModel, DayOffRequest> _service;
     private readonly ILogger<DayOffRequestController> _logger;
     private readonly IScopedAuthorization _scopedAuthrorization;
-    private readonly IDayOffTypeService _dayOffTypeService; 
+    private readonly IDayOffTypeService _dayOffTypeService;
 
-    public DayOffRequestController(IDayOffRequestService<DayOffRequestModel, DayOffRequest> service, 
+    public DayOffRequestController(IDayOffRequestService<DayOffRequestModel, DayOffRequest> service,
         ILogger<DayOffRequestController> logger, IScopedAuthorization scopedAuthrorization, IDayOffTypeService dayOffService)
     {
         _service = service;
@@ -68,8 +68,8 @@ public class DayOffRequestController : ControllerBase
     [HttpPost]
     public IActionResult CreateDayOffRequest([FromBody] DayOffRequestModel model)
     {
-       
-        _service.CreateAsync(model);        
+
+        _service.CreateAsync(model);
         return Ok();
     }
 
@@ -85,20 +85,20 @@ public class DayOffRequestController : ControllerBase
     public IActionResult GetAllDayOffTypes()
     {
         var dayOffTypes = _dayOffTypeService.GetAllDayOffType();
-        if(dayOffTypes != null)
+        if (dayOffTypes != null)
         {
-           return Ok(dayOffTypes);
+            return Ok(dayOffTypes);
         }
         else
         {
-           return NotFound("There are no day off types registered.");
+            return NotFound("There are no day off types registered.");
         }
     }
 
     [HttpGet("GetDayOffTypesById/{id}")]
-    public  IActionResult GetDayOffTypeById(int id)
+    public IActionResult GetDayOffTypeById(int id)
     {
-        var dayOffType =  _dayOffTypeService.GetDayOffTypeById(id);
+        var dayOffType = _dayOffTypeService.GetDayOffTypeById(id);
         if (dayOffType != null)
         {
             return Ok(dayOffType);
@@ -106,6 +106,45 @@ public class DayOffRequestController : ControllerBase
         else
         {
             return NotFound("There is any day off types registered.");
+        }
+    }
+
+    [HttpPut("Approve")]
+    public async Task<IActionResult> ApproveDayOffRequest([FromBody] ApproveDayOffRequest approveDayOffRequest)
+    {
+        var dayOffRequest = _service.GetDayOffRequestDetail(approveDayOffRequest.Id);
+        if (dayOffRequest != null)
+        {
+            //Check whether the logged user is an admin of a company.
+            _scopedAuthrorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, dayOffRequest.Employment.JobId);
+            var result = await _service.ApproveDayOffRequest(approveDayOffRequest, dayOffRequest);
+            if (result)
+            {
+                string message = approveDayOffRequest.IApproved ? "The dayoff request of the employee is approved successfully" : "The dayoff request of the employee is rejected successfully";
+                return Ok(message);
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+        else
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpPut("Cancel")]
+    public async Task<IActionResult> CancelDayOffRequest(int id)
+    {
+        var result = await _service.CancelDayOffRequest(id);
+        if (result)
+        {
+            return Ok("Your dayOff request is canceled successfully");
+        }
+        else
+        {
+            return BadRequest();
         }
     }
 }
