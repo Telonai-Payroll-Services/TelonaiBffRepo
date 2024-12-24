@@ -2,6 +2,7 @@ namespace TelonaiWebApi.Services;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
@@ -12,6 +13,9 @@ public interface IDayOffRequestService<Tmodel, Tdto> : IDataService<Tmodel, Tdto
     List<DayOffRequestModel> GetByPersonId(int personId);
     List<DayOffRequestModel> GetByCompanyId(int companyId);
     List<DayOffRequestModel> GetPendingRequestsByCompanyId(int companyId);
+    Task<bool> ApproveDayOffRequest(ApproveDayOffRequest approveDayOffRequest, DayOffRequest dayOffRequest);
+    Task<bool> CancelDayOffRequest(int dayOffRequestId);
+    DayOffRequest GetDayOffRequestDetail(int id);
 }
 
 public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,DayOffRequest>
@@ -157,9 +161,59 @@ public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,Day
         await _context.SaveChangesAsync();
     }
 
+    public async Task<bool> ApproveDayOffRequest(ApproveDayOffRequest approveDayOffRequest, DayOffRequest dayOffRequest)
+    {
+        if (dayOffRequest.IsApproved == null)
+        {
+            dayOffRequest.IsApproved = approveDayOffRequest.IApproved;
+            _context.Update(dayOffRequest);
+            return await _context.SaveChangesAsync() > 0;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> CancelDayOffRequest(int id)
+    {
+        var dayOffRequest = _context.DayOffRequest.Find(id);
+        if (dayOffRequest != null)
+        {
+            if (dayOffRequest.IsApproved == null && dayOffRequest.IsCancelled == false)
+            {
+                dayOffRequest.IsCancelled = true;
+                _context.Update(dayOffRequest);
+                return await _context.SaveChangesAsync() > 0;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public DayOffRequest GetDayOffRequestDetail(int id)
+    {
+        var dayOffRequest = _context.DayOffRequest.Include(e=>e.Employment).Where(d => d.Id == id);
+        if (dayOffRequest != null)
+        {
+            return dayOffRequest.Cast<DayOffRequest>().FirstOrDefault();
+        }
+        else
+        {
+            return null;
+        }
+    }
+
     private DayOffRequest GetDayOff(int id)
     {
         return _context.DayOffRequest.Find(id);
-
     }
+
+
 }
