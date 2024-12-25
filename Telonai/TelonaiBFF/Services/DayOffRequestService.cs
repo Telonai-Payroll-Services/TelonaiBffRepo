@@ -180,7 +180,7 @@ public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,Day
         var dayOffRequest = _context.DayOffRequest.Find(id);
         if (dayOffRequest != null)
         {
-            if (dayOffRequest.IsApproved == null && dayOffRequest.IsCancelled == false)
+            if (dayOffRequest.IsCancelled == false && DateOnly.FromDateTime(DateTime.Now).CompareTo(dayOffRequest.FromDate) < 0)
             {
                 dayOffRequest.IsCancelled = true;
                 _context.Update(dayOffRequest);
