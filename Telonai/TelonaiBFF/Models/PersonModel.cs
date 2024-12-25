@@ -39,7 +39,7 @@ public class PersonModel
     public string Company { get; set; }
     public int ZipcodeId { get; set; }
     public string Zipcode { get; set; }
-    public bool istwopercentshareholder { get; set; }
+    public bool IsTwopercentshareholder { get; set; }
     public string RoutingNumber { get; set; }
     public string BankAccountNumber { get; set; }
     public INineVerificationStatusModel INineVerificationStatus { get; set; }

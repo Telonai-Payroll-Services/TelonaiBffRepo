@@ -1,5 +1,6 @@
 namespace TelonaiWebApi.Services;
 
+using Amazon.SQS.Model;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Asn1.Ocsp;
@@ -38,16 +39,18 @@ public class PayStubService : IPayStubService
     private int _stateId;
     private int _currentYear;
     private readonly IPersonService<PersonModel, Person> _personService;
-    private ILogger<PayStubService> _logger;
+    private readonly ILogger<PayStubService> _logger;
+    private readonly IDocumentManager _documentManager;
 
     public PayStubService(DataContext context, IMapper mapper, IStaticDataService staticDataService
-        , IPersonService<PersonModel, Person> personService, ILogger<PayStubService> logger)
+        , IPersonService<PersonModel, Person> personService, ILogger<PayStubService> logger, IDocumentManager documentManager)
     {
         _context = context;
         _mapper = mapper;
         _staticDataService = staticDataService;
         _personService = personService;
         _logger = logger;
+        _documentManager = documentManager;
     }
 
     public List<PayStubModel> GetCurrentByCompanyId(int CompanyId)
@@ -130,38 +133,44 @@ public class PayStubService : IPayStubService
     public async Task GeneratePayStubPdfs(int payrollId, int companyId)
     {
         var dTime = DateTime.UtcNow;
-        var pdfManager = new DocumentManager(_context);
-        var payroll = _context.Payroll.Include(e => e.PayrollSchedule).Include(e => e.Company).ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
-            .ThenInclude(e => e.State).FirstOrDefault(e => e.Id == payrollId && e.CompanyId == companyId)
+        var payroll = _context.Payroll.Include(e => e.PayrollSchedule).Include(e => e.Company)
+            .ThenInclude(e => e.Zipcode).ThenInclude(e => e.City).ThenInclude(e => e.State)
+            .FirstOrDefault(e => e.Id == payrollId && e.CompanyId == companyId)
             ?? throw new AppException("Payroll not found");
 
         _currentYear = payroll.ScheduledRunDate.Year;
+
         var docId = new Guid();
         var state = payroll.Company.Zipcode.City.State;
         _stateId = state.Id;
         _countryId = state.CountryId;
 
         var schedule = (PayrollScheduleTypeModel)payroll.PayrollSchedule.PayrollScheduleTypeId;
+
         if (schedule == PayrollScheduleTypeModel.Weekly) { _numberOfPaymentsInYear = 52; }
         else if (schedule == PayrollScheduleTypeModel.Monthly) { _numberOfPaymentsInYear = 12; }
         else if (schedule == PayrollScheduleTypeModel.SemiMonthly) { _numberOfPaymentsInYear = 24; }
         else if (schedule == PayrollScheduleTypeModel.Biweekly) { _numberOfPaymentsInYear = 26; }
 
-        var payStubs = _context.PayStub.Include(e => e.OtherMoneyReceived).Include(e => e.Employment).ThenInclude(e => e.Person)
-                .ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
-                .Where(e => e.PayrollId == payrollId) ?? throw new AppException("Pay stubs not found");
+        var payStubs = _context.PayStub.Include(e => e.OtherMoneyReceived).Include(e => e.Employment)
+            .ThenInclude(e => e.Person).ThenInclude(e => e.Zipcode).ThenInclude(e => e.City)
+            .Where(e => e.PayrollId == payrollId) ?? throw new AppException("Pay stubs not found");
+
         var additionalMoneyReceived = new List<AdditionalOtherMoneyReceived>();
+
         foreach (var payStub in payStubs.ToList())
         {
             //To Do: We should add a validation that an income tax is created or not.
+            //TO DO: Cerate paystub only for those employees a paystub is not created
             try
             {
                 //Calculate Federal and State Taxes
                 var additionalMoneyReceivedIds = payStub.OtherMoneyReceived?.AdditionalOtherMoneyReceivedId;
                 additionalMoneyReceived = _context.AdditionalOtherMoneyReceived.Where(e => additionalMoneyReceivedIds.Contains(e.Id)).ToList();
+                
                 var paymentExemptFromFutaTax = additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0);
                 payStub.NetPay = payStub.GrossPay;
-                var is2percentShareHolder = payStub.Employment.Person.istwopercentshareholder;
+                var is2percentShareHolder = payStub.Employment.Person.IsTwopercentshareholder;
                 if (!payStub.Employment.IsTenNinetyNine && !is2percentShareHolder)
                 {
                     await CalculateFederalWitholdingsAsync(payStub, additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0).ToList());
@@ -170,7 +179,7 @@ public class PayStubService : IPayStubService
                     _context.SaveChanges();
                 }
                 //Create PDFs 
-                docId = await pdfManager.CreatePayStubPdfAsync(payStub, payStub.OtherMoneyReceived, additionalMoneyReceived, _newIncomeTaxesToHold.ToList());
+                docId = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, _newIncomeTaxesToHold.ToList());
                 var doc = new Document { Id = docId, DocumentTypeId = (int)DocumentTypeModel.PayStub, FileName = string.Format("PayStub-" + payStub.Id + "-" + dTime.ToString("yyyyMMddmmss") + ".pdf") };
                 _context.Document.Add(doc);
                 _context.SaveChanges();
@@ -268,8 +277,8 @@ public class PayStubService : IPayStubService
         var previousIncomeTaxes = _context.IncomeTax.OrderByDescending(e => e.CreatedDate).Where(
             e => e.CreatedDate.Year == _currentYear && !e.PayStub.IsCancelled && e.PayStub.EmploymentId == stub.EmploymentId);
 
-        var withHolingForms = _context.EmployeeWithholding.Include(e => e.Field).Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year).ToList();
-        var w4Form = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.WFourUnsigned).ToList(); // we use w4unsigned becuase the original employee withholding document is w4-unsigned  
+        var withHolingForms = _context.EmployeeWithholding.Include(e => e.Field).Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == _currentYear).ToList();
+        var w4Form = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.WFourUnsigned).ToList(); // we use w4unsigned because the original employee withholding document is w4-unsigned  
 
         var fedFilingStatus = FilingStatusTypeModel.SingleOrMarriedFilingSeparately;
 
@@ -277,7 +286,9 @@ public class PayStubService : IPayStubService
         var w4OneC = w4Form.Find(e => e.Field.FieldName == "1c");
 
         if (!Enum.TryParse(w4OneC?.FieldValue, out fedFilingStatus))
+        {
             throw new InvalidDataException($"Invalid filing status [{w4OneC}]");
+        }
 
         var w4TwoC = w4Form.Find(e => e.Field.FieldName == "2c");
         var w4Three = w4Form.Find(e => e.Field.FieldName == "3");
@@ -296,7 +307,12 @@ public class PayStubService : IPayStubService
 
         //Calculate Federal Tax to withhold
         var hasMultipleJobs = !string.IsNullOrWhiteSpace(w4TwoC.FieldValue);
-        var annualAmount = stub.GrossPay * _numberOfPaymentsInYear + double.Parse(w4FourA.FieldValue);
+
+        var reimbursement = stub.OtherMoneyReceived.Reimbursement;        
+        var grossPayAfterReimbursement = stub.GrossPay - reimbursement;
+
+        var annualAmount = grossPayAfterReimbursement * _numberOfPaymentsInYear + double.Parse(w4FourA.FieldValue);
+
         var deduction = double.Parse(w4FourB.FieldValue) * (hasMultipleJobs ? 0 : w4OneC.FieldValue.Contains("Jointly") ? 12900 : 8600);//TO DO The hard coded values should come from database 
         var adjustedAnnualWageAmount = annualAmount - deduction;
 
@@ -352,7 +368,7 @@ public class PayStubService : IPayStubService
                 continue;
             }
 
-            var amount = stub.GrossPay * item.Rate;
+            var amount = grossPayAfterReimbursement * item.Rate; 
             stub.NetPay = stub.NetPay - amount;
 
             _newIncomeTaxesToHold.Add(
@@ -370,7 +386,7 @@ public class PayStubService : IPayStubService
 
         //************************Lets calculate taxes for employer now*******************//
 
-        var employerRates = employerFederalRates.Where(e => e.Minimum < Math.Round(stub.GrossPay) && e.Maximum > Math.Round(stub.GrossPay));
+        var employerRates = employerFederalRates.Where(e => e.Minimum < Math.Round(grossPayAfterReimbursement) && e.Maximum > Math.Round(stub.GrossPay));
         var paymentExemptFromFuta = additionalMoney.Where(e => e.ExemptFromFutaTaxTypeId > 0).Sum(e => e.Amount);
         var paymentExemptFromSocialAndMedi = additionalMoney.Where(e =>
         e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.DependentCare ||

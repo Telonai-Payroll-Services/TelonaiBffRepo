@@ -67,6 +67,7 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
 
         CreateMap<Payroll, PayrollModel>()
+           .ForMember(dest => dest.PayrollScheduleType, opt => opt.MapFrom(src => (PayrollScheduleTypeModel)src.PayrollSchedule.PayrollScheduleTypeId))
            .ForMember(dest => dest.ScheduledRunDate, opt => opt.MapFrom(src => src.ScheduledRunDate.ToDateTime(TimeOnly.MinValue)))
            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)));
 
@@ -83,7 +84,7 @@ public class AutoMapperProfile : Profile
         CreateMap<PayrollSchedule, PayrollScheduleModel>()
             .ForMember(dest => dest.Compnay, opt => opt.MapFrom(src => src.Company.Name))
             .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)))
-            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate.Value.ToDateTime(TimeOnly.MinValue))); ;
+            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate.Value.ToDateTime(TimeOnly.MinValue)));
         //.ForMember(dest => dest.PayrollScheduleType, opt => opt.MapFrom(src => (PayrollScheduleTypeModel)src.PayrollScheduleTypeId));
 
         CreateMap<PayrollScheduleModel, PayrollSchedule>()
@@ -101,7 +102,9 @@ public class AutoMapperProfile : Profile
         CreateMap<Employment, EmploymentModel>()
             .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.Job.CompanyId))
             .ForMember(dest => dest.SignUpStatusType, opt => opt.MapFrom(src => (SignUpStatusTypeModel)(src.SignUpStatusTypeId ?? 0)))
-            .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Job.Company.Name));
+            .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Job.Company.Name))
+            .ForMember(dest => dest.Person, opt => opt.MapFrom(src => $"{src.Person.FirstName} {src.Person.LastName}"));
+
         CreateMap<EmploymentModel, Employment>()
              .ForMember(dest => dest.Id, opt => opt.Ignore())
              .ForMember(dest => dest.SignUpStatusType, opt => opt.Ignore())
@@ -256,7 +259,7 @@ public class AutoMapperProfile : Profile
 
         CreateMap<Invitation, InvitationStatusModel>()
          .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FirstName + " " + src.LastName))
-         .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.UpdatedBy == null ? "Invitation Sent" : "Completed"));
+         .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.UpdatedDate == null ? "Invitation Sent" : "Completed"));
 
         CreateMap<Invitation, InvitationModel>()
             .ForMember(dest => dest.Employment, opt => opt.Ignore())
@@ -371,5 +374,19 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.AgentField, opt => opt.Ignore())
              .ForMember(dest => dest.Id, opt => opt.Ignore());
 
+        CreateMap<MobileAppVersionModel, MobileAppVersion>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+        CreateMap<MobileAppVersion, MobileAppVersionModel>();
+
+        CreateMap<DayOffRequestModel, DayOffRequest>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.DayOffTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffType)))
+            .ForMember(dest => dest.DayOffPayTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffPayType)));
+
+        CreateMap<DayOffRequest, DayOffRequestModel>()
+        .ForMember(dest => dest.DayOffType, opt => opt.MapFrom(src => (DayOffTypes)src.DayOffTypeId))
+        .ForMember(dest => dest.DayOffPayType, opt => opt.MapFrom(src => (DayOffPayTypeModel)src.DayOffPayTypeId))
+        .ForMember(dest => dest.Name, opt => opt.MapFrom(src => $"{src.Employment.Person.LastName} {src.Employment.Person.FirstName}"));
     }
 }

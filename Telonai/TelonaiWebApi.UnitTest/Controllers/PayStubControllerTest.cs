@@ -1033,16 +1033,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             var payrollModel = new PayrollModel()
             {
                 Id = payrollId,
-                CompanyId = companyId,
-                PayrollSchedule = new PayrollScheduleModel()
-                {
-                    Id = 12,
-                    CompanyId = 123,
-                    Compnay = "birascomputing",
-                    PayrollScheduleType = "Monthly",
-                    StartDate = DateTime.Today,
-                    FirstRunDate = DateTime.Today,
-                }
+                CompanyId = companyId, 
             };
 
             var payStubModel = new List<PayStubModel>()

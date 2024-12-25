@@ -17,8 +17,7 @@ using Microsoft.EntityFrameworkCore;
 
 public interface IDocumentManager
 {
-    Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived, 
-        List<AdditionalOtherMoneyReceived> additionalMoneyReceived, List<IncomeTax> incomeTaxes);
+    Task<Guid> CreatePayStubPdfAsync(PayStub payStub, List<AdditionalOtherMoneyReceived> additionalMoneyReceived, List<IncomeTax> incomeTaxes);
     Task<Stream> GetPayStubByIdAsync(string id);
     Task<Stream> GetDocumentByTypeAndIdAsync(string documentType, string id);
     Task UploadDocumentAsync(Guid documentId, Stream stream, DocumentTypeModel documentType);
@@ -84,8 +83,7 @@ public class DocumentManager : IDocumentManager
             throw;
         } 
     }
-   public async Task<Guid> CreatePayStubPdfAsync(PayStub payStub, OtherMoneyReceived otherReceived,
-    List<AdditionalOtherMoneyReceived> additionalMoneyReceived, List<IncomeTax> incomeTaxes)
+   public async Task<Guid> CreatePayStubPdfAsync(PayStub payStub, List<AdditionalOtherMoneyReceived> additionalMoneyReceived, List<IncomeTax> incomeTaxes)
     {
         if (payStub == null) 
         {
@@ -96,7 +94,7 @@ public class DocumentManager : IDocumentManager
         var doc = new iTextSharp.text.Document(PageSize.A4, 50, 50, 50, 50);
 
         _incomeTaxes = incomeTaxes;
-        _otherMoneyReceived = otherReceived;
+        _otherMoneyReceived =payStub.OtherMoneyReceived;
         _additionalMoneyReceived = additionalMoneyReceived;
 
         _payStub = payStub;

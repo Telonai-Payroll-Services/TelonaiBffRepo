@@ -18,18 +18,19 @@ public class UsersController : Controller
     private readonly IUserService _userService;
     private readonly IEmploymentService<EmploymentModel, Employment> _employmentService;
     private readonly IPersonService<PersonModel, Person> _personService;
-
     private readonly ITimecardUsaService _timecardService;
+    private readonly IDayOffRequestService<DayOffRequestModel, DayOffRequest> _dayOffRequestService;
 
     public UsersController(IUserService userService, IPersonService<PersonModel, Person> personService, IInvitationService<InvitationModel, 
-        Invitation> invitationService, IEmploymentService<EmploymentModel, Employment> employmentService, ITimecardUsaService timecardService)
+        Invitation> invitationService, IEmploymentService<EmploymentModel, Employment> employmentService, ITimecardUsaService timecardService
+        ,IDayOffRequestService<DayOffRequestModel, DayOffRequest> dayOffRequestService)
     {
         _userService = userService;
         _personService = personService;
         _invitationService = invitationService;
         _employmentService = employmentService;
         _timecardService = timecardService;
-
+        _dayOffRequestService = dayOffRequestService;
     }
 
 
@@ -68,13 +69,16 @@ public class UsersController : Controller
             }
 
             var email = result.Item1.Attributes["email"];
-            var personList = await _personService.GetListByEmailAsync(email);
+            var employments = _employmentService.GetByEmail(email).ToList();
+            var personIds = employments.Select(e => e.PersonId).Distinct().ToList();
+            var dayOffs = await GetPendingDayOffsAsync(employments);
 
-            if (personList != null && personList.Count > 0)
+            if (employments != null && employments.Count > 0)
             {
-                loginResult.FullName = $"{personList.First().FirstName} {personList.First().LastName}";
-                loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(personList.First().Id);
-                loginResult.Employments = _employmentService.GetByEmail(email).ToList();
+                loginResult.FullName = employments.First().Person;
+                loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(personIds);
+                loginResult.Employments = employments;
+                loginResult.DayOffRequests = dayOffs;                
             }
 
             return Ok(loginResult);
@@ -246,6 +250,17 @@ public class UsersController : Controller
 
     }
 
+
+    private async Task<List<DayOffRequestModel>> GetPendingDayOffsAsync(List<EmploymentModel> employments)
+    {
+        var result= new List<DayOffRequestModel>();
+        foreach (var item in employments.Where(e => e.IsPayrollAdmin))
+        {
+            result.AddRange(_dayOffRequestService.GetPendingRequestsByCompanyId(item.Job.CompanyId));
+        }
+        return result;
+    }
+
     private async Task<PersonModel> CreateProfileFromUserAsync(User user, int companyId)
     {
         var p = new Person
@@ -260,6 +275,14 @@ public class UsersController : Controller
             //RoutingNumber = user?.RoutingNumber,
             INineVerificationStatusId = (int)INineVerificationStatusModel.INineNotSubmitted
         };
+        var exstingPerson=await _personService.GetByEmailAsync(user?.Email);
+        if (exstingPerson != null) 
+        {
+            p.FirstName = exstingPerson?.FirstName;
+            p.LastName = exstingPerson?.LastName;
+            p.MiddleName = exstingPerson?.MiddleName;
+        }
+        
         return await _personService.CreateAsync(p);
     }
 
