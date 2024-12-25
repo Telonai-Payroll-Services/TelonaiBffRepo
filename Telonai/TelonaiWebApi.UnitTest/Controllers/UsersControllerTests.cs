@@ -186,11 +186,7 @@ public class UsersControllerTests
         Assert.Equal(result.StatusCode, 400);
     }
 
-    [Theory, CustomAutoData]
-    public async Task Logout_LogoutLoggedInUser_ReturnOkResult()
-    {
-        //
-    }
+    
 
     private async Task InvokePrivateMethodAsync(MethodInfo method, object obj, params object[] parameters)
     {
