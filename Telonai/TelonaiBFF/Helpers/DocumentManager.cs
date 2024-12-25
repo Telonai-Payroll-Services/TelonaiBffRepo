@@ -26,10 +26,10 @@ public interface IDocumentManager
 public class DocumentManager : IDocumentManager
 {
     private static Font _headerFont = new(Font.FontFamily.TIMES_ROMAN, 12f, Font.BOLD, BaseColor.BLACK);
-    private static BaseFont _baseFont = BaseFont.CreateFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+    private static BaseFont _baseFont = BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
     private static Font _fontUnderLined = new(_baseFont, 10, Font.UNDERLINE);
-    private static Font _fontBold = new(_baseFont, 10, Font.BOLD);
-    private static Font _fontNormal = new(_baseFont, 10, Font.NORMAL);
+    private static Font _fontBold = new(Font.FontFamily.TIMES_ROMAN, 10, Font.BOLD);
+    private static Font _fontNormal = new(Font.FontFamily.TIMES_ROMAN, 10, Font.NORMAL);
     private PdfPTable _tableLayout = new(2);
     private PdfPTable _childTableLayout1 = new(5);
     private PdfPTable _childTableLayout2 = new(3);
@@ -123,20 +123,13 @@ public class DocumentManager : IDocumentManager
             };
             doc.Add(subTitle);
 
-            var infoTable = new PdfPTable(2)
+            var payDate = new Paragraph($"Pay Date: " + payStub.Payroll.ScheduledRunDate.ToShortDateString(), subTitleFont)
             {
-                WidthPercentage = 100,
-                SpacingBefore = 10,
-                SpacingAfter = 10
+                Alignment = Element.ALIGN_CENTER,
+                SpacingAfter = 20
             };
-            infoTable.AddCell(new PdfPCell(new Phrase("Employee Name:", subTitleFont)) { Border = Rectangle.NO_BORDER });
-            infoTable.AddCell(new PdfPCell(new Phrase($"{_person.FirstName} {_person.LastName}")) { Border = Rectangle.NO_BORDER });
-            infoTable.AddCell(new PdfPCell(new Phrase("Company Name:", subTitleFont)) { Border = Rectangle.NO_BORDER });
-            infoTable.AddCell(new PdfPCell(new Phrase($"{_company.Name}")) { Border = Rectangle.NO_BORDER });
-            infoTable.AddCell(new PdfPCell(new Phrase("Pay Date:", subTitleFont)) { Border = Rectangle.NO_BORDER });
-            infoTable.AddCell(new PdfPCell(new Phrase($"{payStub.Payroll.ScheduledRunDate.ToShortDateString()}")) { Border = Rectangle.NO_BORDER });
-            doc.Add(infoTable);
- 
+            doc.Add(payDate);
+
             var contentTable = Add_Content_To_PDF();
             contentTable.SpacingBefore = 20;
             doc.Add(contentTable);
@@ -178,16 +171,19 @@ public class DocumentManager : IDocumentManager
 
     protected PdfPTable Add_Content_To_PDF()
     {
-        float[] headers = { 90, 60 };   
+        float[] headers = new float[] { 95f, 65f};   
         _tableLayout.SetWidths(headers);  
         _tableLayout.WidthPercentage = 100; 
         _tableLayout.HeaderRows = 1;
+        float[] incomeHeaders = new float[] { 55f, 40f, 35f, 60f, 60f };
         _childTableLayout1.WidthPercentage = 100;
         _childTableLayout1.HeaderRows = 1;
-        float[] headers2 = { 40, 35, 35 }; 
+        _childTableLayout1.SetWidths(incomeHeaders);
+        float[] headers2 = { 40f, 35f, 40f }; 
         _childTableLayout2.SetWidths(headers2);
         _childTableLayout2.WidthPercentage = 100;
         _childTableLayout2.HeaderRows = 1;
+ 
 
         var count = 1;
 
@@ -237,26 +233,18 @@ public class DocumentManager : IDocumentManager
                 AddCellToBody(_childTableLayout1, _otherMoneyReceived.CashTips.ToString("0.00"), count, _fontNormal);
                 AddCellToBody(_childTableLayout1, _otherMoneyReceived.YtdCashTips.ToString("0.00"), count, _fontNormal);
             }
-            if (_otherMoneyReceived.YtdReimbursement > 0.0)
-            {
-                count++;
-                AddCellToBody(_childTableLayout1, "Reimbursement", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, _otherMoneyReceived.Reimbursement.ToString("0.00"), count, _fontNormal);
-                AddCellToBody(_childTableLayout1, _otherMoneyReceived.YtdReimbursement.ToString("0.00"), count, _fontNormal);
-            }
+            
             foreach (var item in _additionalMoneyReceived ?? new List<AdditionalOtherMoneyReceived>())
             {
                 count++;
                 var note = item.Note;
                 if (note.Length > 50)
                     note = note.Substring(0, 50);
-                AddCellToBody(_childTableLayout1, note.ToString(), count, _fontNormal);
-                AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, item.Amount.ToString("0.00"), count, _fontNormal);
-                AddCellToBody(_childTableLayout1, item.YtdAmount.ToString("0.00"), count, _fontNormal);
+                AddCellToBody(_childTableLayout1, note.ToString(), count, _fontBold);
+                AddCellToBody(_childTableLayout1, "", count, _fontBold);
+                AddCellToBody(_childTableLayout1, "", count, _fontBold);
+                AddCellToBody(_childTableLayout1, item.Amount.ToString("0.00"), count, _fontBold);
+                AddCellToBody(_childTableLayout1, item.YtdAmount.ToString("0.00"), count, _fontBold);
             }
         }
         count++;
@@ -265,26 +253,18 @@ public class DocumentManager : IDocumentManager
         AddCellToBody(_childTableLayout1, "", count, _fontNormal);
         AddCellToBody(_childTableLayout1, _payStub.GrossPay.ToString("0.00"), count, _fontBold);
         AddCellToBody(_childTableLayout1, _payStub.YtdGrossPay.ToString("0.00"), count, _fontBold);
-        count++;
-        AddCellToBody(_childTableLayout1, "", count, _fontBold);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
         _tableLayout.AddCell(_childTableLayout1);
 
         AddDeductionsToBody();
-
-
         return _tableLayout;
     }
 
     private void AddDeductionsToBody()
     {
-        var count = 0;
+        var count = 1;
         AddCellToBody(_childTableLayout2, "Deductions", count, _fontBold);
-        AddCellToBody(_childTableLayout2, "This Period", count, _fontNormal);
-        AddCellToBody(_childTableLayout2, "Year To Date", count, _fontNormal);
+        AddCellToBody(_childTableLayout2, "This Period", count, _fontBold);
+        AddCellToBody(_childTableLayout2, "Year To Date", count, _fontBold);
         var incomeTaxType = new IncomeTaxType();
 
         if (_incomeTaxes != null)
@@ -321,24 +301,24 @@ public class DocumentManager : IDocumentManager
     private void AddCompanyToHeader()
     {
         var fontSmall = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL);
-
         var paragraph = new Paragraph
-    {
-        new Phrase("Company  ", _headerFont),
-        new Phrase("\n", fontSmall),
-        new Phrase(_company.Name, fontSmall),
-        new Phrase("\n", fontSmall),
-        new Phrase(_company.AddressLine1, fontSmall)
-    };
+        {
+            new Phrase("Company:", _headerFont),
+            new Phrase(_company.Name, fontSmall),
+            new Phrase("\n", fontSmall),
+            new Phrase("Address:", _headerFont),
+            new Phrase(_company.AddressLine1, fontSmall)
+        };
 
         if (!string.IsNullOrEmpty(_company.AddressLine2))
+            paragraph.Add(new Phrase("\n", fontSmall));
             paragraph.Add(new Phrase(_company.AddressLine2, fontSmall));
 
-        paragraph.Add(new Phrase($"{_company.Zipcode.City.Name},", fontSmall));
         paragraph.Add(new Phrase("\n", fontSmall));
-        paragraph.Add(new Phrase($"{_company.Zipcode.City.State.Name}, " ,fontSmall));
+        paragraph.Add(new Phrase($"{_company.Zipcode.City.Name}", fontSmall));
         paragraph.Add(new Phrase("\n", fontSmall));
-        paragraph.Add(new Phrase($"{_company.Zipcode.Code}", fontSmall));
+        paragraph.Add(new Phrase($"{_company.Zipcode.City.State.StateCode} {_company.Zipcode.Code}" ,fontSmall));
+
 
         _tableLayout.AddCell(new PdfPCell(paragraph)
         {
@@ -356,20 +336,21 @@ public class DocumentManager : IDocumentManager
         var paragraph = new Paragraph
     {
         new Phrase("Employee  ", _headerFont),
-        new Phrase("\n", fontSmall),
         new Phrase($"{_person.FirstName} {_person.LastName}", fontSmall),
         new Phrase("\n", fontSmall),
+        new Phrase("Address:", _headerFont),
         new Phrase(_person.AddressLine1, fontSmall)
     };
 
         if (!string.IsNullOrEmpty(_person.AddressLine2))
+        {
+            paragraph.Add(new Phrase("\n", fontSmall));
             paragraph.Add(new Phrase(_person.AddressLine2, fontSmall));
-
-        paragraph.Add(new Phrase($"{_person.Zipcode.City.Name} ", fontSmall));
+        }
+        paragraph.Add(new Phrase($"{_person.Zipcode.City.Name}", fontSmall));
         paragraph.Add(new Phrase("\n", fontSmall));
-        paragraph.Add(new Phrase($"{_person.Zipcode.City.State.Name}, ", fontSmall));
-        paragraph.Add(new Phrase("\n", fontSmall));
-        paragraph.Add(new Phrase($"{_person.Zipcode.Code}", fontSmall));
+        paragraph.Add(new Phrase($"{_person.Zipcode.City.State.StateCode} {_person.Zipcode.Code}", fontSmall));
+        
 
         _tableLayout.AddCell(new PdfPCell(paragraph)
         {
@@ -384,7 +365,7 @@ public class DocumentManager : IDocumentManager
     {
         if (count % 2 == 0)
         {
-            tableLayout.AddCell(new PdfPCell(new Phrase(cellText, font ?? new Font(Font.FontFamily.HELVETICA, 8, 1, iTextSharp.text.BaseColor.BLACK)))
+            tableLayout.AddCell(new PdfPCell(new Phrase(cellText, font ?? new Font(Font.FontFamily.TIMES_ROMAN, 10, 1, iTextSharp.text.BaseColor.BLACK)))
             {
                 HorizontalAlignment = Element.ALIGN_LEFT,
                 Padding = 5,
@@ -394,7 +375,7 @@ public class DocumentManager : IDocumentManager
         }
         else
         {
-            tableLayout.AddCell(new PdfPCell(new Phrase(cellText, new Font(Font.FontFamily.HELVETICA, 8, 1, iTextSharp.text.BaseColor.BLACK)))
+            tableLayout.AddCell(new PdfPCell(new Phrase(cellText, font ?? new Font(Font.FontFamily.TIMES_ROMAN, 10, 1, iTextSharp.text.BaseColor.BLACK)))
             {
                 HorizontalAlignment = Element.ALIGN_LEFT,
                 Padding = 5,
