@@ -15,4 +15,5 @@ public class DayOffRequestModel: BaseTracker
     public bool? IsApproved { get; set; }
     public bool IsCancelled { get; set; }
     public string Name { get; set; }
+    public string IsCancellable { get; set; }
 }
