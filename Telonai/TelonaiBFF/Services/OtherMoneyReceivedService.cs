@@ -60,7 +60,7 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
         var companyId = currentPayStub.Payroll.CompanyId;
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, companyId);
 
-        currentPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.AdditionalOtherMoneyReceived?.Sum(e => e.Amount) ?? 0;
+        currentPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.Reimbursement + model.AdditionalOtherMoneyReceived?.Sum(e => e.Amount) ?? 0;
 
         var previousPayStub = _context.PayStub.Include(e => e.OtherMoneyReceived).Include(e => e.Payroll).FirstOrDefault(e => e.Id < currentPayStub.Id
         && e.Payroll.CompanyId == companyId);

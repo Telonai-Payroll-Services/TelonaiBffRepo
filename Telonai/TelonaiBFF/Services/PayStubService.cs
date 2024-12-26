@@ -313,10 +313,16 @@ public class PayStubService : IPayStubService
 
         var annualAmount = grossPayAfterReimbursement * _numberOfPaymentsInYear + double.Parse(w4FourA.FieldValue);
 
-        var deduction = double.Parse(w4FourB.FieldValue) * (hasMultipleJobs ? 0 : w4OneC.FieldValue.Contains("Jointly") ? 12900 : 8600);//TO DO The hard coded values should come from database 
+        var deductionMarriedFlilingJointlyValue = _context.CountrySpecificFieldValue.
+                                                   FirstOrDefault(cf => cf.CountrySpecificField.FieldName == "DeductionsMarriedFlilingJointly" && cf.EffectiveYear == _currentYear);
+        var deductionForSingle = _context.CountrySpecificFieldValue.
+                                                  FirstOrDefault(cf => cf.CountrySpecificField.FieldName == "DeductionsSingleOrMarriedFilingSeparately" && cf.EffectiveYear == _currentYear);
+        var reportingStatus = w4OneC.FieldValue.Contains("Jointly") ? Convert.ToDouble(deductionMarriedFlilingJointlyValue.FieldValue) : Convert.ToDouble(deductionForSingle.FieldValue);
+
+        var deduction = double.Parse(w4FourB.FieldValue) * (hasMultipleJobs ? 0 : reportingStatus);
         var adjustedAnnualWageAmount = annualAmount - deduction;
 
-        var rate = employeeFederalRates.First(e => e.IncomeTaxType.Name.StartsWith("Federal") &&
+        var rate = employeeFederalRates.First(e => e.IncomeTaxType.Name.StartsWith("Federal") && 
         e.Minimum < Math.Round(adjustedAnnualWageAmount) && e.Maximum > Math.Round(adjustedAnnualWageAmount));
 
         var previousIncomeTax = previousIncomeTaxes.FirstOrDefault(e => e.IncomeTaxTypeId == rate.IncomeTaxTypeId);
@@ -386,7 +392,7 @@ public class PayStubService : IPayStubService
 
         //************************Lets calculate taxes for employer now*******************//
 
-        var employerRates = employerFederalRates.Where(e => e.Minimum < Math.Round(grossPayAfterReimbursement) && e.Maximum > Math.Round(stub.GrossPay));
+        var employerRates = employerFederalRates.Where(e => e.Minimum < Math.Round(grossPayAfterReimbursement) && e.Maximum > Math.Round(grossPayAfterReimbursement));
         var paymentExemptFromFuta = additionalMoney.Where(e => e.ExemptFromFutaTaxTypeId > 0).Sum(e => e.Amount);
         var paymentExemptFromSocialAndMedi = additionalMoney.Where(e =>
         e.ExemptFromFutaTaxTypeId == (int)ExemptFromFutaTaxTypeModel.DependentCare ||
@@ -416,7 +422,7 @@ public class PayStubService : IPayStubService
 
                 case "Social Security":
                 case "Medicare":
-                    var ssOrMediPay = Math.Max(item.Maximum - stub.YtdGrossPay - paymentExemptFromFuta, 0);
+                    var ssOrMediPay = Math.Max(item.Maximum - stub.YtdGrossPay - paymentExemptFromSocialAndMedi, 0);
                     var ssOrMediTax = ssOrMediPay * item.Rate;
 
                     _newIncomeTaxesToHold.Add(
@@ -440,7 +446,7 @@ public class PayStubService : IPayStubService
     private async Task<PayStub> CalculateStateWitholdingAsync(PayStub stub, List<AdditionalOtherMoneyReceived> additionalMoney)
     {
         var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
-        var withHolingForms = _context.EmployeeWithholding.Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == DateTime.Now.Year);
+        var withHolingForms = _context.EmployeeWithholding.Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == _currentYear);
         var nc4 = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.NCFourUnsigned).ToList();
         var ncAnnualStandardDeductions = _staticDataService.GetStateStandardDeductionsByStateId(_stateId, _currentYear);
         var ncFilingStatus = FilingStatusTypeModel.SingleOrMarriedFilingSeparately;
