@@ -166,9 +166,12 @@ var app = builder.Build();
 
     app.MapControllers();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(o =>
+    {
+        o.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+    });
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
 
-app.Run("http://localhost:5000");
-//app.Run();
+//app.Run("http://localhost:5000");
+app.Run();
