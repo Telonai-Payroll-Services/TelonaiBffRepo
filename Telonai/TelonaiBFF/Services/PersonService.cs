@@ -169,6 +169,7 @@ public class PersonService : IPersonService<PersonModel,Person>
                 {
                     person.Zipcode = _zipCodeService.GetById(model.ZipcodeId);
                     person.ZipcodeId = model.ZipcodeId;
+                    person.CountyId = model.CountyId;
                     person.Zipcode.City = _cityService.GetById(person.Zipcode.CityId);
                     person.Zipcode.City.State = _stateService.GetById(person.Zipcode.City.StateId);
                 }
@@ -177,6 +178,8 @@ public class PersonService : IPersonService<PersonModel,Person>
                     person.ZipcodeId = model.ZipcodeId == 0 ? person.ZipcodeId : model.ZipcodeId;
                     person.Zipcode.CityId = model.CityId == 0 ? person.Zipcode.CityId : model.CityId;
                     person.Zipcode.City.StateId = model.StateId == 0 ? person.Zipcode.City.StateId : model.StateId;
+                    person.CountyId = model.CountyId == 0 ? person.CountyId : model.CountyId;
+
                 }
             }
             if (model.Ssn != null)

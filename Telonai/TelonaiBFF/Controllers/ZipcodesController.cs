@@ -28,10 +28,10 @@ public class ZipcodesController : ControllerBase
         return Ok(_mapper.Map<IList<ZipcodeModel>>(items));
     }
     [HttpGet("{code}/countries/{countryId}")]
-    public IActionResult GetByZipcodeAndCountryId(string code, int countryId)
+    public IActionResult GetByZipCodeAndCountryId(string code, int countryId)
     {
-        var items = _service.GetByZipcodeAndCountryId(code, countryId);
-        return Ok(_mapper.Map<List<ZipcodeModel>>(items));
+        var results = _service.GetModelByZipcodeAndCountryId(code, countryId);
+        return Ok(results);
     }
 
     [HttpGet("{id}")]

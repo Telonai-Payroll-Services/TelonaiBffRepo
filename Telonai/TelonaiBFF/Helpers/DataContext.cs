@@ -113,15 +113,13 @@ public class DataContext : DbContext
         }
     }
 
-   
-   
-
     public virtual DbSet<Employment> Employment { get; set; }
     public virtual DbSet<Person> Person { get; set; }
     public virtual DbSet<Company> Company { get; set; }
     public DbSet<City> City { get; set; }
     public DbSet<State> State { get; set; }
     public DbSet<Country> Country { get; set; }
+    public DbSet<County> County { get; set; }
     public DbSet<BusinessType> BusinessType { get; set; }
     public  DbSet<CompanyContact> CompanyContact { get; set; }
     public virtual DbSet<ContactType> ContactType { get; set; }
