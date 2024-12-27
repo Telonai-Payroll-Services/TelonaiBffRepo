@@ -273,7 +273,6 @@ public class PayStubService : IPayStubService
     {
         //First let's get tax rates and withholding forms
         var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
-
         var previousIncomeTaxes = _context.IncomeTax.OrderByDescending(e => e.CreatedDate).Where(
             e => e.CreatedDate.Year == _currentYear && !e.PayStub.IsCancelled && e.PayStub.EmploymentId == stub.EmploymentId);
 
@@ -445,81 +444,98 @@ public class PayStubService : IPayStubService
 
     private async Task<PayStub> CalculateStateWitholdingAsync(PayStub stub, List<AdditionalOtherMoneyReceived> additionalMoney)
     {
-        var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
-        var withHolingForms = _context.EmployeeWithholding.Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == _currentYear);
-        var nc4 = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.NCFourUnsigned).ToList();
-        var ncAnnualStandardDeductions = _staticDataService.GetStateStandardDeductionsByStateId(_stateId, _currentYear);
-        var ncFilingStatus = FilingStatusTypeModel.SingleOrMarriedFilingSeparately;
-
-        var ncOne = nc4.Find(e => e.Field.FieldName == "totalnumberofallowances");
-        var ncTwo = nc4.Find(e => e.Field.FieldName == "additionalamount");
-        var status = nc4.Find(e => e.Field.FieldName == "maritalstatus");
-
-
-        if (!Enum.TryParse(status.FieldValue, out ncFilingStatus))
-            throw new InvalidDataException($"Invalid filing status [{status}]");
-
-        var annualDeduction = ncAnnualStandardDeductions.First(e => e.FilingStatusId == (int)ncFilingStatus);
-
-        var employeeStateRates = incomeTaxRates.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null).ToList();
-        var employerStateRates = incomeTaxRates.Where(e => !e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null).ToList();
-        
-        //calculate employee taxes
-        foreach (var item in employeeStateRates)
+        try
         {
-            var previous = _context.IncomeTax.Include(i => i.IncomeTaxType).OrderByDescending(e => e.Id).FirstOrDefault(e =>
-            !e.PayStub.IsCancelled && e.IncomeTaxTypeId == item.IncomeTaxTypeId && e.PayStub.EmploymentId == stub.EmploymentId);
+            var stateId = stub.Payroll.Company.Zipcode.City.StateId;
 
-            //Calculate Tax
-            var annualWage = stub.GrossPay * _numberOfPaymentsInYear;
-            var allowance = 2500 * double.Parse(ncOne.FieldValue); //TO DO: The hardcoded value of 2500 should come from database
-            var deduction = allowance + annualDeduction.Amount;
-            var netAnnualWage = annualWage - deduction;
-            var netAnnualTax = netAnnualWage * item.Rate;
-            var netCurrentTax = netAnnualTax / _numberOfPaymentsInYear;
+            var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
+            incomeTaxRates= incomeTaxRates.Where(e => e.IncomeTaxType.StateId != null && e.IncomeTaxType.StateId == stateId).ToList();
+            
+            var withHolingForms = _context.EmployeeWithholding.Where(e => e.Field.StateId != null
+                && e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == _currentYear);
 
-            stub.NetPay = stub.NetPay - netCurrentTax;
+            var nc4 = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.NCFourUnsigned).ToList();
+            var ncAnnualStandardDeductions = _staticDataService.GetStateStandardDeductionsByStateId(_stateId, _currentYear);
+            var ncFilingStatus = FilingStatusTypeModel.SingleOrMarriedFilingSeparately;
 
-            _newIncomeTaxesToHold.Add(
-                    new IncomeTax
-                    {
-                        Amount = netCurrentTax,
-                        IncomeTaxType = item.IncomeTaxType,
-                        IncomeTaxTypeId = item.IncomeTaxTypeId,
-                        PayStubId = stub.Id,
-                        YtdAmount = netCurrentTax + previous?.YtdAmount ?? 0
-                    }
-                );
-        }
-        
+            var ncOne = nc4.Find(e => e.Field.FieldName == "totalnumberofallowances");
+            var ncTwo = nc4.Find(e => e.Field.FieldName == "additionalamount");
+            var status = nc4.Find(e => e.Field.FieldName == "maritalstatus");
 
-
-        //Calculate employer taxes now
-        foreach (var item in employerStateRates)
-        {
-            var previous = _context.IncomeTax.OrderByDescending(e => e.Id).FirstOrDefault(e =>
-            !e.PayStub.IsCancelled && e.IncomeTaxTypeId == item.IncomeTaxTypeId && e.PayStub.EmploymentId == stub.EmploymentId);
-
-            if (item.IncomeTaxType.Name == "SUTA")
+            if (!Enum.TryParse(status.FieldValue, out ncFilingStatus))
             {
-                var paymentExemptFromSuta = additionalMoney.Where(e => e.ExemptFromFutaTaxTypeId > 0).Sum(e => e.Amount);
-                var sutaPay = Math.Max(item.Maximum - stub.YtdGrossPay, 0);
-                var sutaTax = sutaPay * item.Rate;
+                _logger.LogError($"Cannot generate Pay Stub for EmploymentId: {stub.EmploymentId}. Invalid filing status [{status}]");
+                return null;
+            }
+
+            var annualDeduction = ncAnnualStandardDeductions.First(e => e.FilingStatusId == (int)ncFilingStatus);
+
+            var employeeStateRates = incomeTaxRates.Where(e => e.IncomeTaxType.ForEmployee).ToList();
+            var employerStateRates = incomeTaxRates.Where(e => !e.IncomeTaxType.ForEmployee).ToList();
+
+            var reimbursement = stub.OtherMoneyReceived.Reimbursement;
+            var grossPayAfterReimbursement = stub.GrossPay - reimbursement;
+
+            //calculate employee taxes
+            foreach (var item in employeeStateRates)
+            {
+                var previous = _context.IncomeTax.Include(i => i.IncomeTaxType).OrderByDescending(e => e.Id).FirstOrDefault(e =>
+                !e.PayStub.IsCancelled && e.IncomeTaxTypeId == item.IncomeTaxTypeId && e.PayStub.EmploymentId == stub.EmploymentId);
+
+                //Calculate Tax
+                var annualWage = grossPayAfterReimbursement * _numberOfPaymentsInYear;
+                var allowance = 2500 * double.Parse(ncOne.FieldValue); 
+                var deduction = allowance + annualDeduction.Amount;
+                var netAnnualWage = annualWage - deduction;
+                var netAnnualTax = netAnnualWage * item.Rate;
+                var netCurrentTax = netAnnualTax / _numberOfPaymentsInYear;
+
+                stub.NetPay = stub.NetPay - netCurrentTax;
 
                 _newIncomeTaxesToHold.Add(
-                    new IncomeTax
-                    {
-                        Amount = sutaTax,
-                        IncomeTaxType = item.IncomeTaxType,
-                        IncomeTaxTypeId = item.IncomeTaxTypeId,
-                        PayStubId = stub.Id,
-                        YtdAmount = sutaTax + previous?.YtdAmount ?? 0
-                    });
-                continue;
+                        new IncomeTax
+                        {
+                            Amount = netCurrentTax,
+                            IncomeTaxType = item.IncomeTaxType,
+                            IncomeTaxTypeId = item.IncomeTaxTypeId,
+                            PayStubId = stub.Id,
+                            YtdAmount = netCurrentTax + previous?.YtdAmount ?? 0
+                        }
+                    );
             }
-        }
 
-        return stub;
+            //Calculate employer taxes now
+            foreach (var item in employerStateRates)
+            {
+                var previous = _context.IncomeTax.OrderByDescending(e => e.Id).FirstOrDefault(e =>
+                !e.PayStub.IsCancelled && e.IncomeTaxTypeId == item.IncomeTaxTypeId && e.PayStub.EmploymentId == stub.EmploymentId);
+
+                if (item.IncomeTaxType.Name == "SUTA")
+                {
+                    var paymentExemptFromSuta = additionalMoney.Where(e => e.ExemptFromFutaTaxTypeId > 0).Sum(e => e.Amount);
+                    var sutaPay = Math.Max(item.Maximum - stub.YtdGrossPay, 0);
+                    var sutaTax = sutaPay * item.Rate;
+
+                    _newIncomeTaxesToHold.Add(
+                        new IncomeTax
+                        {
+                            Amount = sutaTax,
+                            IncomeTaxType = item.IncomeTaxType,
+                            IncomeTaxTypeId = item.IncomeTaxTypeId,
+                            PayStubId = stub.Id,
+                            YtdAmount = sutaTax + previous?.YtdAmount ?? 0
+                        });
+                    continue;
+                }
+            }
+
+            return stub;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Cannot generate Pay Stub for EmploymentId: {stub.EmploymentId}. {ex.Message}");
+            return null;
+        }   
     }
 }
 

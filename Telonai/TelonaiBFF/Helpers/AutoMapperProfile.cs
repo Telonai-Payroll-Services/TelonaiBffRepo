@@ -37,6 +37,10 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
              .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
 
+        CreateMap<County, CountyModel>();
+
+        CreateMap<CountyModel, County>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
 
         CreateMap<AdditionalOtherMoneyReceived, AdditionalOtherMoneyReceivedModel>()
              .ForMember(dest => dest.ExemptFromFutaTaxType, opt => opt.MapFrom(src =>

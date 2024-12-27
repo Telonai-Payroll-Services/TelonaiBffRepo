@@ -29,9 +29,11 @@ public class PersonModel
     public int StateId { get; set; }
     public string State { get; set; }
 
+    public int CountyId { get; set; }
+    public string County { get; set; }
+
     public int CountryId { get; set; }
     public string Country { get; set; }
-
     public string Ssn { get; set; }
 
     public bool Deactivated { get; set; }

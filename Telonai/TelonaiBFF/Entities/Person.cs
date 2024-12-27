@@ -15,6 +15,7 @@ public class Person : BaseTracker
     public string AddressLine2 { get; set; }
     public string AddressLine3 { get; set; }
     public int? ZipcodeId { get; set; }
+    public int? CountyId { get; set; }
     public string Ssn { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public bool Deactivated { get; set; }
