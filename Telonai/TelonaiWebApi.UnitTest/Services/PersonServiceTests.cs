@@ -438,5 +438,35 @@ namespace TelonaiWebApi.UnitTest.Services
             
             await Assert.ThrowsAsync<AppException>(async () => await _service.DeleteAsync(id));
         }
+
+        [Fact]
+        public async Task IsEmployeeMinor_EnterPersonBirthDayForMinor_ReturnTrue()
+        {
+            //Arrange
+            DateOnly dateofbirth = new DateOnly(2010, 2, 20);
+            var person = new Person { Id = 1, DateOfBirth = dateofbirth };
+
+            //Act
+            var result = await _service.IsEmployeeMinor(person.DateOfBirth.Value);
+
+
+            //Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task IsEmployeeMinor_EnterPersonBirthDayForMinor_ReturnFalse()
+        {
+            //Arrange
+            DateOnly dateofbirth = new DateOnly(1984, 2, 20);
+            var person = new Person { Id = 1, DateOfBirth = dateofbirth };
+
+            //Act
+            var result = await _service.IsEmployeeMinor(person.DateOfBirth.Value);
+
+
+            //Assert
+            Assert.False(result);
+        }
     }
 }

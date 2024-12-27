@@ -20,7 +20,7 @@ public interface IPersonService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     Task<PersonModel> GetByEmailAndCompanyIdAsync(string email, int companyId);
     Task<Person> GetCurrentUserAsync();
     Task<Person> GetPersonById(int Id);
-    Task<bool> IsPersonMinor(DateOnly dateOfBirth);
+    Task<bool> IsEmployeeMinor(DateOnly dateOfBirth);
 }
 
 public class PersonService : IPersonService<PersonModel,Person>

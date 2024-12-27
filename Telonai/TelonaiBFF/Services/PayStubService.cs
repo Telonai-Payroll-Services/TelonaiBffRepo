@@ -425,7 +425,7 @@ public class PayStubService : IPayStubService
                     var isMinor = false;
                     if (personInfo.DateOfBirth.HasValue)
                     {
-                       isMinor = await _personService.IsPersonMinor(personInfo.DateOfBirth.Value);
+                       isMinor = await _personService.IsEmployeeMinor(personInfo.DateOfBirth.Value);
                     }
                     if (!isMinor)
                     {
