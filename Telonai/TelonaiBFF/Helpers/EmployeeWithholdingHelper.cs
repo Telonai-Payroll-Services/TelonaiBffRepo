@@ -22,13 +22,13 @@ namespace TelonaiWebApi.Helpers
             };
         }
 
-        public static DocumentModel CreateDocumentModel(Guid documentId, string filename, int id, DateOnly effectiveDate)
+        public static DocumentModel CreateDocumentModel(Guid documentId, string filename, int id, DateOnly effectiveDate, DocumentTypeModel documentTypeModel)
         {
             return new DocumentModel
             {
                 Id = documentId,
                 FileName = filename,
-                DocumentType = DocumentTypeModel.WFourUnsigned,
+                DocumentType = documentTypeModel,
                 PersonId = id,
                 EffectiveDate = effectiveDate
             };

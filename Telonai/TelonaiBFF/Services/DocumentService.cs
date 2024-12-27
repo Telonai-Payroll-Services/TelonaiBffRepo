@@ -392,7 +392,7 @@ public class DocumentService : IDocumentService
         var zipCode = _person?.Zipcode?.Code;
         var cityOrTown = _person?.Zipcode?.City?.Name;
         var state = _person?.Zipcode?.City?.State.Name;
-        var company = _context.Company.FirstOrDefault(e => e.Id == employee.Person.CompanyId);
+        var company = _context.Company.Include(e => e.Zipcode).FirstOrDefault(e => e.Id == employee.Person.CompanyId);
 
         using (var workStream = new MemoryStream())
         {
@@ -423,8 +423,8 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.Step4b_Deductions, model.Deductions.ToString());
                 formFields.SetField(PdfFields.Step4c_ExtraWithholding, model.ExtraWithholding.ToString());
 
-                formFields.SetField(PdfFields.EmployerNameAndAddress, company.Name + "" + company.Zipcode + "" + company.AddressLine1);
-                formFields.SetField(PdfFields.EmployerFirstDateOfEmployement, employee.CreatedDate.ToShortDateString());
+                formFields.SetField(PdfFields.EmployerNameAndAddress, company.Name + "\n" + company?.Zipcode?.Code + "\n" + company.AddressLine1);
+                formFields.SetField(PdfFields.EmployerFirstDateOfEmployement, company.CreatedDate.ToShortDateString());
                 formFields.SetField(PdfFields.EmployerIdentificationNumber, company.TaxId);
                 pdfStamper.FormFlattening = formFlattening;
                 pdfStamper.Close();
@@ -608,7 +608,7 @@ public class DocumentService : IDocumentService
             document.Id.ToString());
         var fileForDisplay = await SetPdfFormFilds(model, documentForDisplay, filingStatus.Item1, emp, true);
         var doumentId = await SaveGeneratedUnsignedPdf(document.FileName, fileBytes, DocumentTypeModel.WFourUnsigned);
-        var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate);
+        var doumentModel = await CreateDocumentModel(doumentId, document.FileName, document.EffectiveDate, DocumentTypeModel.WFourUnsigned);
 
         string prefix = "Step1c_FilingStatus_";
         string result = filingStatus.Item2.Substring(prefix.Length);
@@ -703,9 +703,9 @@ public class DocumentService : IDocumentService
         return employeeWithHodingModelList;
     }
 
-    private async Task<DocumentModel> CreateDocumentModel(Guid documentId, string filename, DateOnly effectiveDate)
+    private async Task<DocumentModel> CreateDocumentModel(Guid documentId, string filename, DateOnly effectiveDate, DocumentTypeModel documentTypeModel)
     {
-        var documentModel = EmployeeWithholdingHelper.CreateDocumentModel(documentId, filename, _person.Id, effectiveDate);
+        var documentModel = EmployeeWithholdingHelper.CreateDocumentModel(documentId, filename, _person.Id, effectiveDate,  documentTypeModel);
         return documentModel;
     }
     public async Task<Guid> Confirm(Guid id)
@@ -747,7 +747,7 @@ public class DocumentService : IDocumentService
         var documentForDisplay = await _documentManager.GetDocumentByTypeAndIdAsync(DocumentTypeModel.NCFourUnsigned.ToString(),
             document.Id.ToString());
         var fileForDisplay = await SetNC4PdfFormFilds(model, documentForDisplay, filingStatus.Item2, emp, true);
-        var doumentModel = await CreateDocumentModel(documentId, document.FileName, document.EffectiveDate);
+        var doumentModel = await CreateDocumentModel(documentId, document.FileName, document.EffectiveDate, DocumentTypeModel.NCFourUnsigned);
 
         string prefix = "Step1c_FilingStatus_";
         string result = filingStatus.Item2.Substring(prefix.Length);
@@ -782,9 +782,9 @@ public class DocumentService : IDocumentService
                     
         //TODO AddCounty
         //var county       
-        string firstPart = ssn.Substring(0, 3);
-        string secondPart = ssn.Substring(3, 2);
-        string thirdPart = ssn.Substring(5, 4);
+        string firstPart = ssn?.Substring(0, 3);
+        string secondPart = ssn?.Substring(3, 2);
+        string thirdPart = ssn?.Substring(5, 4);
 
         using (var workStream = new MemoryStream())
         {
@@ -814,9 +814,9 @@ public class DocumentService : IDocumentService
                 formFields.SetField(NC4PdfFields.AdditionalAmt, model.AdditionalAmt.ToString());
                 formFields.SetField(NC4PdfFields.SocialSecurity1stPart, firstPart);
                 formFields.SetField(NC4PdfFields.LastName, lastName);
-                formFields.SetField(NC4PdfFields.FirstName, firstName.ToUpper());
+                formFields.SetField(NC4PdfFields.FirstName, firstName?.ToUpper());
                 formFields.SetField(NC4PdfFields.MI, middeNameInitial);
-                formFields.SetField(NC4PdfFields.Address, address.ToUpper());
+                formFields.SetField(NC4PdfFields.Address, address?.ToUpper());
                 formFields.SetField(NC4PdfFields.ZipCode, $"{zipCode}");
                 formFields.SetField(NC4PdfFields.Country, $"{country}");
                 formFields.SetField(NC4PdfFields.City, $"{city}");
