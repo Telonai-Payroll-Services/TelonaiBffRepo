@@ -58,7 +58,7 @@ public class PayStubController : ControllerBase
     public IActionResult GetCurrentByPayrollId(int payrollId)
     {
         var payStubs = _PayStubService.GetCurrentByPayrollId(payrollId);
-        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, payStubs.FirstOrDefault().Payroll.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.User, payStubs.FirstOrDefault().Payroll.CompanyId);
         
         return Ok(payStubs);
     }
