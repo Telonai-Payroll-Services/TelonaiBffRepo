@@ -152,7 +152,7 @@ public class PayrollService : IPayrollService
             .GroupBy(e => e.CompanyId)
             .Select(g => g.First()).ToList();
 
-        var currentPayrolls = _context.Payroll.Include(e => e.PayrollSchedule)
+        var currentPayrolls = _context.Payroll.OrderByDescending(e=>e.ScheduledRunDate).Include(e => e.PayrollSchedule)
             .Where(e => e.ScheduledRunDate >= today && e.ScheduledRunDate <= threeDaysFromNow)
             .GroupBy(e => e.CompanyId)
             .Where(g => g.Count() == 1) //This line will filter out those already created in the previous day
@@ -174,7 +174,7 @@ public class PayrollService : IPayrollService
             }
             else
             {
-                var freq = (PayrollScheduleTypeModel)newSchedule.PayrollScheduleTypeId;
+                var freq = (PayrollScheduleTypeModel)payroll.PayrollSchedule.PayrollScheduleTypeId;
 
                 switch (freq)
                 {
@@ -568,6 +568,9 @@ public class PayrollService : IPayrollService
         {
             var payrate = emp.PayRate;
             var payRateBasis = emp.PayRateBasisId;
+
+            if (payRateBasis == null)
+                continue;
 
             var regularPay = 0.0;
             var regularHours = 0.0;
