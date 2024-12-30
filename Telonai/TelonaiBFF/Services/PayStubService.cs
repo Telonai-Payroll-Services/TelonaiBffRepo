@@ -78,7 +78,8 @@ public class PayStubService : IPayStubService
     {
         var person = await _personService.GetCurrentUserAsync();
         var obj = _context.PayStub.OrderByDescending(c => c.Id)
-        .Where(c => c.Employment.Job.CompanyId == companyId && c.Employment.PersonId == person.Id)
+        .Where(c => c.Employment.Job.CompanyId == companyId && c.Employment.PersonId == person.Id
+        && c.Payroll.TrueRunDate != null)
         .Skip(skip).Take(count).ToList();
 
         var result = _mapper.Map<List<PayStubModel>>(obj);
