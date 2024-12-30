@@ -78,7 +78,8 @@ public class PayStubService : IPayStubService
     {
         var person = await _personService.GetCurrentUserAsync();
         var obj = _context.PayStub.OrderByDescending(c => c.Id)
-        .Where(c => c.Employment.Job.CompanyId == companyId && c.Employment.PersonId == person.Id)
+        .Where(c => c.Employment.Job.CompanyId == companyId && c.Employment.PersonId == person.Id
+        && c.Payroll.TrueRunDate != null)
         .Skip(skip).Take(count).ToList();
 
         var result = _mapper.Map<List<PayStubModel>>(obj);
@@ -286,7 +287,8 @@ public class PayStubService : IPayStubService
 
         if (!Enum.TryParse(w4OneC?.FieldValue, out fedFilingStatus))
         {
-            throw new InvalidDataException($"Invalid filing status [{w4OneC}]");
+            fedFilingStatus = FilingStatusTypeModel.SingleOrMarriedFilingSeparately;
+            _logger.LogError($"Invalid filing status [{w4OneC}] for employee [{stub.Employment.Person.FirstName} {stub.Employment.Person.LastName}]");
         }
 
         var w4TwoC = w4Form.Find(e => e.Field.FieldName == "2c");
@@ -307,8 +309,8 @@ public class PayStubService : IPayStubService
         //Calculate Federal Tax to withhold
         var hasMultipleJobs = !string.IsNullOrWhiteSpace(w4TwoC.FieldValue);
 
-        var reimbursement = stub.OtherMoneyReceived.Reimbursement;        
-        var grossPayAfterReimbursement = stub.GrossPay - reimbursement;
+        var reimbursement = stub.OtherMoneyReceived?.Reimbursement;        
+        var grossPayAfterReimbursement = stub.GrossPay - reimbursement?? 0;
 
         var annualAmount = grossPayAfterReimbursement * _numberOfPaymentsInYear + double.Parse(w4FourA.FieldValue);
 
@@ -321,7 +323,7 @@ public class PayStubService : IPayStubService
         var deduction = double.Parse(w4FourB.FieldValue) * (hasMultipleJobs ? 0 : reportingStatus);
         var adjustedAnnualWageAmount = annualAmount - deduction;
 
-        var rate = employeeFederalRates.First(e => e.IncomeTaxType.Name.StartsWith("Federal") && 
+        var rate = employeeFederalRates.FirstOrDefault(e => e.IncomeTaxType.Name.StartsWith("Federal") && 
         e.Minimum < Math.Round(adjustedAnnualWageAmount) && e.Maximum > Math.Round(adjustedAnnualWageAmount));
 
         var previousIncomeTax = previousIncomeTaxes.FirstOrDefault(e => e.IncomeTaxTypeId == rate.IncomeTaxTypeId);
