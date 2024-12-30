@@ -12,7 +12,7 @@ public interface IZipcodeService
     List<Zipcode> GetByZipcodeAndCountryId(string code, int countryId);
     List<ZipcodeModel> GetModelByZipcodeAndCountryId(string code, int countryId);
     Zipcode GetById(int id);
-    void Delete(int id);
+    Task<bool> Delete(int id);
 }
 
 public class ZipcodeService : IZipcodeService
@@ -53,11 +53,18 @@ public class ZipcodeService : IZipcodeService
     }
 
 
-    public void Delete(int id)
+    public async Task<bool> Delete(int id)
     {
-        var user = GetZipcode(id);
-        _context.Zipcode.Remove(user);
-        _context.SaveChanges();
+        var zipcode = GetZipcode(id);
+        if (zipcode != null)
+        {
+            _context.Zipcode.Remove(zipcode);
+            return _context.SaveChanges() > 0;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     private Zipcode GetZipcode(int id)

@@ -2,6 +2,7 @@ namespace TelonaiWebApi.Services;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Threading.Tasks;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
@@ -19,7 +20,7 @@ public interface IPersonService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     Task<PersonModel> GetByEmailAndCompanyIdAsync(string email, int companyId);
     Task<Person> GetCurrentUserAsync();
     Task<Person> GetPersonById(int Id);
-
+    Task<bool> IsEmployeeMinor(DateOnly dateOfBirth);
 }
 
 public class PersonService : IPersonService<PersonModel,Person>
@@ -223,5 +224,18 @@ public class PersonService : IPersonService<PersonModel,Person>
             var person = await _context.Person.FirstOrDefaultAsync(e => e.Email.ToLower() == currentUserEmail) ?? throw new InvalidDataException("User not found");
             return person;       
         
+    }
+
+    public async Task<bool> IsEmployeeMinor(DateOnly dateOfBirth)
+    {
+        var yearDifference = DateTime.Today.Subtract(dateOfBirth.ToDateTime(TimeOnly.MinValue));
+        if((yearDifference.TotalDays / 365.25) <= 17)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
