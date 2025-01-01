@@ -76,7 +76,7 @@ public class PayrollScheduleService : IPayrollScheduleService
             _context.PayrollSchedule.Update(currentSchedule);
         }
         else
-        {  //check if this is the first schedule and if so update status
+        {  //check if this is the first schedule and if so update sign-up status
             if(!_context.PayrollSchedule.Any(e => e.CompanyId == model.CompanyId))            
             {
                 var emp = _context.Employment.First(e => e.Job.CompanyId == model.CompanyId && !e.Deactivated);

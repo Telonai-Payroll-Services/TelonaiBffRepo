@@ -183,6 +183,8 @@ public class PayrollService : IPayrollService
                         nextPayrollStartDate = new DateOnly(nextPayrollRunDate.Year, nextPayrollRunDate.Month, 1);
                         nextPayrollRunDate = nextPayrollStartDate.AddMonths(1).AddDays(-1);
 
+                        //move date backward by one day as ACH takes 1 day to process
+                        nextPayrollRunDate = nextPayrollRunDate.AddDays(-1);
                         nextPayrollRunDate = AvoidHolidaysAndWeekends(nextPayrollRunDate, countryId);
                         break;
                     case PayrollScheduleTypeModel.SemiMonthly:
@@ -195,8 +197,10 @@ public class PayrollService : IPayrollService
                         else
                         {
                             nextPayrollStartDate = new DateOnly(nextPayrollRunDate.Year, nextPayrollRunDate.Month, 16);
-                            nextPayrollRunDate = nextPayrollStartDate.AddMonths(1).AddDays(17);
+                            var firstDayOfMonth= new DateOnly(nextPayrollRunDate.Year, nextPayrollRunDate.Month, 1);
+                            nextPayrollRunDate = firstDayOfMonth.AddMonths(1).AddDays(-1);
                         }
+                        nextPayrollRunDate = nextPayrollRunDate.AddDays(-1);
                         nextPayrollRunDate = AvoidHolidaysAndWeekends(nextPayrollRunDate, countryId);
                         break;
                     case PayrollScheduleTypeModel.Biweekly: // Run date should be every other Wednesday. It is not affected by holidays
@@ -410,12 +414,18 @@ public class PayrollService : IPayrollService
         {
             case PayrollScheduleTypeModel.Monthly:
                 nextRunDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
+                
+                //move date backward by one day as ACH takes 1 day to process
+                nextRunDate = nextRunDate.AddDays(-1);
                 return AvoidHolidaysAndWeekends(nextRunDate, countryId);                
             case PayrollScheduleTypeModel.SemiMonthly:
                 if (scheduleStartDate.Day < 16)
                     nextRunDate = scheduleStartDate.AddDays(15 - scheduleStartDate.Day);
                 else
                     nextRunDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
+                
+                //move date backward by one day as ACH takes 1 day to process
+                nextRunDate = nextRunDate.AddDays(-1);
                 return AvoidHolidaysAndWeekends(nextRunDate, countryId);
             case PayrollScheduleTypeModel.Biweekly:
                 nextRunDate = GetNextWednesday(scheduleStartDate).AddDays(7);
@@ -505,9 +515,6 @@ public class PayrollService : IPayrollService
     private DateOnly AvoidHolidaysAndWeekends(DateOnly date, int countryId)
     {
         var holidays = _context.Holiday.Where(e => e.CountryId == countryId && e.Date.Year == date.Year).ToList();
-
-        //subtract one day to allow for the 1 day delay in ACH payments
-        date = date.AddDays(-1);
 
         if (holidays.Any(e => e.Date == date))
             date = date.AddDays(-1);
