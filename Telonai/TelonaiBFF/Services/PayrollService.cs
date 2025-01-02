@@ -795,7 +795,7 @@ public class PayrollService : IPayrollService
 
         var frequency = (PayrollScheduleTypeModel)schedule?.PayrollScheduleTypeId;
 
-        var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId &&
+        var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId && e.PayRateBasisId!=null &&
         (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate))).ToList();
 
         timecards.ForEach(e => e.IsLocked = true);
