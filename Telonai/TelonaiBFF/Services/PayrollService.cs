@@ -555,7 +555,7 @@ public class PayrollService : IPayrollService
     private async Task<Tuple<List<PayStub>, List<PayStub>>> CreateOrUpdatePayStubsForCurrentPayrollAsync(Payroll currentPayroll)
     {
 
-        var payStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id).ToList();
+        var payStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id && e.Employment.PayRateBasisId!=null).ToList();
         var newPaystubs = new List<PayStub>();
 
         var companyId = currentPayroll.CompanyId;
@@ -567,7 +567,7 @@ public class PayrollService : IPayrollService
 
         var frequency = (PayrollScheduleTypeModel)currentPayroll.PayrollSchedule.PayrollScheduleTypeId;
 
-        var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId &&
+        var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId && e.PayRateBasisId!=null &&
         (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate))).ToList();
 
         foreach (var emp in employments)
