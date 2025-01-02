@@ -393,5 +393,15 @@ public class AutoMapperProfile : Profile
         .ForMember(dest => dest.DayOffPayType, opt => opt.MapFrom(src => (DayOffPayTypeModel)src.DayOffPayTypeId))
         .ForMember(dest => dest.Name, opt => opt.MapFrom(src => $"{src.Employment.Person.LastName} {src.Employment.Person.FirstName}"))
         .ForMember(dest => dest.IsCancellable, opt => opt.MapFrom(src => DateOnly.FromDateTime(DateTime.Now).CompareTo(src.FromDate) < 0));
+
+        CreateMap<FAQ, FAQModel>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
+        CreateMap<FAQModel, FAQ>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+        CreateMap<TelonaiSpecificFieldValue, TelonaiSpecificFieldValueModel>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+        CreateMap<TelonaiSpecificFieldValueModel, TelonaiSpecificFieldValue>();
     }
 }

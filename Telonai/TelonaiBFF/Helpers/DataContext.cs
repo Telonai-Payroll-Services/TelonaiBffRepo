@@ -171,4 +171,6 @@ public class DataContext : DbContext
     public DbSet<DayOffRequest> DayOffRequest { get; set; }
     public DbSet<DayOffType> DayoffType { get; set; }
     public DbSet<DayOffPayType> DayOffPayType { get; set; }
+    public DbSet<FAQ> FAQ { get; set; }
+    public DbSet<TelonaiSpecificFieldValue> TelonaiSpecificFieldValue { get; set; }
 }
