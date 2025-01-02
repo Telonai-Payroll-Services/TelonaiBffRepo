@@ -35,13 +35,15 @@ public class PayrollService : IPayrollService
     private readonly IPayStubService _payStubService;
     private readonly IMailSender _mailSender;
     private readonly ILogger<PayrollService> _logger;
+    private readonly IDayOffRequestService<DayOffRequestModel, DayOffRequest> _dayOffRequestService;
 
-    public PayrollService(DataContext context, IMapper mapper, IMailSender mailSender, ILogger<PayrollService> logger)
+    public PayrollService(DataContext context, IMapper mapper, IMailSender mailSender, ILogger<PayrollService> logger, IDayOffRequestService<DayOffRequestModel, DayOffRequest> dayOffRequestService)
     {
         _context = context;
         _mapper = mapper;
         _mailSender = mailSender;
         _logger = logger;
+        _dayOffRequestService = dayOffRequestService;
     }
 
     public List<PayrollModel> GetLatestByCount(int companyId, int count)
@@ -548,7 +550,7 @@ public class PayrollService : IPayrollService
     /// <exception cref="AppException"></exception>
     private async Task<Tuple<List<PayStub>, List<PayStub>>> CreateOrUpdatePayStubsForCurrentPayrollAsync(Payroll currentPayroll)
     {
-
+        
         var payStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id).ToList();
         var newPaystubs = new List<PayStub>();
 
@@ -566,6 +568,7 @@ public class PayrollService : IPayrollService
 
         foreach (var emp in employments)
         {
+            var numberofDayOff = _dayOffRequestService.GetUnpaidCountDayOffRequestForSpecificPayrollSchedule(emp.Id, currentPayroll.PayrollScheduleId);
             var payrate = emp.PayRate;
             var payRateBasis = emp.PayRateBasisId;
 

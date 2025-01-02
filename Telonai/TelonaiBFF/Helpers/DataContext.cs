@@ -32,6 +32,7 @@ public class DataContext : DbContext
         var connectionString = $"Host={secret["host"]};Database={secret["dbname"]};Username={secret["username"]};Password={secret["password"]}";
         options.UseNpgsql(connectionString).ReplaceService<ISqlGenerationHelper, NpgsqlSqlGenerationLowercasingHelper>();
         options.EnableSensitiveDataLogging();
+        options.LogTo(Console.WriteLine, LogLevel.Information);
     }
 
     public override int SaveChanges()
