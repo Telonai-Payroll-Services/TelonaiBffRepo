@@ -11,7 +11,6 @@ using TelonaiWebApi.Services;
 
 [Route("[controller]")]
 [ApiController]
-[Authorize()]
 [AllowAnonymous]
 public class FAQController : ControllerBase
 {

@@ -2,6 +2,7 @@
 namespace TelonaiWebApi.Services;
 
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
@@ -9,8 +10,8 @@ using TelonaiWebApi.Models;
 
 public interface IFAQService
 {
-    Task<FAQ> CreateAsync(FAQModel person);
-    Task<FAQ> Update(int id, FAQModel person);
+    Task<FAQ> CreateAsync(FAQModel model);
+    Task<FAQ> Update(int id, FAQModel model);
     IList<FAQModel> Get();
     HelpPageResponse GetFAQAndContact();
     FAQModel GetById(int id);
@@ -29,9 +30,9 @@ public class FAQService : IFAQService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<FAQ> CreateAsync(FAQModel person)
+    public async Task<FAQ> CreateAsync(FAQModel model)
     {
-        var obj = _mapper.Map<FAQ>(person);
+        var obj = _mapper.Map<FAQ>(model);
         _context.FAQ.Add(obj);
         _context.SaveChanges();
         return obj;
@@ -56,8 +57,8 @@ public class FAQService : IFAQService
         var faq = _context.FAQ;
         var result = _mapper.Map<IList<FAQModel>>(faq);
 
-        var contact = _context.TelonaiSpecificFieldValue;
-        var _telonaiSpecificFieldValues = _mapper.Map<IList<TelonaiSpecificFieldValueModel>>(contact);
+        var values = _context.TelonaiSpecificFieldValue.Include(e => e.TelonaiSpecificField);
+        var _telonaiSpecificFieldValues = _mapper.Map<IList<TelonaiSpecificFieldValueModel>>(values);
 
         var response = new HelpPageResponse()
         {

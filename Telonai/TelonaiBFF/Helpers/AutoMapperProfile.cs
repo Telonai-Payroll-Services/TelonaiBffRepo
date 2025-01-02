@@ -400,8 +400,14 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore());
 
         CreateMap<TelonaiSpecificFieldValue, TelonaiSpecificFieldValueModel>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore());
+            .ForMember(dest => dest.FieldName, opt => opt.MapFrom(src => src.TelonaiSpecificField.FieldName));
 
-        CreateMap<TelonaiSpecificFieldValueModel, TelonaiSpecificFieldValue>();
+        CreateMap<TelonaiSpecificFieldValueModel, TelonaiSpecificFieldValue>()
+            .ForMember(dest => dest.TelonaiSpecificField, opt => opt.Ignore());
+        
+        CreateMap<TelonaiSpecificField, TelonaiSpecificFieldModel>();
+
+        CreateMap<TelonaiSpecificFieldModel, TelonaiSpecificField>()
+             .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 }
