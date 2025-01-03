@@ -37,7 +37,7 @@ namespace TelonaiWebApi.Services
         List<IncomeTaxRateModel> GetIncomeTaxRateModelsByCountryId(int countryId);
         List<IncomeTaxRate> GetIncomeTaxRatesByCountryId(int countryId);
         List<StateStandardDeduction> GetStateStandardDeductionsByStateId(int stateId, int year);
-
+        List<IncomeTaxRate> GetIncomeTaxRatesByCountryIdAndPayrollYear(int countryId, int payrollYear);
     }
 
     public class StaticDataService: IStaticDataService
@@ -76,6 +76,11 @@ namespace TelonaiWebApi.Services
         public List<IncomeTaxRate> GetIncomeTaxRatesByCountryId(int countryId)
         {
             return _cache.Get<List<IncomeTaxRate>>($"IncomeTaxRates_countryId_{countryId}", f => _incomeTaxService.GetByCountryId(countryId).ToList());
+        }
+
+        public List<IncomeTaxRate> GetIncomeTaxRatesByCountryIdAndPayrollYear(int countryId, int payrollYear)
+        {
+            return _cache.Get<List<IncomeTaxRate>>($"IncomeTaxRates_countryId_{countryId}_PayrollYear_{payrollYear}", f => _incomeTaxService.GetByCountryIdAndPayrollYear(countryId, payrollYear).ToList());
         }
 
         public List<IncomeTaxRateModel> GetIncomeTaxRateModelsByCountryId(int countryId)
