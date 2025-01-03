@@ -47,6 +47,7 @@ public class FAQController : ControllerBase
         return Ok(item);
     }
 
+    [Authorize(Policy = "SystemAdmin")]
     [HttpPost]
     public IActionResult Create(FAQModel faq)
     {
@@ -55,6 +56,7 @@ public class FAQController : ControllerBase
         return Ok();
     }
 
+    [Authorize(Policy = "SystemAdmin")]
     [HttpPut("{id}")]
     public IActionResult Update(int id, FAQModel faq)
     {
@@ -63,6 +65,7 @@ public class FAQController : ControllerBase
         return Ok();
     }
 
+    [Authorize(Policy = "SystemAdmin")]
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
