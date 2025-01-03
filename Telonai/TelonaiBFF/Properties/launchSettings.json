@@ -5,7 +5,7 @@
         "launchBrowser": true,
         "launchUrl": "swagger/index.html",
         "environmentVariables": {
-            "ASPNETCORE_ENVIRONMENT": "local"
+            "ASPNETCORE_ENVIRONMENT": "dev"
         },
         "applicationUrl": "https://localhost:60887;http://localhost:80"
     },
@@ -14,7 +14,7 @@
       "launchBrowser": true,
       "launchUrl": "swagger/index.html",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "local",
+        "ASPNETCORE_ENVIRONMENT": "dev",
         "ASPNETCORE_URLS": "https://localhost:60887;http://localhost:80"
       },
       "distributionName": ""

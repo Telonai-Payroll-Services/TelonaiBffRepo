@@ -185,6 +185,8 @@ public class PayrollService : IPayrollService
                         nextPayrollStartDate = new DateOnly(nextPayrollRunDate.Year, nextPayrollRunDate.Month, 1);
                         nextPayrollRunDate = nextPayrollStartDate.AddMonths(1).AddDays(-1);
 
+                        //move date backward by one day as ACH takes 1 day to process
+                        nextPayrollRunDate = nextPayrollRunDate.AddDays(-1);
                         nextPayrollRunDate = AvoidHolidaysAndWeekends(nextPayrollRunDate, countryId);
                         break;
                     case PayrollScheduleTypeModel.SemiMonthly:
@@ -197,8 +199,10 @@ public class PayrollService : IPayrollService
                         else
                         {
                             nextPayrollStartDate = new DateOnly(nextPayrollRunDate.Year, nextPayrollRunDate.Month, 16);
-                            nextPayrollRunDate = nextPayrollStartDate.AddMonths(1).AddDays(17);
+                            var firstDayOfMonth= new DateOnly(nextPayrollRunDate.Year, nextPayrollRunDate.Month, 1);
+                            nextPayrollRunDate = firstDayOfMonth.AddMonths(1).AddDays(-1);
                         }
+                        nextPayrollRunDate = nextPayrollRunDate.AddDays(-1);
                         nextPayrollRunDate = AvoidHolidaysAndWeekends(nextPayrollRunDate, countryId);
                         break;
                     case PayrollScheduleTypeModel.Biweekly: // Run date should be every other Wednesday. It is not affected by holidays
@@ -306,9 +310,8 @@ public class PayrollService : IPayrollService
         return $"Time to Run Payroll"
             + $"Dear {receiverName},\r\n"
             + $"Today, {scheduledDate}, is your payroll run date. To ensure your employees get paid on time, please run payroll, "
-            + $"today, after close of business. You may run it right now or anytime before close of business if " 
-            + "you know the hours your employees will work today. If so, make sure to enter the expected hours " 
-            + "on the page you approve timecards. \r\n"
+            + $"after close of business, today. If you know the hours your employees will work today, you may enter" 
+            + "those hours and run payroll right now. \r\n"
             + $"Please do not reply to this email as it is not monitored.";
     }
 
@@ -317,17 +320,16 @@ public class PayrollService : IPayrollService
         return $"<h2>Time to Run Payroll</h2>"
          + $"Dear {receiverName}, </br>"
          + $"<p>Today, <strong>{scheduledDate}<strong>, is your payroll run date. To ensure your employees get paid on time, "
-         + $"please run payroll today, after close of business. You may run it right now or anytime before close of business if "
-         + "you know the hours your employees will work today. If so, make sure to enter the expected hours "
-         + "on the page you approve timecards."
+         + $"please run payroll today, after close of business. If you know the hours your employees will work today, you may "
+         + "enter those hours and run payroll right now."
          + $"<br/>Please do not reply to this email as it is not monitored.";
     }
     private static string CreateTextEmailBodyForLatePayroll(string scheduledDate, string receiverName)
     {
         return $"Time to Run Payroll"
             + $"Dear {receiverName},\r\n"
-            + $"Your payroll run date has passed. It was on {scheduledDate}. Please run payroll as soon as possible, using our mobile app."
-            + "Please note that your employees will not get paid until you run payroll. \r\n\n"
+            + $"Your payroll run date has passed. It was on {scheduledDate}. Please run payroll, using our mobile app, as soon as possible."
+            + "Please note that your employees will not get paid unless you complete running payroll. \r\n\n"
             + $"Please do not reply to this email as it is not monitored. If you need assistance, please call our support team at 601-608-7025";
     }
 
@@ -335,8 +337,9 @@ public class PayrollService : IPayrollService
     {
         return $"<h2>Time to Run Payroll</h2>"
          + $"Dear {receiverName}, </br>"
-         + $"Your payroll run date has passed. It was on <strong>{scheduledDate}</strong>. Please run payroll as soon as possible, using our mobile app."
-         + "Please note that your employees will not get paid until you run payroll."
+         + $"Your payroll run date has passed. It was on <strong>{scheduledDate}</strong>. Please run payroll, using our mobile app, "
+         + "as soon as possible."
+         + "Please note that your employees will not get paid unless you complete running payroll."
          + $"<br/><br/>Please do not reply to this email as it is not monitored. If you need assistance, please call our support team at <strong>601-608-7025</strong>";
     }
 
@@ -413,12 +416,18 @@ public class PayrollService : IPayrollService
         {
             case PayrollScheduleTypeModel.Monthly:
                 nextRunDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
+                
+                //move date backward by one day as ACH takes 1 day to process
+                nextRunDate = nextRunDate.AddDays(-1);
                 return AvoidHolidaysAndWeekends(nextRunDate, countryId);                
             case PayrollScheduleTypeModel.SemiMonthly:
                 if (scheduleStartDate.Day < 16)
                     nextRunDate = scheduleStartDate.AddDays(15 - scheduleStartDate.Day);
                 else
                     nextRunDate = scheduleStartDate.AddDays(daysInMonth - scheduleStartDate.Day);
+                
+                //move date backward by one day as ACH takes 1 day to process
+                nextRunDate = nextRunDate.AddDays(-1);
                 return AvoidHolidaysAndWeekends(nextRunDate, countryId);
             case PayrollScheduleTypeModel.Biweekly:
                 nextRunDate = GetNextWednesday(scheduleStartDate).AddDays(7);
@@ -509,9 +518,6 @@ public class PayrollService : IPayrollService
     {
         var holidays = _context.Holiday.Where(e => e.CountryId == countryId && e.Date.Year == date.Year).ToList();
 
-        //subtract one day to allow for the 1 day delay in ACH payments
-        date = date.AddDays(-1);
-
         if (holidays.Any(e => e.Date == date))
             date = date.AddDays(-1);
 
@@ -550,8 +556,8 @@ public class PayrollService : IPayrollService
     /// <exception cref="AppException"></exception>
     private async Task<Tuple<List<PayStub>, List<PayStub>>> CreateOrUpdatePayStubsForCurrentPayrollAsync(Payroll currentPayroll)
     {
-        
-        var payStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id).ToList();
+
+        var payStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id && e.Employment.PayRateBasisId!=null).ToList();
         var newPaystubs = new List<PayStub>();
 
         var companyId = currentPayroll.CompanyId;
@@ -563,7 +569,7 @@ public class PayrollService : IPayrollService
 
         var frequency = (PayrollScheduleTypeModel)currentPayroll.PayrollSchedule.PayrollScheduleTypeId;
 
-        var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId &&
+        var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId && e.PayRateBasisId!=null &&
         (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate))).ToList();
 
         foreach (var emp in employments)
