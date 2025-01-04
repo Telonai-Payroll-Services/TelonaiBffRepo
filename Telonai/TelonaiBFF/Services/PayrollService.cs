@@ -498,8 +498,11 @@ public class PayrollService : IPayrollService
             if (stubs.Item2.Count > 0)
                 _context.PayStub.AddRange(stubs.Item2);
 
-            _context.Payroll.Update(payroll);
-            _ = _context.SaveChanges();
+            if (stubs.Item1.Count > 0 || stubs.Item2.Count > 0)
+            {
+                _context.Payroll.Update(payroll);
+                _ = _context.SaveChanges();
+            }
         }
     }
     private static DateOnly GetNextWednesday(DateOnly date)
@@ -741,10 +744,10 @@ public class PayrollService : IPayrollService
                     EmploymentId = emp.Id,
                     RegularHoursWorked = regularHours,
                     OverTimeHoursWorked = otHours,
-                    OverTimePay = otPay,
+                    OverTimePay = Math.Round(otPay,2),
                     PayrollId = currentPayroll.Id,
-                    RegularPay = regularPay,
-                    GrossPay = otPay + regularPay,
+                    RegularPay = Math.Round(regularPay,2),
+                    GrossPay = Math.Round(otPay + regularPay,2),
                 };
                 newPaystubs.Add(paystub);
             }
@@ -753,9 +756,9 @@ public class PayrollService : IPayrollService
                 currentPaystub.EmploymentId = emp.Id;
                 currentPaystub.RegularHoursWorked = regularHours;
                 currentPaystub.PayrollId = currentPayroll.Id;
-                currentPaystub.RegularPay = regularPay;
-                currentPaystub.GrossPay = regularPay;
-                currentPaystub.NetPay = regularPay;
+                currentPaystub.RegularPay = Math.Round(regularPay);
+                currentPaystub.GrossPay = Math.Round(regularPay);
+                currentPaystub.NetPay = Math.Round(regularPay);
             }
         }
         
@@ -1019,6 +1022,8 @@ public class PayrollService : IPayrollService
         Employment emp, PayrollScheduleTypeModel frequency)
     {
         var myTimeCards = timecards.Where(e => e.PersonId == emp.PersonId);
+        if(myTimeCards.Count()<1)
+            return Tuple.Create(0.0, 0.0, 0.0, 0.0);
 
         var totalHoursWorked = myTimeCards.Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds/60 / 60)).ToList();
 
