@@ -243,7 +243,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
                 + $"Dear {recieverName},\r\n"
                 + $"You are invited by {senderCompanyName} to activate your Telonai account. "
                 + $"To activate your account,  download and install the Telonai app. "
-                + "If you are an IOS (iPhone) user, download the app from https://testflight.apple.com/join/fCywB8KM .\r\n"
+                + "If you are an IOS (iPhone) user, download the app from https://apps.apple.com/us/app/telonai/id6738379955 .\r\n"
                 + "If you are an Android user, download the app from https://play.google.com/store/apps/details?id=com.telonai.app .\r\n"
                 + $"When prompted for activation code, please enter {activationCode} .";                
     }
@@ -253,7 +253,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         return $"<h1>Activate your account</h1>" 
          + $"Dear {recieverName}, </br><p>You are invited by <strong>{senderCompanyName}</strong> to activate your Telonai account. " 
          + $"<br/>To activate your account, download and install the <strong>Telonai</strong> app."
-         + "<br/>If you are an IOS (iPhone) user, download the app from:  <a href='https://testflight.apple.com/join/fCywB8KM'> App Store </a> ."
+         + "<br/>If you are an IOS (iPhone) user, download the app from:  <a href='https://apps.apple.com/us/app/telonai/id6738379955'> App Store </a> ."
          + "<br/>If you are an Android user, download the app from: <a href='https://play.google.com/store/apps/details?id=com.telonai.app'> Google Play </a> ."
          + $"<br/>When prompted for activation code, please enter <strong>{activationCode}</strong> .";
     }
