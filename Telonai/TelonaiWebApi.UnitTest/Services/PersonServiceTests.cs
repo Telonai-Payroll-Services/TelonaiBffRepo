@@ -447,7 +447,7 @@ namespace TelonaiWebApi.UnitTest.Services
             var person = new Person { Id = 1, DateOfBirth = dateofbirth };
 
             //Act
-            var result = await _service.IsEmployeeMinor(person.DateOfBirth.Value);
+            var result = _service.IsEmployeeMinor(person.DateOfBirth.Value);
 
 
             //Assert
@@ -462,7 +462,7 @@ namespace TelonaiWebApi.UnitTest.Services
             var person = new Person { Id = 1, DateOfBirth = dateofbirth };
 
             //Act
-            var result = await _service.IsEmployeeMinor(person.DateOfBirth.Value);
+            var result = _service.IsEmployeeMinor(person.DateOfBirth.Value);
 
 
             //Assert

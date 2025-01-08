@@ -427,11 +427,11 @@ public class PayStubService : IPayStubService
 
                 case "Social Security":
                 case "Medicare":
-                    var personInfo = await _personService.GetPersonById(stub.Employment.PersonId);
+                    var personInfo =  _personService.GetPersonById(stub.Employment.PersonId);
                     var isMinor = false;
                     if (personInfo.DateOfBirth.HasValue)
                     {
-                       isMinor = await _personService.IsEmployeeMinor(personInfo.DateOfBirth.Value);
+                       isMinor = _personService.IsEmployeeMinor(personInfo.DateOfBirth.Value);
                     }
                     if (!isMinor)
                     {
