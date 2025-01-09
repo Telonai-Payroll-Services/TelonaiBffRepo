@@ -1,0 +1,31 @@
+
+# AWS CodeBuild spec to build .net 6 app
+version: 0.2
+    
+phases:
+  install:
+    runtime-versions:
+      dotnet: 6.0
+     
+   
+  pre_build:
+    commands:
+      - echo Restore started on `date`
+      - dotnet restore Telonai/TelonaiBFF/TelonaiWebApi.csproj
+      
+  build:
+    commands:
+      - echo Build started on `date`
+      - dotnet build Telonai/TelonaiBFF/TelonaiWebApi.csproj
+      - echo Test started on `date`
+      - dotnet test Telonai/TelonaiBFF/TelonaiWebApi.csproj
+      
+  post_build:
+    commands:
+      - echo Publish started on `date`
+      # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/dotnet-linux-platform-bundle-app.html
+      - dotnet publish -c Release -r linux-x64 -o ./Telonai/TelonaiBFF/TelonaiWebApi.csproj
+      
+artifacts:
+  files:
+    - ./**/*
