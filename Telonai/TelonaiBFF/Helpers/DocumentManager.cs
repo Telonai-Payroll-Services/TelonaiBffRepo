@@ -253,6 +253,14 @@ public class DocumentManager : IDocumentManager
         AddCellToBody(_childTableLayout1, "", count, _fontNormal);
         AddCellToBody(_childTableLayout1, _payStub.GrossPay.ToString("0.00"), count, _fontBold);
         AddCellToBody(_childTableLayout1, _payStub.YtdGrossPay.ToString("0.00"), count, _fontBold);
+
+        count++;
+        AddCellToBody(_childTableLayout1, "Net Pay", count, _fontBold);
+        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
+        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
+        AddCellToBody(_childTableLayout1, _payStub.NetPay.ToString("0.00"), count, _fontBold);
+        AddCellToBody(_childTableLayout1, _payStub.YtdNetPay.ToString("0.00"), count, _fontBold);
+
         _tableLayout.AddCell(_childTableLayout1);
 
         AddDeductionsToBody();
@@ -269,6 +277,7 @@ public class DocumentManager : IDocumentManager
 
         if (_incomeTaxes != null)
         {
+            var employeeHasMedicare = _incomeTaxes.Any(e => e.IncomeTaxType.Id == 2 && e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId == null);
             foreach (var incomeTax in _incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId == null))
             {
                 count++;
@@ -276,7 +285,14 @@ public class DocumentManager : IDocumentManager
                 AddCellToBody(_childTableLayout2, incomeTax.Amount.ToString("0.00"), count, _fontNormal);
                 AddCellToBody(_childTableLayout2, incomeTax.YtdAmount.ToString("0.00"), count, _fontNormal);
             }
-            foreach (var incomeTax in _incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null))
+            if (!employeeHasMedicare)
+            {
+                count++;
+                AddCellToBody(_childTableLayout2, "Medicare", count, _fontNormal);
+                AddCellToBody(_childTableLayout2, "0.00", count, _fontNormal);
+                AddCellToBody(_childTableLayout2, "0.00", count, _fontNormal);
+            }
+                foreach (var incomeTax in _incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null))
             {
                 count++;
                 AddCellToBody(_childTableLayout2, incomeTax.IncomeTaxType.Name.ToString(), count, _fontNormal);
@@ -291,10 +307,7 @@ public class DocumentManager : IDocumentManager
         AddCellToBody(_childTableLayout1, "", count, _fontNormal);
         AddCellToBody(_childTableLayout1, "", count, _fontNormal);
 
-        count++;
-        AddCellToBody(_childTableLayout2, "Net Pay", count, _fontBold);
-        AddCellToBody(_childTableLayout2, _payStub.NetPay.ToString("0.00"), count, _fontBold);
-        AddCellToBody(_childTableLayout2, _payStub.YtdNetPay.ToString("0.00"), count, _fontBold);
+       
         _tableLayout.AddCell(_childTableLayout2);
 
     }
@@ -303,21 +316,23 @@ public class DocumentManager : IDocumentManager
         var fontSmall = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL);
         var paragraph = new Paragraph
         {
-            new Phrase("Company:", _headerFont),
+            new Phrase("Company:  ", _headerFont),
             new Phrase(_company.Name, fontSmall),
             new Phrase("\n", fontSmall),
-            new Phrase("Address:", _headerFont),
+            new Phrase("Address:  ", _headerFont),         
             new Phrase(_company.AddressLine1, fontSmall)
         };
 
         if (!string.IsNullOrEmpty(_company.AddressLine2))
+        {
             paragraph.Add(new Phrase("\n", fontSmall));
-            paragraph.Add(new Phrase(_company.AddressLine2, fontSmall));
+            paragraph.Add(new Phrase("              " + _company.AddressLine2, fontSmall));
+        }
 
         paragraph.Add(new Phrase("\n", fontSmall));
-        paragraph.Add(new Phrase($"{_company.Zipcode.City.Name}", fontSmall));
+        paragraph.Add(new Phrase($"              { _company.Zipcode.City.Name}", fontSmall));
         paragraph.Add(new Phrase("\n", fontSmall));
-        paragraph.Add(new Phrase($"{_company.Zipcode.City.State.StateCode} {_company.Zipcode.Code}" ,fontSmall));
+        paragraph.Add(new Phrase($"              { _company.Zipcode.City.State.StateCode} {_company.Zipcode.Code}" ,fontSmall));
 
 
         _tableLayout.AddCell(new PdfPCell(paragraph)
@@ -335,21 +350,22 @@ public class DocumentManager : IDocumentManager
 
         var paragraph = new Paragraph
     {
-        new Phrase("Employee  ", _headerFont),
-        new Phrase($"{_person.FirstName} {_person.LastName}", fontSmall),
+        new Phrase("Employee:  ", _headerFont),
+        new Phrase($"{_person.FirstName}{" "} {_person.LastName}", fontSmall),
         new Phrase("\n", fontSmall),
-        new Phrase("Address:", _headerFont),
+        new Phrase("Address:  ", _headerFont),
         new Phrase(_person.AddressLine1, fontSmall)
     };
 
         if (!string.IsNullOrEmpty(_person.AddressLine2))
         {
             paragraph.Add(new Phrase("\n", fontSmall));
-            paragraph.Add(new Phrase(_person.AddressLine2, fontSmall));
+            paragraph.Add(new Phrase("              " + _person.AddressLine2, fontSmall));
         }
-        paragraph.Add(new Phrase($"{_person.Zipcode.City.Name}", fontSmall));
         paragraph.Add(new Phrase("\n", fontSmall));
-        paragraph.Add(new Phrase($"{_person.Zipcode.City.State.StateCode} {_person.Zipcode.Code}", fontSmall));
+        paragraph.Add(new Phrase($"              { _person.Zipcode.City.Name}", fontSmall));
+        paragraph.Add(new Phrase("\n", fontSmall));
+        paragraph.Add(new Phrase($"              { _person.Zipcode.City.State.StateCode} {_person.Zipcode.Code}", fontSmall));
         
 
         _tableLayout.AddCell(new PdfPCell(paragraph)

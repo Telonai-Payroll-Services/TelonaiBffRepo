@@ -917,9 +917,9 @@ public class DocumentService : IDocumentService
                     { "INine", "Signed Form I-9" },
                     { "EightyEightSeventyNineEmpUnsigned", "Form 8879-EMP" },
                     { "EightyEiightSeventyNineEmp", "Signed Form 8879-EMP" },
-                    { "NineForty", "Form 940" },
-                    { "NineFortyOne", "Form 941" },
-                    { "NineFortyFour", "Form 944" }
+                    //{ "NineForty", "Form 940" },
+                    //{ "NineFortyOne", "Form 941" },
+                    //{ "NineFortyFour", "Form 944" }
                 };
             }
             else
@@ -946,8 +946,8 @@ public class DocumentService : IDocumentService
             return new Dictionary<string, string>
             {
                 { "PayStub", "Most Recent Pay Stub" },
-                { "INineUnsigned", "Form I-9" },
-                { "INine", "Signed Form I-9" },
+               // { "INineUnsigned", "Form I-9" },
+               // { "INine", "Signed Form I-9" },
                 { "WFour", "Signed W-4" },
                 { "NCFour", "Signed NC-4" }
             };

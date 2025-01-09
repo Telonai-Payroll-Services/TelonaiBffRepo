@@ -11,11 +11,14 @@ public class DataContext : DbContext
 {
     private readonly IHttpContextAccessor _context;
     private readonly SecretsManagerCache _cache;
+    private readonly IWebHostEnvironment _env;
+
     public DataContext() { }
-    public DataContext(IHttpContextAccessor context)
+    public DataContext(IHttpContextAccessor context, IWebHostEnvironment env)
     {
         _cache = new SecretsManagerCache();
         _context = context;
+        _env = env;
     }
 
     private async Task<Dictionary<string, string>> GetSecret(string MySecretName)
@@ -28,7 +31,7 @@ public class DataContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
 
-        var secret = GetSecret("TelonaiDBConnectionString").Result;        
+        var secret = GetSecret($"TelonaiDBConnectionString-{_env.EnvironmentName}").Result;        
         var connectionString = $"Host={secret["host"]};Database={secret["dbname"]};Username={secret["username"]};Password={secret["password"]}";
         options.UseNpgsql(connectionString).ReplaceService<ISqlGenerationHelper, NpgsqlSqlGenerationLowercasingHelper>();
         options.EnableSensitiveDataLogging();
@@ -171,4 +174,7 @@ public class DataContext : DbContext
     public DbSet<DayOffRequest> DayOffRequest { get; set; }
     public DbSet<DayOffType> DayoffType { get; set; }
     public DbSet<DayOffPayType> DayOffPayType { get; set; }
+    public DbSet<FAQ> FAQ { get; set; }
+    public DbSet<TelonaiSpecificFieldValue> TelonaiSpecificFieldValue { get; set; }
+    public DbSet<TelonaiSpecificField> TelonaiSpecificField { get; set; }
 }
