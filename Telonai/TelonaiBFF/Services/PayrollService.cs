@@ -4,6 +4,7 @@ using Amazon.SimpleEmail.Model;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Diagnostics.Eventing.Reader;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
@@ -624,18 +625,35 @@ public class PayrollService : IPayrollService
 
                 continue;
             }
-
             switch (frequency)
             {
                 case PayrollScheduleTypeModel.Monthly:
                     {
                         if (payRateBasis == (int)PayRateBasisModel.Annually) //(BusinessTypeModel)src.BusinessTypeId"Annually")
                         {
-                            regularPay = payrate / 12;
+                            if (numberofDayOff.Result > 0)
+                            {
+                                payrate = (payrate * numberofDayOff.Result) / 365;
+                                regularPay = payrate;
+                            }
+                            else
+                            {
+                                regularPay = payrate / 12;
+                            }
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Monthly)
                         {
+                            if (numberofDayOff.Result > 0)
+                            {
+                                payrate = (payrate * numberofDayOff.Result) / 30;
+                                regularPay = payrate;
+                            }
+                            else
+                            {
+                                regularPay = payrate / 12;
+                            }
+
                             regularPay = payrate;
                             break;
                         }
@@ -654,12 +672,28 @@ public class PayrollService : IPayrollService
                     {
                         if (payRateBasis == (int)PayRateBasisModel.Annually)
                         {
-                            regularPay = payrate / 24;
+                            if (numberofDayOff.Result > 0)
+                            {
+                                payrate = (payrate * numberofDayOff.Result) / 365;
+                                regularPay = payrate;
+                            }
+                            else
+                            {
+                                regularPay = payrate / 24;
+                            }
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Monthly)
                         {
-                            regularPay = payrate / 2;
+                            if (numberofDayOff.Result > 0)
+                            {
+                                payrate = (payrate * numberofDayOff.Result) / 365;
+                                regularPay = payrate;
+                            }
+                            else
+                            {
+                                regularPay = payrate / 2;
+                            }
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Weekly)
