@@ -85,7 +85,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
     {
         var dto = _context.Invitation.Include(e => e.Job).Include(e => e.Country)
             .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
-        e.Email == email && e.ExpirationDate > DateTime.UtcNow);
+        e.Email.ToLower() == email.ToLower() && e.ExpirationDate > DateTime.UtcNow);
 
         return dto ?? throw new AppException("Invalid Activation Code or Email");
     }
