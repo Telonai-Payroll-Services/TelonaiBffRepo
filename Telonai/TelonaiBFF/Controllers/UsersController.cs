@@ -249,7 +249,8 @@ public class UsersController : Controller
         }
 
     }
-    [HttpDelete("delete-by-email")]
+    [Authorize(Policy = "SystemAdmin")]
+    [HttpDelete("reset-test-user-and-related-data")]
     public async Task<IActionResult> DeleteUserDataByEmail([FromQuery] string email)
     {
         if (string.IsNullOrEmpty(email))
