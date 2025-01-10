@@ -297,23 +297,23 @@ public class TimecardUsaService : ITimecardUsaService
                 await _context.SaveChangesAsync();
 
                 await _mailSender.SendUsingAwsClientAsync(timeCard.Person.Email, $"24 Hour Clock Out Notification",
-               CreateHtmlEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
-               CreateTextEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
+               CreateHtmlEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
+               CreateTextEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
                 notificationNote = $"User clocked out automatically after 24 hours for timecard ID: {timeCard.Id}";
             }
             else if (hoursWorked >= 16)
             {
                 await _mailSender.SendUsingAwsClientAsync(timeCard.Person.Email, $"16 Hour Clock Out Notification",
-              CreateHtmlEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
-              CreateTextEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
+              CreateHtmlEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
+              CreateTextEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
 
                 notificationNote = $"16-hour clock out notification sent for timecard ID: {timeCard.Id}";
             }
             else if (hoursWorked >= 8)
             {
-                await _mailSender.SendUsingAwsClientAsync(timeCard.Person.Email, $"16 Hour Clock Out Notification",
-              CreateHtmlEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
-              CreateTextEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
+                await _mailSender.SendUsingAwsClientAsync(timeCard.Person.Email, $"8 Hour Clock Out Notification",
+              CreateHtmlEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
+              CreateTextEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
 
                 notificationNote = $"8-hour clock out notification sent for timecard ID: {timeCard.Id}";
 
@@ -325,14 +325,14 @@ public class TimecardUsaService : ITimecardUsaService
         }
     }
 
-    private static string CreateHtmlEmailBoby(double hours, string recieverName)
+    private static string CreateHtmlEmailBody(double hours, string recieverName)
     {
         return $"<h1>Please clock out</h1>"
          + $"Dear {recieverName}, </br><p>Please clock out.</p>"
          + $"<br/><p>We noticed that you have not clocked out after {hours} hours.</p>";
 
     }
-    private static string CreateTextEmailBoby(double hours, string recieverName)
+    private static string CreateTextEmailBody(double hours, string recieverName)
     {
         return "Please clock out\r\n"
                 + $"Dear {recieverName},\r\n"
