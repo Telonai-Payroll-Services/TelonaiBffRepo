@@ -427,18 +427,26 @@ public class PayStubService : IPayStubService
 
                 case "Social Security":
                 case "Medicare":
-                    var ssOrMediPay = Math.Max(item.Maximum - stub.YtdGrossPay - paymentExemptFromSocialAndMedi, 0);
-                    var ssOrMediTax = ssOrMediPay * item.Rate;
+                    var personInfo = await _personService.GetPersonById(stub.Employment.PersonId);
+                    var isMinor = false;
+                    if (personInfo.DateOfBirth.HasValue)
+                    {
+                       isMinor = await _personService.IsEmployeeMinor(personInfo.DateOfBirth.Value);
+                    }
+                    if (!isMinor)
+                    {
+                        var ssOrMediPay = Math.Max(item.Maximum - stub.YtdGrossPay - paymentExemptFromSocialAndMedi, 0);
+                        var ssOrMediTax = ssOrMediPay * item.Rate;
 
-                    _newIncomeTaxesToHold.Add(
-                        new IncomeTax
-                        {
-                            Amount = ssOrMediTax,
-                            IncomeTaxType = item.IncomeTaxType,
-                            IncomeTaxTypeId = item.IncomeTaxTypeId,
-                            PayStubId = stub.Id,
-                            YtdAmount = ssOrMediTax + previous?.YtdAmount ?? 0
-                        });
+                        _newIncomeTaxesToHold.Add(new IncomeTax
+                            {
+                                Amount = ssOrMediTax,
+                                IncomeTaxType = item.IncomeTaxType,
+                                IncomeTaxTypeId = item.IncomeTaxTypeId,
+                                PayStubId = stub.Id,
+                                YtdAmount = ssOrMediTax + previous?.YtdAmount ?? 0
+                            });
+                    }
                     break;
                 default:
                     break;
