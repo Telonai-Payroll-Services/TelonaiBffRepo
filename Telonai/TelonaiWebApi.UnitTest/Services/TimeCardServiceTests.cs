@@ -20,7 +20,6 @@ public class TimeCardServiceTests
     private readonly Mock<DataContext> _mockContext;
     private readonly Mock<IMailSender> _mockEmailService;
     private readonly Mock<IMapper> _mockMapper;
-    // private readonly IFixture _fixture;
 
     public TimeCardServiceTests()
     {
@@ -34,7 +33,6 @@ public class TimeCardServiceTests
     [Fact]
     public async Task CheckOverdueClockOutsAsync_SendsNotificationsAndAddsNotes()
     {
-        // Arrange
         var now = DateTime.UtcNow;
 
         var timeCards = new List<TimecardUsa>
@@ -70,13 +68,11 @@ public class TimeCardServiceTests
 
         var service = new TimecardUsaService(_mockContext.Object, _mockMapper.Object, _mockEmailService.Object);
 
-        // Act
         await service.CheckOverdueClockOutsAsync();
 
-        // Assert
         _mockEmailService.Verify(m => m.SendUsingAwsClientAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Exactly(3));
         _mockContext.Verify(c => c.TimecardUsaNote.Add(It.IsAny<TimecardUsaNote>()), Times.Exactly(3));
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(4));  // 1 for clocking out, 3 for adding notes
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(4)); 
     }
 
     private Mock<DbSet<T>> MockDbSet<T>(List<T> data) where T : class
