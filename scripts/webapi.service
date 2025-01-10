@@ -10,7 +10,7 @@ KillSignal=SIGINT
 SyslogIdentifier=webapi
 Environment=ASPNETCORE_Environment=Production
 Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
-Environment=ASPNETCORE_URLS=http://*:81
+Environment=ASPNETCORE_URLS=http://*:80
 
 [Install]
 WantedBy=multi-user.target
