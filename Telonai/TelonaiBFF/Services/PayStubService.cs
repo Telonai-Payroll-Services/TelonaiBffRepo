@@ -274,7 +274,7 @@ public class PayStubService : IPayStubService
     private async Task<PayStub> CalculateFederalWitholdingsAsync(PayStub stub, List<AdditionalOtherMoneyReceived> additionalMoney)
     {
         //First let's get tax rates and withholding forms
-        var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
+        var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryIdAndPayrollYear(_countryId, _currentYear);
         var previousIncomeTaxes = _context.IncomeTax.OrderByDescending(e => e.CreatedDate).Where(
             e => e.CreatedDate.Year == _currentYear && !e.PayStub.IsCancelled && e.PayStub.EmploymentId == stub.EmploymentId);
 
@@ -427,11 +427,11 @@ public class PayStubService : IPayStubService
 
                 case "Social Security":
                 case "Medicare":
-                    var personInfo = await _personService.GetPersonById(stub.Employment.PersonId);
+                    var personInfo =  _personService.GetPersonById(stub.Employment.PersonId);
                     var isMinor = false;
                     if (personInfo.DateOfBirth.HasValue)
                     {
-                       isMinor = await _personService.IsEmployeeMinor(personInfo.DateOfBirth.Value);
+                       isMinor = _personService.IsEmployeeMinor(personInfo.DateOfBirth.Value);
                     }
                     if (!isMinor)
                     {

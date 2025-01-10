@@ -19,8 +19,8 @@ public interface IPersonService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     IList<PersonModel> GetIncompleteInineByCompanyId(int companyId);
     Task<PersonModel> GetByEmailAndCompanyIdAsync(string email, int companyId);
     Task<Person> GetCurrentUserAsync();
-    Task<Person> GetPersonById(int Id);
-    Task<bool> IsEmployeeMinor(DateOnly dateOfBirth);
+    Person GetPersonById(int Id);
+    bool IsEmployeeMinor(DateOnly dateOfBirth);
 }
 
 public class PersonService : IPersonService<PersonModel,Person>
@@ -205,9 +205,9 @@ public class PersonService : IPersonService<PersonModel,Person>
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Person> GetPersonById(int Id)
+    public Person GetPersonById(int Id)
     {
-        var result = await _context.Person.Include(z => z.Zipcode).Include(c => c.Zipcode.City).FirstOrDefaultAsync(p => p.Id == Id);
+        var result = _context.Person.Include(z => z.Zipcode).Include(c => c.Zipcode.City).FirstOrDefault(p => p.Id == Id);
         return result;
     }
 
@@ -226,7 +226,7 @@ public class PersonService : IPersonService<PersonModel,Person>
         
     }
 
-    public async Task<bool> IsEmployeeMinor(DateOnly dateOfBirth)
+    public  bool IsEmployeeMinor(DateOnly dateOfBirth)
     {
         var yearDifference = DateTime.Today.Subtract(dateOfBirth.ToDateTime(TimeOnly.MinValue));
         if((yearDifference.TotalDays / 365.25) <= 17)
