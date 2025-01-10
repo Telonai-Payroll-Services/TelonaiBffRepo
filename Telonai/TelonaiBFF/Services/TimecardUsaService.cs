@@ -23,7 +23,7 @@ public interface ITimecardUsaService
     Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmployee(int companyId, int payrollSequece, int employeeId);
 
     //Task<EmployeeTimeCardUsaDetail> GetEmployeeTimeCardList(int companyId, int employeeIdId);
-
+    Task CheckOverdueClockOutsAsync();
     TimecardUsaModel GetById(int id);
     void Create(string emaild, int jobId);
     void Update(int id, TimecardUsaModel model);
@@ -36,11 +36,12 @@ public class TimecardUsaService : ITimecardUsaService
     private readonly DataContext _context;
     private readonly IMapper _mapper;
     private readonly PayrollScheduleService _payrollScheduleService;
-
-    public TimecardUsaService(DataContext context, IMapper mapper)
+    private readonly IMailSender _mailSender;
+    public TimecardUsaService(DataContext context, IMapper mapper, IMailSender mailSender)
     {
         _context = context;
         _mapper = mapper;
+        _mailSender = mailSender;
     }
 
     public IEnumerable<TimecardUsaModel> GetReport(string email, DateTime from, DateTime to)
@@ -275,4 +276,81 @@ public class TimecardUsaService : ITimecardUsaService
     //       return  employeeTimeCardHistory;
     //    }
     //}
+
+
+    public async Task CheckOverdueClockOutsAsync()
+    {
+        var now = DateTime.UtcNow;
+        var overdueTimeCards = _context.TimecardUsa.Include(c => c.Person)
+            .Where(tc => tc.ClockOut == null && (now - tc.ClockIn).TotalHours >= 8)
+            .ToList();
+
+        foreach (var timeCard in overdueTimeCards)
+        {
+            var hoursWorked = (now - timeCard.ClockIn).TotalHours;
+            string notificationNote = string.Empty;
+
+            if (hoursWorked >= 24)
+            {
+                // Clock out the user
+                timeCard.ClockOut = timeCard.ClockIn.AddHours(24);
+                await _context.SaveChangesAsync();
+
+                await _mailSender.SendUsingAwsClientAsync(timeCard.Person.Email, $"24 Hour Clock Out Notification",
+               CreateHtmlEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
+               CreateTextEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
+                notificationNote = $"User clocked out automatically after 24 hours for timecard ID: {timeCard.Id}";
+            }
+            else if (hoursWorked >= 16)
+            {
+                await _mailSender.SendUsingAwsClientAsync(timeCard.Person.Email, $"16 Hour Clock Out Notification",
+              CreateHtmlEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
+              CreateTextEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
+
+                notificationNote = $"16-hour clock out notification sent for timecard ID: {timeCard.Id}";
+            }
+            else if (hoursWorked >= 8)
+            {
+                await _mailSender.SendUsingAwsClientAsync(timeCard.Person.Email, $"16 Hour Clock Out Notification",
+              CreateHtmlEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
+              CreateTextEmailBoby(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
+
+                notificationNote = $"8-hour clock out notification sent for timecard ID: {timeCard.Id}";
+
+            }
+            if (!string.IsNullOrEmpty(notificationNote))
+            {
+                await AddNoteAsync(timeCard.Id, notificationNote);
+            }
+        }
+    }
+
+    private static string CreateHtmlEmailBoby(double hours, string recieverName)
+    {
+        return $"<h1>Please clock out</h1>"
+         + $"Dear {recieverName}, </br><p>Please clock out.</p>"
+         + $"<br/><p>We noticed that you have not clocked out after {hours} hours.</p>";
+
+    }
+    private static string CreateTextEmailBoby(double hours, string recieverName)
+    {
+        return "Please clock out\r\n"
+                + $"Dear {recieverName},\r\n"
+               + $"<br/><p>We noticed that you have not clocked out after {hours} hours.</p>";
+    }
+    public async Task AddNoteAsync(int timeCardUsaId, string note)
+    {
+        var timecardUsaNote = new TimecardUsaNote
+        {
+            TimecardUsaId = timeCardUsaId,
+            Note = note,
+            CreatedBy = "System",
+            CreatedDate = DateTime.UtcNow
+        };
+
+        _context.TimecardUsaNote.Add(timecardUsaNote);
+        await _context.SaveChangesAsync();
+    }
+
+
 }
