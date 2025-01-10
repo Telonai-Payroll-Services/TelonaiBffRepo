@@ -3,6 +3,7 @@ namespace TelonaiWebApi.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System;
+using Npgsql;
 using System.Threading.Tasks;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
@@ -20,6 +21,7 @@ public interface IPersonService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     Task<PersonModel> GetByEmailAndCompanyIdAsync(string email, int companyId);
     Task<Person> GetCurrentUserAsync();
     Person GetPersonById(int Id);
+    Task DeleteUserDataByEmailAsync(string email);
     bool IsEmployeeMinor(DateOnly dateOfBirth);
 }
 
@@ -225,8 +227,18 @@ public class PersonService : IPersonService<PersonModel,Person>
             return person;       
         
     }
+    public async Task DeleteUserDataByEmailAsync(string email)
+    {
+        var commandText = "CALL delete_user_data_by_email(@email)";
+        var parameters = new List<NpgsqlParameter>
+        {
+            new NpgsqlParameter("@email", email)
+        };
+        await _context.Database.ExecuteSqlRawAsync(commandText, parameters.ToArray());
+    }
 
-    public  bool IsEmployeeMinor(DateOnly dateOfBirth)
+
+    public bool IsEmployeeMinor(DateOnly dateOfBirth)
     {
         var yearDifference = DateTime.Today.Subtract(dateOfBirth.ToDateTime(TimeOnly.MinValue));
         if((yearDifference.TotalDays / 365.25) <= 17)

@@ -249,6 +249,25 @@ public class UsersController : Controller
         }
 
     }
+    [HttpDelete("delete-by-email")]
+    public async Task<IActionResult> DeleteUserDataByEmail([FromQuery] string email)
+    {
+        if (string.IsNullOrEmpty(email))
+        {
+            return BadRequest("Email is required");
+        }
+        try
+        {
+            await _personService.DeleteUserDataByEmailAsync(email);
+            await _userService.DeleteUserByEmailFromCognito(email);
+            return Ok($"User data for email {email} has been deleted");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "An error occurred while deleting user data");
+        }
+    }
+
 
 
     private async Task<List<DayOffRequestModel>> GetPendingDayOffsAsync(List<EmploymentModel> employments)
