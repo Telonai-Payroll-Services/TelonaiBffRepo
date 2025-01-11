@@ -32,7 +32,7 @@ public class MobileAppVersionController : ControllerBase
         if (version == null) return NotFound();
 
         //TODO: Add the links to google store and appstore
-        version.AppPath = platform == 1 ? "google play store path" : "app store path";
+        version.AppPath = platform == 1 ? "https://play.google.com/store/apps/details?id=com.telonai.app" : "https://apps.apple.com/us/app/telonai/id6738379955";
 
         return Ok(version);
     }
