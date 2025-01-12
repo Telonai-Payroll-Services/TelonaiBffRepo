@@ -35,6 +35,7 @@ public class DataContext : DbContext
         var connectionString = $"Host={secret["host"]};Database={secret["dbname"]};Username={secret["username"]};Password={secret["password"]}";
         options.UseNpgsql(connectionString).ReplaceService<ISqlGenerationHelper, NpgsqlSqlGenerationLowercasingHelper>();
         options.EnableSensitiveDataLogging();
+        options.LogTo(Console.WriteLine, LogLevel.Information);
     }
 
     public override int SaveChanges()
@@ -122,7 +123,7 @@ public class DataContext : DbContext
     public DbSet<City> City { get; set; }
     public DbSet<State> State { get; set; }
     public DbSet<Country> Country { get; set; }
-    public DbSet<County> County { get; set; }
+    public virtual DbSet<County> County { get; set; }
     public DbSet<BusinessType> BusinessType { get; set; }
     public  DbSet<CompanyContact> CompanyContact { get; set; }
     public virtual DbSet<ContactType> ContactType { get; set; }
@@ -130,7 +131,7 @@ public class DataContext : DbContext
     public virtual DbSet<TimecardUsa> TimecardUsa { get; set; }
     public DbSet<TimecardUsaNote> TimecardUsaNote { get; set; }
     public virtual DbSet<Invitation> Invitation { get; set; }
-    public DbSet<Zipcode> Zipcode { get; set; }
+    public virtual DbSet<Zipcode> Zipcode { get; set; }
     public DbSet<RoleType> RoleType { get; set; }
     public virtual DbSet<PayrollSchedule> PayrollSchedule { get; set; }
     public DbSet<PayrollScheduleType> PayrollScheduleType { get; set; }

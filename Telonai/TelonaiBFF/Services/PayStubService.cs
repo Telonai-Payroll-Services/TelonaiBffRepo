@@ -274,7 +274,7 @@ public class PayStubService : IPayStubService
     private async Task<PayStub> CalculateFederalWitholdingsAsync(PayStub stub, List<AdditionalOtherMoneyReceived> additionalMoney)
     {
         //First let's get tax rates and withholding forms
-        var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryId(_countryId);
+        var incomeTaxRates = _staticDataService.GetIncomeTaxRatesByCountryIdAndPayrollYear(_countryId, _currentYear);
         var previousIncomeTaxes = _context.IncomeTax.OrderByDescending(e => e.CreatedDate).Where(
             e => e.CreatedDate.Year == _currentYear && !e.PayStub.IsCancelled && e.PayStub.EmploymentId == stub.EmploymentId);
 
@@ -427,18 +427,26 @@ public class PayStubService : IPayStubService
 
                 case "Social Security":
                 case "Medicare":
-                    var ssOrMediPay = Math.Max(item.Maximum - stub.YtdGrossPay - paymentExemptFromSocialAndMedi, 0);
-                    var ssOrMediTax = ssOrMediPay * item.Rate;
+                    var personInfo =  _personService.GetPersonById(stub.Employment.PersonId);
+                    var isMinor = false;
+                    if (personInfo.DateOfBirth.HasValue)
+                    {
+                       isMinor = _personService.IsEmployeeMinor(personInfo.DateOfBirth.Value);
+                    }
+                    if (!isMinor)
+                    {
+                        var ssOrMediPay = Math.Max(item.Maximum - stub.YtdGrossPay - paymentExemptFromSocialAndMedi, 0);
+                        var ssOrMediTax = ssOrMediPay * item.Rate;
 
-                    _newIncomeTaxesToHold.Add(
-                        new IncomeTax
-                        {
-                            Amount = ssOrMediTax,
-                            IncomeTaxType = item.IncomeTaxType,
-                            IncomeTaxTypeId = item.IncomeTaxTypeId,
-                            PayStubId = stub.Id,
-                            YtdAmount = ssOrMediTax + previous?.YtdAmount ?? 0
-                        });
+                        _newIncomeTaxesToHold.Add(new IncomeTax
+                            {
+                                Amount = ssOrMediTax,
+                                IncomeTaxType = item.IncomeTaxType,
+                                IncomeTaxTypeId = item.IncomeTaxTypeId,
+                                PayStubId = stub.Id,
+                                YtdAmount = ssOrMediTax + previous?.YtdAmount ?? 0
+                            });
+                    }
                     break;
                 default:
                     break;

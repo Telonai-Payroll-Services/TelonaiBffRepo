@@ -1,8 +1,10 @@
 namespace TelonaiWebApi.Services;
 
+using Amazon.S3;
 using AutoMapper;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
@@ -22,6 +24,7 @@ public interface IInvitationService<InvitationModel, Invitation>: IDataService<I
     Task UpdateAsync(Invitation dto);
     Task UpdateAsync(Guid id, InvitationModel model);
     IList<InvitationStatusModel> GetStatusByCompanyId(int companyId);
+    Task SendQuoteAsync(QuoteModel model);
 }
 
 public class InvitationService : IInvitationService<InvitationModel, Invitation>
@@ -85,7 +88,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
     {
         var dto = _context.Invitation.Include(e => e.Job).Include(e => e.Country)
             .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
-        e.Email == email && e.ExpirationDate > DateTime.UtcNow);
+        e.Email.ToLower() == email.ToLower() && e.ExpirationDate > DateTime.UtcNow);
 
         return dto ?? throw new AppException("Invalid Activation Code or Email");
     }
@@ -193,8 +196,8 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         {
             var activationCode = GetActivationCode(invitation.Id);
             await _mailSender.SendUsingAwsClientAsync(model.Email, $"Activation Request by {companyName}",
-                CreateHtmlEmailBoby(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"),
-                CreateTextEmailBoby(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"));
+                CreateInvitationHtmlEmailBoby(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"),
+                CreateInvitationTextEmailBoby(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"));
             return invitation;
         }
         catch
@@ -227,6 +230,12 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         _context.Invitation.Remove(result);
         _context.SaveChanges();
     }
+    public async Task SendQuoteAsync(QuoteModel model)
+    {
+        await _mailSender.SendUsingAwsClientAsync(model.CutomerEmail, $"Quote from Telonai",
+            CreateQuoteHtmlEmailBoby(model),
+            CreateQuoteTextEmailBoby(model));
+    }
 
     public async Task UpdateAsync(int id, InvitationModel model)
     {
@@ -237,23 +246,65 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         throw new NotImplementedException();
     }
 
-    private static string CreateTextEmailBoby(string activationCode, string senderCompanyName, string recieverName)
+    private static string CreateQuoteTextEmailBoby(QuoteModel model)
+    {
+        var annualCost = model.MonthlyCost * 12;
+        var annualCostAfterDiscount = annualCost / 2;
+        var monthlyCostAfterDiscount = annualCostAfterDiscount / 12;
+
+        return $"Dear {model.CustomerName}.\r\n"
+        + $"Thank you for reaching out to us requesting a quote for our payroll solution. \r\n"
+        + $"It is my great pleasure to quote you ${model.MonthlyCost} per month for using our payroll system for your entire team of "
+        + $"{model.NumberOfEmployees} people. \r\n"
+        + $"I can apply an additional {model.DiscountPercentage}% discount, if you choose to be billed annually. With the additional discount,"
+        + $" you will be charged only ${annualCostAfterDiscount} for the entire year, which in my opinion is a great "
+        + "saving for your business. \r\n"
+        + $"Here is a summary of my offer. \r\n"
+        + $"${model.MonthlyCost} per month (${annualCost} per year) if billed monthly. \r\n"
+        + $"${annualCostAfterDiscount} per year (${monthlyCostAfterDiscount} per month) if billed annually. \r\n \r\n"
+        + $"To make a payment and secure this offer instantly click on the link below and complete the payment form. \r\n"
+        + $"https://telonai.com/subscription{model.AgentId} \r\n \r\n"
+        + $"Thanks again and if you have any questions, do not hesitate to let us know by replying to this email. \r\n";
+
+    }
+
+    private static string CreateQuoteHtmlEmailBoby(QuoteModel model)
+    {
+        var annualCost = model.MonthlyCost * 12;
+        var annualCostAfterDiscount = annualCost / 2;
+        var monthlyCostAfterDiscount = annualCostAfterDiscount / 12;
+
+        return $"Dear {model.CustomerName},  </br><p>"
+        + $"Thank you for reaching out to us requesting a quote for our payroll solution.>/br?"
+        + $"It is my great pleasure to quote you <u><strong>${model.MonthlyCost}</strong></u> per month for using our payroll system for your entire team of "
+        + $"{model.NumberOfEmployees} people. \r\n"
+        + $"I can apply an additional <u><strong>{model.DiscountPercentage}%</strong></u> discount, if you choose to be billed annually. With the additional discount,"
+        + $" you will be charged only <u><strong>${annualCostAfterDiscount}</strong></u> for the entire year, which in my opinion is a great "
+        + "saving for your business. \r\n"
+        + $"Here is a summary of my offer. \r\n"
+        + $"$<u><strong>{model.MonthlyCost}</strong></u> per month (${annualCost} per year) if billed monthly. \r\n"
+        + $"$<u><strong>{annualCostAfterDiscount}</strong></u> per year (${monthlyCostAfterDiscount} per month) if billed annually. \r\n \r\n"
+        + $"To make a payment and secure this offer instantly click on the link below and complete the payment form. \r\n"
+        + $"https://telonai.com/subscription{model.AgentId} \r\n \r\n"
+        + $"Thanks again and if you have any questions, do not hesitate to let us know by replying to this email. \r\n";
+    }
+
+    private static string CreateInvitationTextEmailBoby(string activationCode, string senderCompanyName, string recieverName)
     {
         return "Activate your account\r\n"
                 + $"Dear {recieverName},\r\n"
                 + $"You are invited by {senderCompanyName} to activate your Telonai account. "
                 + $"To activate your account,  download and install the Telonai app. "
-                + "If you are an IOS (iPhone) user, download the app from https://apps.apple.com/us/app/telonai/id6738379955 .\r\n"
+                + "If you are an iOS (iPhone or iPad) user, download the app from https://apps.apple.com/us/app/telonai/id6738379955 .\r\n"
                 + "If you are an Android user, download the app from https://play.google.com/store/apps/details?id=com.telonai.app .\r\n"
                 + $"When prompted for activation code, please enter {activationCode} .";                
     }
-
-    private static string CreateHtmlEmailBoby(string activationCode, string senderCompanyName, string recieverName)
+    private static string CreateInvitationHtmlEmailBoby(string activationCode, string senderCompanyName, string recieverName)
     {
         return $"<h1>Activate your account</h1>" 
          + $"Dear {recieverName}, </br><p>You are invited by <strong>{senderCompanyName}</strong> to activate your Telonai account. " 
          + $"<br/>To activate your account, download and install the <strong>Telonai</strong> app."
-         + "<br/>If you are an IOS (iPhone) user, download the app from:  <a href='https://apps.apple.com/us/app/telonai/id6738379955'> App Store </a> ."
+         + "<br/>If you are an iOS (iPhone or iPad) user, download the app from:  <a href='https://apps.apple.com/us/app/telonai/id6738379955'> App Store </a> ."
          + "<br/>If you are an Android user, download the app from: <a href='https://play.google.com/store/apps/details?id=com.telonai.app'> Google Play </a> ."
          + $"<br/>When prompted for activation code, please enter <strong>{activationCode}</strong> .";
     }

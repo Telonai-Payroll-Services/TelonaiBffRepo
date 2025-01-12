@@ -117,7 +117,7 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
             }
             if (companyContact != null)
             {
-                var person = await _personService.GetPersonById(companyContact.PersonId);
+                var person =  _personService.GetPersonById(companyContact.PersonId);
                 if (person != null)
                 {
                     person.FirstName = string.IsNullOrEmpty(model.ReprsentativeFirstName) ? person.FirstName : model.ReprsentativeFirstName;
