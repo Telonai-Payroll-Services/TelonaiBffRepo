@@ -232,7 +232,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
     }
     public async Task SendQuoteAsync(QuoteModel model)
     {
-        await _mailSender.SendUsingAwsClientAsync(model.CutomerEmail, $"Quote from Telonai",
+        await _mailSender.SendUsingAwsClientAsync(model.CustomerEmail, $"Quote from Telonai",
             CreateQuoteHtmlEmailBoby(model),
             CreateQuoteTextEmailBoby(model));
     }
