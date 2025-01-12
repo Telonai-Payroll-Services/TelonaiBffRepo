@@ -35,7 +35,6 @@ public class TimecardUsaService : ITimecardUsaService
 {
     private readonly DataContext _context;
     private readonly IMapper _mapper;
-    private readonly PayrollScheduleService _payrollScheduleService;
 
     public TimecardUsaService(DataContext context, IMapper mapper)
     {
