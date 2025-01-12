@@ -116,7 +116,7 @@ namespace TelonaiWebApi.UnitTest.Controllers
                 Manager = mockUser
             };
 
-            _mockInvitationService.Setup(s => s.GetByActivaionCodeAndInviteeEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            _mockInvitationService.Setup(s => s.GetByActivationCodeAndInviteeEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(new Invitation { TaxId = "validTaxId" });
 
             _mockCompanyService.Setup(s => s.CreateAsync(It.IsAny<CompanyModel>())).Returns(Task.FromResult(new Company { Id = 1 })); // Simulate company creation
@@ -154,7 +154,7 @@ namespace TelonaiWebApi.UnitTest.Controllers
             };
 
 
-            _mockInvitationService.Setup(s => s.GetByActivaionCodeAndInviteeEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            _mockInvitationService.Setup(s => s.GetByActivationCodeAndInviteeEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(new Invitation { TaxId = "validTaxId" });
             _mockCompanyService.Setup(s => s.CreateAsync(It.IsAny<CompanyModel>())).Returns(Task.FromResult(new Company { Id = 1 }));
             _mockUserService.Setup(s => s.SignUpAsync(It.IsAny<User>(), It.IsAny<UserRole>(), It.IsAny<int>(), It.IsAny<int>()))
