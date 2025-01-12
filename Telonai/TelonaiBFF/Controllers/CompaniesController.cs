@@ -65,7 +65,7 @@ public class CompaniesController : ControllerBase
         if (!ModelState.IsValid )
             return BadRequest();
 
-        var invitation = _invitationService.GetByActivaionCodeAndInviteeEmail(model.Manager.ActivationCode, model.Manager.Email, model.Company.TaxId);
+        var invitation = _invitationService.GetByActivationCodeAndInviteeEmail(model.Manager.ActivationCode, model.Manager.Email, model.Company.TaxId);
         model.Company.TaxId=invitation.TaxId;
 
         var company = MakeCompanyModel(model.Company);

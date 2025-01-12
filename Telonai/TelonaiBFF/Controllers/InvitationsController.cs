@@ -72,7 +72,7 @@ public class InvitationsController : ControllerBase
         if (!InputValidator.IsValidEmail(model.Email))
             throw new InvalidDataException("Invalid Email");
 
-        var result = _service.GetAllByActivaionCodeAndInviteeEmail(model.code,model.Email);
+        var result = _service.GetAllByActivationCodeAndInviteeEmail(model.code,model.Email);
         return Ok(result);
     }
 

@@ -12,10 +12,10 @@ using TelonaiWebApi.Models;
 
 public interface IInvitationService<InvitationModel, Invitation>: IDataService<InvitationModel, Invitation>
 {
-    InvitationModel GetAllByActivaionCodeAndInviteeEmail(string activationCode, string email);
-    Invitation GetAllByActivaionCodeAndInviteeEmail2(string activationCode, string email);
-    Invitation GetByActivaionCodeAndInviteeEmail(string activationCode, string email, string taxId);
-    InvitationModel GetByActivaionCodeAndInviteeEmail(string activationCode, string email);
+    InvitationModel GetAllByActivationCodeAndInviteeEmail(string activationCode, string email);
+    Invitation GetAllByActivationCodeAndInviteeEmail2(string activationCode, string email);
+    Invitation GetByActivationCodeAndInviteeEmail(string activationCode, string email, string taxId);
+    InvitationModel GetByActivationCodeAndInviteeEmail(string activationCode, string email);
     IList<InvitationModel> GetByInviteeEmail(string email);
     InvitationModel GetById(Guid id);
     IList<InvitationModel> GetByJobId(int jobId);
@@ -76,7 +76,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         return _mapper.Map<IList<InvitationModel>>(dto);
     }
 
-    public InvitationModel GetAllByActivaionCodeAndInviteeEmail(string activationCode, string email)
+    public InvitationModel GetAllByActivationCodeAndInviteeEmail(string activationCode, string email)
     {
         var dto = _context.Invitation.Include(e => e.Job).Include(e => e.Country)
             .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
@@ -84,7 +84,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
 
         return _mapper.Map<InvitationModel>(dto ?? throw new AppException("Invalid Activation Code or Email"));
     }
-    public Invitation GetAllByActivaionCodeAndInviteeEmail2(string activationCode, string email)
+    public Invitation GetAllByActivationCodeAndInviteeEmail2(string activationCode, string email)
     {
         var dto = _context.Invitation.Include(e => e.Job).Include(e => e.Country)
             .FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
@@ -92,14 +92,14 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
 
         return dto ?? throw new AppException("Invalid Activation Code or Email");
     }
-    public Invitation GetByActivaionCodeAndInviteeEmail(string activationCode, string email, string taxId)
+    public Invitation GetByActivationCodeAndInviteeEmail(string activationCode, string email, string taxId)
     {
         var dto = _context.Invitation.FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow && e.TaxId == taxId);
 
         return dto ?? throw new AppException("Invalid Activation Code");
     }
-    public InvitationModel GetByActivaionCodeAndInviteeEmail(string activationCode, string email)
+    public InvitationModel GetByActivationCodeAndInviteeEmail(string activationCode, string email)
     {
         var dto = _context.Invitation.FirstOrDefault(e => e.Id.ToString().EndsWith(activationCode.ToLower()) &&
         e.Email == email && e.ExpirationDate > DateTime.UtcNow);

@@ -45,7 +45,7 @@ public class InvitationsControllerTests
     {
         var model = new InvitationRequestModel { code = "ABCDEFGH", Email = "test@example.com" };
         var invitationModel = new InvitationModel();
-        _serviceMock.Setup(s => s.GetAllByActivaionCodeAndInviteeEmail(model.code, model.Email)).Returns(invitationModel);
+        _serviceMock.Setup(s => s.GetAllByActivationCodeAndInviteeEmail(model.code, model.Email)).Returns(invitationModel);
 
         var result = _controller.GetByActivationCodeAndEmail(model);
 
