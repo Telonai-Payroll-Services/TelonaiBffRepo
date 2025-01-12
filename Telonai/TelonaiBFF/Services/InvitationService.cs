@@ -196,8 +196,8 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         {
             var activationCode = GetActivationCode(invitation.Id);
             await _mailSender.SendUsingAwsClientAsync(model.Email, $"Activation Request by {companyName}",
-                CreateInvitationHtmlEmailBoby(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"),
-                CreateInvitationTextEmailBoby(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"));
+                CreateInvitationHtmlEmailBody(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"),
+                CreateInvitationTextEmailBody(activationCode.ToUpper(), companyName, $"{model.FirstName} {model.LastName}"));
             return invitation;
         }
         catch
@@ -233,8 +233,8 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
     public async Task SendQuoteAsync(QuoteModel model)
     {
         await _mailSender.SendUsingAwsClientAsync(model.CustomerEmail, $"Quote from Telonai",
-            CreateQuoteHtmlEmailBoby(model),
-            CreateQuoteTextEmailBoby(model));
+            CreateQuoteHtmlEmailBody(model),
+            CreateQuoteTextEmailBody(model));
     }
 
     public async Task UpdateAsync(int id, InvitationModel model)
@@ -246,7 +246,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         throw new NotImplementedException();
     }
 
-    private static string CreateQuoteTextEmailBoby(QuoteModel model)
+    private static string CreateQuoteTextEmailBody(QuoteModel model)
     {
         var annualCost = model.MonthlyCost * 12;
         var annualCostAfterDiscount = annualCost / 2;
@@ -268,7 +268,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
 
     }
 
-    private static string CreateQuoteHtmlEmailBoby(QuoteModel model)
+    private static string CreateQuoteHtmlEmailBody(QuoteModel model)
     {
         var annualCost = model.MonthlyCost * 12;
         var annualCostAfterDiscount = annualCost / 2;
@@ -289,7 +289,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
         + $"Thanks again and if you have any questions, do not hesitate to let us know by replying to this email. \r\n";
     }
 
-    private static string CreateInvitationTextEmailBoby(string activationCode, string senderCompanyName, string recieverName)
+    private static string CreateInvitationTextEmailBody(string activationCode, string senderCompanyName, string recieverName)
     {
         return "Activate your account\r\n"
                 + $"Dear {recieverName},\r\n"
@@ -299,7 +299,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
                 + "If you are an Android user, download the app from https://play.google.com/store/apps/details?id=com.telonai.app .\r\n"
                 + $"When prompted for activation code, please enter {activationCode} .";                
     }
-    private static string CreateInvitationHtmlEmailBoby(string activationCode, string senderCompanyName, string recieverName)
+    private static string CreateInvitationHtmlEmailBody(string activationCode, string senderCompanyName, string recieverName)
     {
         return $"<h1>Activate your account</h1>" 
          + $"Dear {recieverName}, </br><p>You are invited by <strong>{senderCompanyName}</strong> to activate your Telonai account. " 
