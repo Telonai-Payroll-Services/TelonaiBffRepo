@@ -56,7 +56,7 @@ public class UsersControllerTests
             .With(i => i.ExpirationDate, DateTime.UtcNow.AddDays(1))
             .Create();
 
-        _mockInvitationService.Setup(s => s.GetAllByActivaionCodeAndInviteeEmail2(It.IsAny<string>(), It.IsAny<string>()))
+        _mockInvitationService.Setup(s => s.GetAllByActivationCodeAndInviteeEmail2(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(invitation);
 
         _mockUserService.Setup(s => s.SignUpAsync(It.IsAny<User>(), It.IsAny<UserRole>(), It.IsAny<int>(), It.IsAny<int>()))
@@ -101,7 +101,7 @@ public class UsersControllerTests
       var invitation = _fixture.Build<Invitation>() 
             .With(i => i.Job, new Job { CompanyId = 1, Id = 1 }) 
             .With(i => i.ExpirationDate, DateTime.UtcNow.AddDays(1)) .Create(); 
-        _mockInvitationService.Setup(s => s.GetAllByActivaionCodeAndInviteeEmail2(It.IsAny<string>(), It.IsAny<string>())) .Returns(invitation); 
+        _mockInvitationService.Setup(s => s.GetAllByActivationCodeAndInviteeEmail2(It.IsAny<string>(), It.IsAny<string>())) .Returns(invitation); 
         _mockUserService.Setup(s => s.SignUpAsync(It.IsAny<User>(), It.IsAny<UserRole>(), It.IsAny<int>(), It.IsAny<int>())) .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "SignUp Failed" })); 
         var result = await _controller.SignUp(user) as BadRequestResult; 
         Assert.NotNull(result); 
@@ -114,7 +114,7 @@ public class UsersControllerTests
             .With(i => i.Job, new Job { CompanyId = 1, Id = 1 }) 
             .With(i => i.ExpirationDate, DateTime.UtcNow.AddDays(-1)) 
             .Create(); 
-        _mockInvitationService.Setup(s => s.GetAllByActivaionCodeAndInviteeEmail2(It.IsAny<string>(), It.IsAny<string>())) .Returns(invitation); 
+        _mockInvitationService.Setup(s => s.GetAllByActivationCodeAndInviteeEmail2(It.IsAny<string>(), It.IsAny<string>())) .Returns(invitation); 
 
         var result = await _controller.SignUp(user); 
 
