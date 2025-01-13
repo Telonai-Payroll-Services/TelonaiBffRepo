@@ -259,6 +259,11 @@ public class UsersController : Controller
         }
         try
         {
+            if (!await _personService.IsCompanyNameValidForPersonAsync(email))
+            {
+                return BadRequest("The company name does not start with 'Telonai Test Company'"); 
+            }
+
             await _personService.DeleteUserDataByEmailAsync(email);
             await _userService.DeleteUserByEmailFromCognito(email);
             return Ok($"User data for email {email} has been deleted");
