@@ -327,16 +327,28 @@ public class TimecardUsaService : ITimecardUsaService
 
     private static string CreateHtmlEmailBody(double hours, string recieverName)
     {
-        return $"<h1>Please clock out</h1>"
-         + $"Dear {recieverName}, </br><p>Please clock out.</p>"
-         + $"<br/><p>We noticed that you have not clocked out after {hours} hours.</p>";
+        string formattedHours = hours.ToString("F2");
+        string message = $"<h1>Please clock out</h1>"
+         + $"Dear {recieverName}"
+         + $"<br/><p>We noticed that you have not clocked out after {formattedHours} hours.</p>";
+        if (hours < 16) 
+        { 
+            message += "<p>If you are still working please ignore this notification.</p>"; 
+        }
+        return message;
 
     }
     private static string CreateTextEmailBody(double hours, string recieverName)
     {
-        return "Please clock out\r\n"
+        string formattedHours = hours.ToString("F2");
+        string message = "Please clock out\r\n"
                 + $"Dear {recieverName},\r\n"
-               + $"<br/><p>We noticed that you have not clocked out after {hours} hours.</p>";
+               + $"<br/><p>We noticed that you have not clocked out after {formattedHours} hours.</p>";
+        if (hours < 16) 
+        { 
+            message += "\r\nIf you are still working please ignore this notification."; 
+        }
+        return message;
     }
     public async Task AddNoteAsync(int timeCardUsaId, string note)
     {
