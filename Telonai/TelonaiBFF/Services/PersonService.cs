@@ -164,6 +164,8 @@ public class PersonService : IPersonService<PersonModel,Person>
             person.AddressLine2 = string.IsNullOrWhiteSpace(model.AddressLine2) ? person.AddressLine2 : model.AddressLine2;
             person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
             person.Ssn = string.IsNullOrWhiteSpace(model.Ssn) ? person.Ssn : model.Ssn;
+            person.InternalEmployeeId = string.IsNullOrWhiteSpace(model.InternalEmployeeId) ? person.InternalEmployeeId : model.InternalEmployeeId;
+
             if (model.ZipcodeId > 0)
             {
                 if (person.Zipcode == null)
