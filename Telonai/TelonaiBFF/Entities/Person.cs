@@ -31,5 +31,6 @@ public class Person : BaseTracker
     public virtual StateWithholdingDocumentStatus StateWithholdingDocumentStatus { get; set; }
     public virtual int WfourWithholdingDocumentStatusId { get; set; }
     public virtual WfourWithholdingDocumentStatus WfourWithholdingDocumentStatus { get; set; }
+    public virtual string InternalEmployeeId { get; set; }
 
 }

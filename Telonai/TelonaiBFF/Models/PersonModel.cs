@@ -48,5 +48,6 @@ public class PersonModel
     public INineVerificationStatusModel INineVerificationStatus { get; set; }
     public StateWithholdingDocumentStatusModel StateWithholdingDocumentStatus { get; set; }
     public WFourWithholdingDocumentStatusModel WFourWithholdingDocumentStatus { get; set; }
+    public string InternalEmployeeId { get; set; }
 
 }

@@ -27,6 +27,7 @@ namespace TelonaiWebApi.Models
         
         [JsonRequired]
         public string RoutingNumber { get; set; }
+        public string InternalEmployeeId { get; set; }
 
     }
 }
