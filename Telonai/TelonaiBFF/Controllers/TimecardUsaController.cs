@@ -134,4 +134,15 @@ public class TimecardUsaController : ControllerBase
         _timecardService.Delete(id);
         return Ok(new { message = "Timecard deleted." });
     }
+
+    [Authorize]
+    [HttpPost("check-overdue-clockouts")]
+    public async Task<IActionResult> CheckOverdueClockOuts()
+    {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+        await _timecardService.CheckOverdueClockOutsAsync();
+        return Ok("Checked overdue clock-outs and sent notifications.");
+    }
+
+
 }
