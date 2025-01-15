@@ -28,4 +28,4 @@ phases:
       
 artifacts:
   files:
-    - ./Telonai/TelonaiBFF/
+    - ./Telonai/TelonaiBFF/bin/Release/net6.0/TelonaiWebApi.dll
