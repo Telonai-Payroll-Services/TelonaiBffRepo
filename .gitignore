@@ -398,10 +398,10 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-aws-logger-errors.txt
-scripts/before_install.sh
-Telonai/TelonaiBFF/app/TelonaiWebApi.dll
-Telonai/TelonaiBFF/app/TelonaiWebApi.exe
-Telonai/TelonaiBFF/app/TelonaiWebApi.staticwebassets.endpoints.json
-scripts/before_install.sh
-/scripts
+#aws-logger-errors.txt
+#scripts/before_install.sh
+#Telonai/TelonaiBFF/app/TelonaiWebApi.dll
+#Telonai/TelonaiBFF/app/TelonaiWebApi.exe
+#Telonai/TelonaiBFF/app/TelonaiWebApi.staticwebassets.endpoints.json
+#scripts/before_install.sh
+#/scripts
