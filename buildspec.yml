@@ -28,4 +28,5 @@ phases:
       
 artifacts:
   files:
-    - Telonai/TelonaiBFF/app
+    -"**/*" 
+  base-directory: Telonai/TelonaiBFF/app
