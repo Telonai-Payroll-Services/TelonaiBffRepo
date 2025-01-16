@@ -273,8 +273,7 @@ public class UsersController : Controller
             CompanyId = companyId,
             //BankAccountNumber = user?.BankAccountNumber,
             //RoutingNumber = user?.RoutingNumber,
-            INineVerificationStatusId = (int)INineVerificationStatusModel.INineNotSubmitted,
-            InternalEmployeeId = user.InternalEmployeeId,
+            INineVerificationStatusId = (int)INineVerificationStatusModel.INineNotSubmitted
         };
         var exstingPerson=await _personService.GetByEmailAsync(user?.Email);
         if (exstingPerson != null) 
