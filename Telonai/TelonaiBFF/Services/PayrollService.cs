@@ -575,13 +575,13 @@ public class PayrollService : IPayrollService
 
         var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId && e.PayRateBasisId!=null &&
         (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate))).ToList();
-
+        var dayOffRequest = await _dayOffRequestService.GetUnpaidCountDayOffRequestForSpecificPayrollSchedule(companyId, currentPayroll.StartDate, currentPayroll.ScheduledRunDate);
         foreach (var emp in employments)
         {
-            var numberofDayOff = _dayOffRequestService.GetUnpaidCountDayOffRequestForSpecificPayrollSchedule(emp.Id, currentPayroll.PayrollScheduleId);
+            
             var payrate = emp.PayRate;
             var payRateBasis = emp.PayRateBasisId;
-
+            var numberofDayOff = dayOffRequest.Count(x => x.EmploymentId == emp.Id);
             if (payRateBasis == null)
                 continue;
 
@@ -625,16 +625,17 @@ public class PayrollService : IPayrollService
 
                 continue;
             }
+            
             switch (frequency)
             {
                 case PayrollScheduleTypeModel.Monthly:
                     {
                         if (payRateBasis == (int)PayRateBasisModel.Annually) //(BusinessTypeModel)src.BusinessTypeId"Annually")
                         {
-                            if (numberofDayOff.Result > 0)
+                            if (numberofDayOff > 0)
                             {
-                                payrate = (payrate * numberofDayOff.Result) / 365;
-                                regularPay = payrate;
+                                var dailyPayrate = payrate / 260;
+                                regularPay = (payrate / 12) - (dailyPayrate * numberofDayOff);
                             }
                             else
                             {
@@ -644,17 +645,15 @@ public class PayrollService : IPayrollService
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Monthly)
                         {
-                            if (numberofDayOff.Result > 0)
+                            if (numberofDayOff > 0)
                             {
-                                payrate = (payrate * numberofDayOff.Result) / 30;
-                                regularPay = payrate;
+                                var dailyPayrate = (payrate * 12) / 260;
+                                regularPay = payrate - (dailyPayrate * numberofDayOff);
                             }
                             else
                             {
-                                regularPay = payrate / 12;
+                                regularPay = payrate;
                             }
-
-                            regularPay = payrate;
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Hourly)
@@ -672,10 +671,10 @@ public class PayrollService : IPayrollService
                     {
                         if (payRateBasis == (int)PayRateBasisModel.Annually)
                         {
-                            if (numberofDayOff.Result > 0)
+                            if (numberofDayOff > 0)
                             {
-                                payrate = (payrate * numberofDayOff.Result) / 365;
-                                regularPay = payrate;
+                                var dailyPayrate = payrate / 260;
+                                regularPay = (payrate / 24) - (dailyPayrate * numberofDayOff);
                             }
                             else
                             {
@@ -685,10 +684,10 @@ public class PayrollService : IPayrollService
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Monthly)
                         {
-                            if (numberofDayOff.Result > 0)
+                            if (numberofDayOff > 0)
                             {
-                                payrate = (payrate * numberofDayOff.Result) / 365;
-                                regularPay = payrate;
+                                var dailyPayrate = payrate / 260;
+                                regularPay = (payrate/2) - (dailyPayrate * numberofDayOff);
                             }
                             else
                             {
@@ -698,7 +697,16 @@ public class PayrollService : IPayrollService
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Weekly)
                         {
-                            regularPay = payrate * 52 / 24;
+                            if(numberofDayOff > 0)
+                            {
+                                var dailyPayrate = payrate / 260;
+                                regularPay = (payrate / 4) - (dailyPayrate * numberofDayOff);
+                            }
+                            else
+                            { 
+                                regularPay = payrate /2;
+                            }
+                            
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Hourly)
@@ -717,17 +725,42 @@ public class PayrollService : IPayrollService
                     {
                         if (payRateBasis == (int)PayRateBasisModel.Annually)
                         {
-                            regularPay = payrate / 26;
+                            if (numberofDayOff > 0)
+                            {
+                                var dailyPayrate = payrate / 260;
+                                regularPay = (payrate / 26) - (dailyPayrate * numberofDayOff);
+                            }
+                            else
+                            {
+                                regularPay = payrate / 26;
+                            }
+                            
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Monthly)
                         {
-                            regularPay = payrate * 12 / 26;
+                            if (numberofDayOff > 0)
+                            {
+                                var dailyPayrate = payrate / 260;
+                                regularPay = (payrate * 12 / 26) - (dailyPayrate * numberofDayOff);
+                            }
+                            else 
+                            {
+                                regularPay = payrate * 12 / 26;
+                            }
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Weekly)
                         {
-                            regularPay = payrate * 2;
+                            if (numberofDayOff > 0)
+                            {
+                                var dailyPayrate = payrate / 260;
+                                regularPay = (payrate * 2) - (dailyPayrate * numberofDayOff);
+                            }
+                            else
+                            {
+                                regularPay = payrate * 2;
+                            }
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Hourly)
@@ -745,17 +778,42 @@ public class PayrollService : IPayrollService
                     {
                         if (payRateBasis == (int)PayRateBasisModel.Annually)
                         {
-                            regularPay = payrate / 52;
+                            if (numberofDayOff > 0)
+                            {
+                                var dailyPayrate = payrate / 260;
+                                regularPay = (payrate * 52) - (dailyPayrate * numberofDayOff);
+                            }
+                            else
+                            {
+                                regularPay = payrate / 52;
+                            }
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Monthly)
                         {
-                            regularPay = payrate * 12 / 52;
+                            if (numberofDayOff > 0)
+                            {
+                                var dailyPayrate = payrate / 260;
+                                regularPay = (payrate * 4) - (dailyPayrate * numberofDayOff);
+                            }
+                            else
+                            {
+                                regularPay = payrate * 4;
+                            }
+                           
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Weekly)
                         {
-                            regularPay = payrate;
+                            if (numberofDayOff > 0)
+                            {
+                                var dailyPayrate = payrate / 260;
+                                regularPay = payrate - (dailyPayrate * numberofDayOff);
+                            }
+                            else
+                            {
+                                regularPay = payrate;
+                            }
                             break;
                         }
                         if (payRateBasis == (int)PayRateBasisModel.Hourly)

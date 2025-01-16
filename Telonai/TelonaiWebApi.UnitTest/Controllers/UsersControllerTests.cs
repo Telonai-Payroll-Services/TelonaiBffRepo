@@ -15,7 +15,8 @@ using TelonaiWebApi.Entities;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
 using TelonaiWebAPI.UnitTest.Helper;
-
+using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
+using Microsoft.EntityFrameworkCore.Metadata;
 public class UsersControllerTests
 {
     private readonly IFixture _fixture;
@@ -46,6 +47,94 @@ public class UsersControllerTests
             _mockDayOffRequestService.Object
         );
     }
+
+    [Theory, CustomAutoData]
+    public async Task ForgetPassword_ValidModel_ReturnsNoContent()
+    {
+        // Arrange
+        var username = "testuser";
+
+        // Act
+        var result = await _controller.FpRequest(username);
+
+        // Assert
+        _mockUserService.Verify(s => s.ForgotPasswordRequest(username), Times.Once);
+        Assert.IsType<NoContentResult>(result);
+    }
+    [Fact]
+    public async Task ForgetPassword_InValidModel_ReturnsNoContent()
+    {
+        // Arrange
+        var username = "";
+        _controller.ModelState.AddModelError("username", "Username is required.");
+
+        // Act
+        var result = await _controller.FpRequest(username);
+
+        // Assert
+        Assert.IsType<NoContentResult>(result);
+    }
+
+    [Fact]
+    public async Task ForgetPasswordReset_ValidModelReturnsNoContent()
+    {
+        // Arrange
+        var username = "birass";
+        var passwordResetObject = new PasswordChangeModel()
+        {
+            Code = "25678",
+            Username = "birass",
+            NewPassword = "^YHNmju7"
+        };
+        // Act
+        var result = await _controller.FpRequest(passwordResetObject);
+
+        // Assert
+        _mockUserService.Verify(s => s.ForgotPasswordResponse(passwordResetObject.Username, passwordResetObject.Code, passwordResetObject.NewPassword), Times.Once);
+        Assert.IsType<NoContentResult>(result);
+    }
+    [Fact]
+    public async Task ForgetPasswordReset_InValidModel_ReturnsNoContent()
+    {
+        // Arrange
+        var passwordResetObject = new PasswordChangeModel()
+        {
+            Code = null,
+            Username = null,
+            NewPassword = null
+        };
+
+        _controller.ModelState.AddModelError("username", "Username is required.");
+        _controller.ModelState.AddModelError("code", "Code is required.");
+        _controller.ModelState.AddModelError("newPassword", "NewPassword is required.");
+        // Act
+        var result = await _controller.FpRequest(passwordResetObject);
+
+        // Assert
+        _mockUserService.Verify(s => s.ForgotPasswordResponse(passwordResetObject.Username, passwordResetObject.Code, passwordResetObject.NewPassword), Times.Never);
+        Assert.IsType<NoContentResult>(result);
+    }
+
+    //[Fact]
+    //public async Task ConfirmTwoFactorCodeAsync_ValidModel_ReturnsOkResult()
+    //{
+    //    var tfa = new TwoFactoreModel()
+    //    {
+    //        Password = "^YHNmju7",
+    //        Username = "birass",
+    //        RememberMachine = true,
+    //        RememberMe = true,
+    //        TwoFactorCode = "2356"
+    //    };
+    //    var signResult = new Microsoft.AspNetCore.Identity.SignInResult();
+    //    _mockUserService.Setup(x => x.ConfirmTwoFactorCodeAsync(tfa)).ReturnsAsync(signResult.Succeeded);
+    //    // Act
+    //    var result = await _controller.ConfirmTwoFactorCodeAsync(tfa);
+
+    //    // Assert
+    //    _mockUserService.Verify(s => s.ConfirmTwoFactorCodeAsync(tfa), Times.Once);
+    //    Assert.IsType<OkObjectResult>(result);
+    //}
 
     [Theory, CustomAutoData]
     public async Task SignUp_ValidModel_ReturnsOk(User user)
@@ -151,8 +240,7 @@ public class UsersControllerTests
         Assert.Equal(employment.JobId, result.JobId); 
         Assert.Equal(employment.PersonId, result.PersonId); 
     }
-
-        private async Task InvokePrivateMethodAsync(MethodInfo method, object obj, params object[] parameters)
+    private async Task InvokePrivateMethodAsync(MethodInfo method, object obj, params object[] parameters)
     {
         var result = method.Invoke(obj, parameters);
         if (result is Task task)

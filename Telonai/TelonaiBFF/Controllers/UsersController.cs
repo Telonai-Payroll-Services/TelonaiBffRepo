@@ -174,7 +174,7 @@ public class UsersController : Controller
     [HttpPost("confirmTfa")]
     public async Task<IActionResult> ConfirmTwoFactorCodeAsync(TwoFactoreModel user)
     {
-        var returnUrl = Url.Content("~/");
+        //var returnUrl = Url.Content("~/");
         if (ModelState.IsValid)
         {
             var result = await _userService.ConfirmTwoFactorCodeAsync(user);
