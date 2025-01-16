@@ -69,32 +69,46 @@ public class TimecardUsaService : ITimecardUsaService
         return result;
     }
 
-    public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequence(int companyId, int payrollSequece)
+    public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequence(int companyId, int payrollSequence)
     {
-        Payroll currentPayroll;
+        Payroll currentPayroll = null;
 
-        if (payrollSequece == 0)
-            currentPayroll = await _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefaultAsync(e => e.CompanyId == companyId);
+        if (payrollSequence == 0)
+            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
+                .FirstOrDefault(e => e.CompanyId == companyId && e.StartDate <= DateOnly.FromDateTime(DateTime.Today));
         else
-            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).Skip(payrollSequece).FirstOrDefault(e => e.CompanyId == companyId);
+            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
+                .Where(e => e.CompanyId == companyId && e.StartDate <= DateOnly.FromDateTime(DateTime.Today))
+                .Skip(payrollSequence).FirstOrDefault();
 
-        var runDate = currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MinValue);
-        var obj = _context.TimecardUsa.Where(e => e.ClockIn < runDate && e.Job.CompanyId == companyId);
-        var result = _mapper.Map<List<TimecardUsaModel>>(obj);
+        var startDateTime = currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue);
+        var runDateTime = currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MaxValue);
+
+        var timecards = _context.TimecardUsa.Where(e => e.ClockIn < runDateTime && e.ClockIn >= startDateTime
+        && e.Job.CompanyId == companyId);
+
+        var result = _mapper.Map<List<TimecardUsaModel>>(timecards);
         return result;
     }
-    public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmployee(int companyId, int payrollSequece, int employeeId)
+    public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmployee(int companyId, int payrollSequence, int employeeId)
     {
-        Payroll currentPayroll;
+        Payroll currentPayroll = null;
 
-        if (payrollSequece == 0)
-            currentPayroll = await _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefaultAsync(e => e.CompanyId == companyId);
+        if (payrollSequence == 0)
+            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
+                .FirstOrDefault(e => e.CompanyId == companyId && e.StartDate <= DateOnly.FromDateTime(DateTime.Today));
         else
-            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).Skip(payrollSequece).FirstOrDefault(e => e.CompanyId == companyId);
+            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
+                .Where(e => e.CompanyId == companyId && e.StartDate <= DateOnly.FromDateTime(DateTime.Today))
+                .Skip(payrollSequence).FirstOrDefault();
 
-        var runDate = currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MinValue);
-        var obj = _context.TimecardUsa.Where(e => e.ClockIn < runDate && e.Job.CompanyId == companyId && e.PersonId==employeeId);
-        var result = _mapper.Map<List<TimecardUsaModel>>(obj);
+        var startDateTime = currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue);
+        var runDateTime = currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MaxValue);
+        
+        var timecards = _context.TimecardUsa.Where(e => e.ClockIn < runDateTime && e.ClockIn >= startDateTime
+        && e.Job.CompanyId == companyId && e.PersonId == employeeId);
+
+        var result = _mapper.Map<List<TimecardUsaModel>>(timecards);
         return result;
     }
     public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollIdAndEmployee(int companyId, int payrollId, int employeeId)
@@ -113,10 +127,10 @@ public class TimecardUsaService : ITimecardUsaService
 
     public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollId(int companyId, int payrollId)
     {
-        var currentPayroll = _context.Payroll.Find(payrollId);
+        var payroll = _context.Payroll.Find(payrollId);
 
-        var runDateTime = currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MaxValue);
-        var startDateTime = currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue);
+        var runDateTime = payroll.ScheduledRunDate.ToDateTime(TimeOnly.MaxValue);
+        var startDateTime = payroll.StartDate.ToDateTime(TimeOnly.MinValue);
 
         var obj = _context.TimecardUsa.OrderByDescending(e=>e.ClockIn).Where(e => e.ClockIn >= startDateTime && e.ClockIn < runDateTime
         && e.Job.CompanyId == companyId && !e.Person.Deactivated);
@@ -128,12 +142,14 @@ public class TimecardUsaService : ITimecardUsaService
     public async Task<List<TimecardUsaModel>> GetCurrentTimeCards(string email, int companyId)
     {
         var personId = _context.Person.FirstOrDefault(e => e.Email == email && e.CompanyId == companyId)?.Id;
-
-        var currentPayroll = await _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
-            .FirstOrDefaultAsync(e => e.CompanyId == companyId);
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var currentPayroll = _context.Payroll.FirstOrDefault(e => e.CompanyId == companyId
+            && e.StartDate <= today  && e.ScheduledRunDate >= today);
         
         var startDate = currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue);
-        var obj = _context.TimecardUsa.Where(e => e.ClockIn >= startDate && e.Job.CompanyId == companyId && e.PersonId == personId);
+        var obj = _context.TimecardUsa.Where(e => e.ClockIn >= startDate && e.Job.CompanyId == companyId 
+        && e.PersonId == personId);
+        
         var result = _mapper.Map<List<TimecardUsaModel>>(obj);
         return result;
     }

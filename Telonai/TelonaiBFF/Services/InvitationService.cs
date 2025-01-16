@@ -232,6 +232,8 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
     }
     public async Task SendQuoteAsync(QuoteModel model)
     {
+        if (model.AgentId < 1) model.AgentId = 111; ///This number is when there is no agent involved
+
         await _mailSender.SendUsingAwsClientAsync(model.CustomerEmail, $"Quote from Telonai",
             CreateQuoteHtmlEmailBody(model),
             CreateQuoteTextEmailBody(model));
