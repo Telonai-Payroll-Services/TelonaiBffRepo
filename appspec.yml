@@ -1,7 +1,7 @@
 version: 0.0
 os: linux
 files:
-  - source: ./Telonai/TelonaiBFF/app
+  - source: ./TelonaiWebApi.dll
     destination: /var/www
   - source: scripts/webapi.service
     destination: /etc/systemd/system
