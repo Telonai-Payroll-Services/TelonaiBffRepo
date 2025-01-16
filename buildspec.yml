@@ -24,8 +24,8 @@ phases:
     commands:
       - echo Publish started on `date`
       # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/dotnet-linux-platform-bundle-app.html
-      - dotnet publish -c Release  -o ./Telonai/TelonaiBFF/ Telonai/TelonaiBFF/TelonaiWebApi.csproj
+      - dotnet publish -c Release  --output Telonai/TelonaiBFF/app Telonai/TelonaiBFF/TelonaiWebApi.csproj
       
 artifacts:
   files:
-    - ./Telonai/TelonaiBFF/bin/Release/net6.0/TelonaiWebApi.dll
+    - Telonai/TelonaiBFF/app
