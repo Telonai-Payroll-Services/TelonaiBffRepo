@@ -9,6 +9,7 @@ using System.Drawing;
 public class AutoMapperProfile : Profile
 {
     private readonly IStaticDataService _dataService;
+    private int _ncToUtcTimeDifference = -5; //This value should come from DB. This is a temporary fix. 
 
     public AutoMapperProfile(IStaticDataService dataService)
     {
@@ -213,7 +214,12 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
 
         CreateMap<TimecardUsa, TimecardUsaModel>()
+           .ForMember(dest => dest.ClockIn, opt => opt.MapFrom(src => src.ClockIn.AddHours(_ncToUtcTimeDifference)))
+           .ForMember(dest => dest.ClockOut, opt => opt.MapFrom(src => 
+               src.ClockOut.HasValue? src.ClockOut.Value.AddHours(_ncToUtcTimeDifference):
+               null as DateTime?))
            .ForMember(dest => dest.Job, opt => opt.MapFrom(src => src.Job.LocationName));
+
         CreateMap<TimecardUsaModel, TimecardUsa>()
              .ForMember(dest => dest.Id, opt => opt.Ignore())
              .ForMember(dest => dest.Person, opt => opt.Ignore())

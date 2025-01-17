@@ -384,21 +384,22 @@ public class PayrollService : IPayrollService
         if (companyId != dto.CompanyId)
             throw new UnauthorizedAccessException();
 
+        if (dto.TrueRunDate != null)
+            throw new AppException("Payroll has already been run");
+
         var stubs = CompletePayStubsForCurrentPayroll(dto);
 
-        if (dto.TrueRunDate == null)
-        {
-            dto.TrueRunDate = DateTime.UtcNow;
+        dto.TrueRunDate = DateTime.UtcNow;
 
-            _context.Payroll.Update(dto);
-            if (stubs.Item1.Count > 0)
-                _context.PayStub.UpdateRange(stubs.Item1);
+        _context.Payroll.Update(dto);
+        if (stubs.Item1.Count > 0)
+            _context.PayStub.UpdateRange(stubs.Item1);
 
-            if (stubs.Item2.Count > 0)
-                _context.PayStub.AddRange(stubs.Item2);            
-            _context.SaveChanges();
-        }
+        if (stubs.Item2.Count > 0)
+            _context.PayStub.AddRange(stubs.Item2);
+        _context.SaveChanges();
     }
+    
 
     public void Delete(int id)
     {
@@ -625,7 +626,7 @@ public class PayrollService : IPayrollService
 
                 continue;
             }
-            
+
             switch (frequency)
             {
                 case PayrollScheduleTypeModel.Monthly:

@@ -1,15 +1,11 @@
 version: 0.0
 os: linux
 files:
-  - source: Telonai/TelonaiBFF/app
+  - source:  Telonai/TelonaiBFF/bin/Release/net6.0/
     destination: /var/www
   - source: scripts/webapi.service
     destination: /etc/systemd/system
 hooks:
-  ApplicationStart:
-    - location: scripts/start_app.sh
-      timeout: 300
-      runas: root
   BeforeInstall:
     - location: scripts/before_install.sh
       timeout: 300

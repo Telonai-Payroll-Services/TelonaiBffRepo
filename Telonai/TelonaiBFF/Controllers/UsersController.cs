@@ -126,7 +126,7 @@ public class UsersController : Controller
     {
         if (ModelState.IsValid)
         {
-            var invitation = _invitationService.GetAllByActivaionCodeAndInviteeEmail2(user.ActivationCode, user.Email);
+            var invitation = _invitationService.GetAllByActivationCodeAndInviteeEmail2(user.ActivationCode, user.Email);
 
             var result = await _userService.SignUpAsync(user,UserRole.User, invitation.Job.CompanyId, invitation.JobId.Value);
             if (result.Succeeded)
