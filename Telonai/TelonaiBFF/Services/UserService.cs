@@ -34,13 +34,13 @@ public class UserService : IUserService
     private readonly IMailSender _mailSender;
     private readonly IPersonService<PersonModel,Person> _personService;
 
-    public UserService(UserManager<CognitoUser> userManager, CognitoSignInManager<CognitoUser> signInManager,ILogger<UserService> logger, 
+    public UserService(UserManager<CognitoUser> userManager, SignInManager<CognitoUser> signInManager,ILogger<UserService> logger, 
                       CognitoUserPool pool, IMailSender mailSender, IPersonService<PersonModel, Person> personService)
     {
         _userManager = userManager as CognitoUserManager<CognitoUser>;
         _logger = logger;
         _pool = pool;
-        _signInManager = signInManager;
+        _signInManager = signInManager as CognitoSignInManager<CognitoUser>;
         _mailSender = mailSender;
         _personService = personService;
     }

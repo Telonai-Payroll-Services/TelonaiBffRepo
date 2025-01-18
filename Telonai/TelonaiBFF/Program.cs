@@ -112,8 +112,8 @@ var builder = WebApplication.CreateBuilder(args);
         config.AddAWSProvider(configuration.GetAWSLoggingConfigSection());
         config.SetMinimumLevel(LogLevel.Debug);
     });
-    services.AddTransient<CognitoSignInManager<CognitoUser>>();
-    services.AddTransient<CognitoUserManager<CognitoUser>>();
+    //services.AddTransient<CognitoSignInManager<CognitoUser>>();
+    //services.AddTransient<CognitoUserManager<CognitoUser>>();
 
     var fileScanSettings = builder.Configuration.GetSection("FileScan");
     builder.Services.Configure<FileScanSettings>(fileScanSettings);
