@@ -228,7 +228,7 @@ public class UsersController : Controller
             string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             if (Regex.IsMatch(email, pattern))
             {
-                var forgetUsernameResult = await _userService.SendForgettenUsername(email);
+                var forgetUsernameResult = await _userService.SendForgottenUsername(email);
                 if (forgetUsernameResult)
                 {
                     return Ok("Your username was delivered to your email address.Check your email, please.");
