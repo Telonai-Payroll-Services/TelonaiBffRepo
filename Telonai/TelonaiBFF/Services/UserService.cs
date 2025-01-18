@@ -3,17 +3,12 @@ namespace TelonaiWebApi.Services;
 using Amazon.AspNetCore.Identity.Cognito;
 using Amazon.Extensions.CognitoAuthentication;
 using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
 using System;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using System.Data;
 using Amazon.CognitoIdentityProvider.Model;
-using Org.BouncyCastle.Asn1.Ocsp;
-using System.Reflection.Metadata.Ecma335;
-using Microsoft.VisualBasic;
-using System.Security.Cryptography;
 using TelonaiWebApi.Entities;
 
 public interface IUserService
@@ -27,30 +22,25 @@ public interface IUserService
     Task ForgotPasswordRequest(string username);
     Task ForgotPasswordResponse(string username, string code, string newPassword);
     Task<bool> CheckUsernameAvailability(string username);
-    Task<bool> SendForgettenUsername(string email);
-
+    Task<bool> SendForgottenUsername(string email);
 }
 
 public class UserService : IUserService
 {
-    private readonly SignInManager<CognitoUser> _signInManager;
-    private readonly CognitoSignInManager<CognitoUser> _signInManager2;
+    private readonly CognitoSignInManager<CognitoUser> _signInManager;
     private readonly CognitoUserManager<CognitoUser> _userManager;
     private readonly ILogger<UserService> _logger;
     private readonly CognitoUserPool _pool;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMailSender _mailSender;
     private readonly IPersonService<PersonModel,Person> _personService;
 
-    public UserService(UserManager<CognitoUser> userManager, SignInManager<CognitoUser> signInManager,ILogger<UserService> logger, 
-                      CognitoUserPool pool, IHttpContextAccessor httpContextAccessor, IMailSender mailSender, IPersonService<PersonModel, Person> personService)
+    public UserService(UserManager<CognitoUser> userManager, CognitoSignInManager<CognitoUser> signInManager,ILogger<UserService> logger, 
+                      CognitoUserPool pool, IMailSender mailSender, IPersonService<PersonModel, Person> personService)
     {
         _userManager = userManager as CognitoUserManager<CognitoUser>;
-        _signInManager = signInManager;
         _logger = logger;
         _pool = pool;
-        _httpContextAccessor = httpContextAccessor;
-        _signInManager2 = signInManager as CognitoSignInManager<CognitoUser>;
+        _signInManager = signInManager;
         _mailSender = mailSender;
         _personService = personService;
     }
@@ -58,8 +48,7 @@ public class UserService : IUserService
 
     public async Task<Tuple<CognitoUser, SignInManagerResponse>> LoginAsync(string username, string password, bool rememberMe)
     {
-        SignInResult result = new SignInResult();
-
+        SignInResult result;
         try
         {
             result = await _signInManager.PasswordSignInAsync(username, password, rememberMe, lockoutOnFailure: false);
@@ -105,15 +94,12 @@ public class UserService : IUserService
 
     public async Task<SignInResult> ConfirmTwoFactorCodeAsync(TwoFactoreModel model)
     {
-        var user = await _signInManager2.GetTwoFactorAuthenticationUserAsync();
-        if (user == null)
-        {
+        var user = await _signInManager.GetTwoFactorAuthenticationUserAsync() ??
             throw new InvalidOperationException($"Unable to load two-factor authentication user.");
-        }
 
         var authenticatorCode = model.TwoFactorCode.Replace(" ", string.Empty).Replace("-", string.Empty);
 
-        var result = await _signInManager2.RespondToTwoFactorChallengeAsync(authenticatorCode, model.RememberMe.Value, model.RememberMachine);
+        var result = await _signInManager.RespondToTwoFactorChallengeAsync(authenticatorCode, model.RememberMe.Value, model.RememberMachine);
 
         if (result.Succeeded)
         {
@@ -225,7 +211,7 @@ public class UserService : IUserService
         _logger.LogInformation("User logged out.");       
     }
 
-    public async Task<bool> SendForgettenUsername(string email)
+    public async Task<bool> SendForgottenUsername(string email)
     {
         //Fetch user information using registered email address.
         var user = await _userManager.FindByEmailAsync(email) ?? throw new AppException("Invalid Username");
