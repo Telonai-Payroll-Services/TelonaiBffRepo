@@ -25,19 +25,41 @@ public class ZipcodesController : ControllerBase
     public IActionResult GetByCityId(int id)
     {
         var items = _service.GetByCityId(id);
-        return Ok(_mapper.Map<IList<ZipcodeModel>>(items));
+        if (items != null)
+        {
+            return Ok(_mapper.Map<List<ZipcodeModel>>(items));
+        }
+        else
+        {
+            return NotFound();
+        }
     }
     [HttpGet("{code}/countries/{countryId}")]
-    public IActionResult GetByZipcodeAndCountryId(string code, int countryId)
+    public IActionResult GetByZipCodeAndCountryId(string code, int countryId)
     {
-        var items = _service.GetByZipcodeAndCountryId(code, countryId);
-        return Ok(_mapper.Map<List<ZipcodeModel>>(items));
+        var results = _service.GetModelByZipcodeAndCountryId(code, countryId);
+        if (results != null)
+        {
+            return Ok(results);
+        }
+        else 
+        {
+            return NotFound();      
+        }
     }
 
     [HttpGet("{id}")]
     public IActionResult GetById(int id)
     {
         var item = _service.GetById(id);
-        return Ok(_mapper.Map<ZipcodeModel>(item));
+        if (item != null) 
+        {
+            return Ok(_mapper.Map<ZipcodeModel>(item));
+        }
+        else
+        {
+            return NotFound();
+        }
+        
     }
 }

@@ -5,16 +5,20 @@ using Microsoft.EntityFrameworkCore.Storage;
 using TelonaiWebApi.Entities;
 using Newtonsoft.Json;
 using Amazon.SecretsManager.Extensions.Caching;
+using TelonaiWebApi.Models;
 
 public class DataContext : DbContext
 {
     private readonly IHttpContextAccessor _context;
     private readonly SecretsManagerCache _cache;
+    private readonly IWebHostEnvironment _env;
+
     public DataContext() { }
-    public DataContext(IHttpContextAccessor context)
+    public DataContext(IHttpContextAccessor context, IWebHostEnvironment env)
     {
         _cache = new SecretsManagerCache();
         _context = context;
+        _env = env;
     }
 
     private async Task<Dictionary<string, string>> GetSecret(string MySecretName)
@@ -27,10 +31,11 @@ public class DataContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
 
-        var secret = GetSecret("TelonaiDBConnectionString").Result;        
+        var secret = GetSecret($"TelonaiDBConnectionString-{_env.EnvironmentName}").Result;        
         var connectionString = $"Host={secret["host"]};Database={secret["dbname"]};Username={secret["username"]};Password={secret["password"]}";
         options.UseNpgsql(connectionString).ReplaceService<ISqlGenerationHelper, NpgsqlSqlGenerationLowercasingHelper>();
         options.EnableSensitiveDataLogging();
+        options.LogTo(Console.WriteLine, LogLevel.Information);
     }
 
     public override int SaveChanges()
@@ -112,15 +117,13 @@ public class DataContext : DbContext
         }
     }
 
-   
-   
-
     public virtual DbSet<Employment> Employment { get; set; }
     public virtual DbSet<Person> Person { get; set; }
     public virtual DbSet<Company> Company { get; set; }
     public DbSet<City> City { get; set; }
     public DbSet<State> State { get; set; }
     public DbSet<Country> Country { get; set; }
+    public virtual DbSet<County> County { get; set; }
     public DbSet<BusinessType> BusinessType { get; set; }
     public  DbSet<CompanyContact> CompanyContact { get; set; }
     public virtual DbSet<ContactType> ContactType { get; set; }
@@ -128,7 +131,7 @@ public class DataContext : DbContext
     public virtual DbSet<TimecardUsa> TimecardUsa { get; set; }
     public DbSet<TimecardUsaNote> TimecardUsaNote { get; set; }
     public virtual DbSet<Invitation> Invitation { get; set; }
-    public DbSet<Zipcode> Zipcode { get; set; }
+    public virtual DbSet<Zipcode> Zipcode { get; set; }
     public DbSet<RoleType> RoleType { get; set; }
     public virtual DbSet<PayrollSchedule> PayrollSchedule { get; set; }
     public DbSet<PayrollScheduleType> PayrollScheduleType { get; set; }
@@ -169,5 +172,10 @@ public class DataContext : DbContext
     public DbSet<AgentField> AgentField { get; set; }
     public DbSet<AgentFieldValue> AgentFieldValue { get; set; }
     public DbSet<MobileAppVersion> MobileAppVersion { get; set; }
-
+    public DbSet<DayOffRequest> DayOffRequest { get; set; }
+    public DbSet<DayOffType> DayoffType { get; set; }
+    public DbSet<DayOffPayType> DayOffPayType { get; set; }
+    public DbSet<FAQ> FAQ { get; set; }
+    public DbSet<TelonaiSpecificFieldValue> TelonaiSpecificFieldValue { get; set; }
+    public DbSet<TelonaiSpecificField> TelonaiSpecificField { get; set; }
 }

@@ -30,7 +30,7 @@ public class InvitationServiceTests
         _invitationService = new InvitationService(_contextMock.Object, _mapperMock.Object, _mailSenderMock.Object, _httpContextAccessorMock.Object);
     }
     [Fact]
-    public void GetAllByActivaionCodeAndInviteeEmail_ValidData_ReturnsInvitationModel()
+    public void GetAllByActivationCodeAndInviteeEmail_ValidData_ReturnsInvitationModel()
     {
         var activationCode = "1234"; 
         var email = "test@example.com";
@@ -56,7 +56,7 @@ public class InvitationServiceTests
         _contextMock.Setup(ctx => ctx.Invitation).Returns(mockSet.Object);
         _mapperMock.Setup(m => m.Map<InvitationModel>(It.IsAny<Invitation>())).Returns(invitationModel);
 
-        var result = _invitationService.GetAllByActivaionCodeAndInviteeEmail(activationCode, email);
+        var result = _invitationService.GetAllByActivationCodeAndInviteeEmail(activationCode, email);
 
         Assert.NotNull(result);
         Assert.Equal(invitationModel, result);
@@ -66,7 +66,7 @@ public class InvitationServiceTests
 
 
     [Fact]
-    public void GetAllByActivaionCodeAndInviteeEmail_InvalidActivationCodeOrEmail_ThrowsAppException()
+    public void GetAllByActivationCodeAndInviteeEmail_InvalidActivationCodeOrEmail_ThrowsAppException()
     {
         var activationCode = "invalidcode";
         var email = "test@example.com";
@@ -80,11 +80,11 @@ public class InvitationServiceTests
 
         _contextMock.Setup(ctx => ctx.Invitation).Returns(mockSet.Object);
 
-        var exception = Assert.Throws<AppException>(() => _invitationService.GetAllByActivaionCodeAndInviteeEmail(activationCode, email));
+        var exception = Assert.Throws<AppException>(() => _invitationService.GetAllByActivationCodeAndInviteeEmail(activationCode, email));
         Assert.Equal("Invalid Activation Code or Email", exception.Message);
     }
     [Fact]
-    public void GetAllByActivaionCodeAndInviteeEmail2_ValidData_ReturnsInvitation()
+    public void GetAllByActivationCodeAndInviteeEmail2_ValidData_ReturnsInvitation()
     {
         var activationCode = "1234"; 
         var email = "test@example.com";
@@ -110,14 +110,14 @@ public class InvitationServiceTests
         _contextMock.Setup(ctx => ctx.Invitation).Returns(mockSet.Object);
         _mapperMock.Setup(m => m.Map<InvitationModel>(It.IsAny<Invitation>())).Returns(invitationModel);
 
-        var result = _invitationService.GetAllByActivaionCodeAndInviteeEmail2(activationCode, email);
+        var result = _invitationService.GetAllByActivationCodeAndInviteeEmail2(activationCode, email);
 
         Assert.NotNull(result);
         Assert.Equal(invitation, result);
     }
 
     [Fact]
-    public void GetAllByActivaionCodeAndInviteeEmail2_InvalidActivationCodeOrEmail_ThrowsAppException()
+    public void GetAllByActivationCodeAndInviteeEmail2_InvalidActivationCodeOrEmail_ThrowsAppException()
     {
 
         var activationCode = "invalidcode";
@@ -132,11 +132,11 @@ public class InvitationServiceTests
 
         _contextMock.Setup(ctx => ctx.Invitation).Returns(mockSet.Object);
 
-        var exception = Assert.Throws<AppException>(() => _invitationService.GetAllByActivaionCodeAndInviteeEmail2(activationCode, email));
+        var exception = Assert.Throws<AppException>(() => _invitationService.GetAllByActivationCodeAndInviteeEmail2(activationCode, email));
         Assert.Equal("Invalid Activation Code or Email", exception.Message);
     }
     [Fact]
-    public void GetByActivaionCodeAndInviteeEmail_WithTaxId_ValidData_ReturnsInvitation()
+    public void GetByActivationCodeAndInviteeEmail_WithTaxId_ValidData_ReturnsInvitation()
     {
         var activationCode = "1234"; 
         var email = "test@example.com";
@@ -164,14 +164,14 @@ public class InvitationServiceTests
         _contextMock.Setup(ctx => ctx.Invitation).Returns(mockSet.Object);
         _mapperMock.Setup(m => m.Map<InvitationModel>(It.IsAny<Invitation>())).Returns(invitationModel);
 
-        var result = _invitationService.GetByActivaionCodeAndInviteeEmail(activationCode, email, taxId);
+        var result = _invitationService.GetByActivationCodeAndInviteeEmail(activationCode, email, taxId);
 
         Assert.NotNull(result);
         Assert.Equal(invitation, result);
     }
 
     [Fact]
-    public void GetByActivaionCodeAndInviteeEmail_WithTaxId_InvalidActivationCode_ThrowsAppException()
+    public void GetByActivationCodeAndInviteeEmail_WithTaxId_InvalidActivationCode_ThrowsAppException()
     {
         var activationCode = "invalidcode";
         var email = "test@example.com";
@@ -186,12 +186,12 @@ public class InvitationServiceTests
 
         _contextMock.Setup(ctx => ctx.Invitation).Returns(mockSet.Object);
 
-        var exception = Assert.Throws<AppException>(() => _invitationService.GetByActivaionCodeAndInviteeEmail(activationCode, email, taxId));
+        var exception = Assert.Throws<AppException>(() => _invitationService.GetByActivationCodeAndInviteeEmail(activationCode, email, taxId));
         Assert.Equal("Invalid Activation Code", exception.Message);
     }
 
     [Fact]
-    public void GetByActivaionCodeAndInviteeEmail_ValidData_ReturnsInvitationModel()
+    public void GetByActivationCodeAndInviteeEmail_ValidData_ReturnsInvitationModel()
     {
 
         var activationCode = "1234"; 
@@ -217,7 +217,7 @@ public class InvitationServiceTests
         _contextMock.Setup(ctx => ctx.Invitation).Returns(mockSet.Object);
         _mapperMock.Setup(m => m.Map<InvitationModel>(It.IsAny<Invitation>())).Returns(invitationModel);
 
-        var result = _invitationService.GetByActivaionCodeAndInviteeEmail(activationCode, email);
+        var result = _invitationService.GetByActivationCodeAndInviteeEmail(activationCode, email);
 
         Assert.NotNull(result);
         Assert.Equal(invitationModel, result);
@@ -225,7 +225,7 @@ public class InvitationServiceTests
     }
 
     [Fact]
-    public void GetByActivaionCodeAndInviteeEmail_InvalidActivationCodeOrEmail_ThrowsAppException()
+    public void GetByActivationCodeAndInviteeEmail_InvalidActivationCodeOrEmail_ThrowsAppException()
     {
 
         var activationCode = "invalidcode";
@@ -240,7 +240,7 @@ public class InvitationServiceTests
 
         _contextMock.Setup(ctx => ctx.Invitation).Returns(mockSet.Object);
 
-        var exception = Assert.Throws<AppException>(() => _invitationService.GetByActivaionCodeAndInviteeEmail(activationCode, email));
+        var exception = Assert.Throws<AppException>(() => _invitationService.GetByActivationCodeAndInviteeEmail(activationCode, email));
         Assert.Equal("Invalid Activation Code or Email", exception.Message);
     }
     [Fact]

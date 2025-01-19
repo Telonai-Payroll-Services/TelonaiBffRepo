@@ -9,6 +9,7 @@ using System.Drawing;
 public class AutoMapperProfile : Profile
 {
     private readonly IStaticDataService _dataService;
+    private int _ncToUtcTimeDifference = -5; //This value should come from DB. This is a temporary fix. 
 
     public AutoMapperProfile(IStaticDataService dataService)
     {
@@ -37,6 +38,10 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
              .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
 
+        CreateMap<County, CountyModel>();
+
+        CreateMap<CountyModel, County>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
 
         CreateMap<AdditionalOtherMoneyReceived, AdditionalOtherMoneyReceivedModel>()
              .ForMember(dest => dest.ExemptFromFutaTaxType, opt => opt.MapFrom(src =>
@@ -128,7 +133,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
              .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (INineVerificationStatusModel)src.INineVerificationStatusId))
             .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.MapFrom(src => (StateWithholdingDocumentStatusModel)src.StateWithholdingDocumentStatusId))
-            .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
+            .ForMember(dest => dest.WFourWithholdingDocumentStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
             .ForMember(dest => dest.Ssn, opt => opt.MapFrom(src => $"*****{src.Ssn.Substring(5)}"))
             .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.Zipcode.City.StateId));
@@ -209,7 +214,12 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
 
         CreateMap<TimecardUsa, TimecardUsaModel>()
+           .ForMember(dest => dest.ClockIn, opt => opt.MapFrom(src => src.ClockIn.AddHours(_ncToUtcTimeDifference)))
+           .ForMember(dest => dest.ClockOut, opt => opt.MapFrom(src => 
+               src.ClockOut.HasValue? src.ClockOut.Value.AddHours(_ncToUtcTimeDifference):
+               null as DateTime?))
            .ForMember(dest => dest.Job, opt => opt.MapFrom(src => src.Job.LocationName));
+
         CreateMap<TimecardUsaModel, TimecardUsa>()
              .ForMember(dest => dest.Id, opt => opt.Ignore())
              .ForMember(dest => dest.Person, opt => opt.Ignore())
@@ -259,7 +269,7 @@ public class AutoMapperProfile : Profile
 
         CreateMap<Invitation, InvitationStatusModel>()
          .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FirstName + " " + src.LastName))
-         .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.UpdatedBy == null ? "Invitation Sent" : "Completed"));
+         .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.UpdatedDate == null ? "Invitation Sent" : "Completed"));
 
         CreateMap<Invitation, InvitationModel>()
             .ForMember(dest => dest.Employment, opt => opt.Ignore())
@@ -379,5 +389,31 @@ public class AutoMapperProfile : Profile
 
         CreateMap<MobileAppVersion, MobileAppVersionModel>();
 
+        CreateMap<DayOffRequestModel, DayOffRequest>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.DayOffTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffType)))
+            .ForMember(dest => dest.DayOffPayTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffPayType)));
+
+        CreateMap<DayOffRequest, DayOffRequestModel>()
+        .ForMember(dest => dest.DayOffType, opt => opt.MapFrom(src => (DayOffTypes)src.DayOffTypeId))
+        .ForMember(dest => dest.DayOffPayType, opt => opt.MapFrom(src => (DayOffPayTypeModel)src.DayOffPayTypeId))
+        .ForMember(dest => dest.Name, opt => opt.MapFrom(src => $"{src.Employment.Person.LastName} {src.Employment.Person.FirstName}"))
+        .ForMember(dest => dest.IsCancellable, opt => opt.MapFrom(src => DateOnly.FromDateTime(DateTime.Now).CompareTo(src.FromDate) < 0));
+
+        CreateMap<FAQ, FAQModel>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
+        CreateMap<FAQModel, FAQ>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+        CreateMap<TelonaiSpecificFieldValue, TelonaiSpecificFieldValueModel>()
+            .ForMember(dest => dest.FieldName, opt => opt.MapFrom(src => src.TelonaiSpecificField.FieldName));
+
+        CreateMap<TelonaiSpecificFieldValueModel, TelonaiSpecificFieldValue>()
+            .ForMember(dest => dest.TelonaiSpecificField, opt => opt.Ignore());
+        
+        CreateMap<TelonaiSpecificField, TelonaiSpecificFieldModel>();
+
+        CreateMap<TelonaiSpecificFieldModel, TelonaiSpecificField>()
+             .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 }

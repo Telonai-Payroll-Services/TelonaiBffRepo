@@ -378,7 +378,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
                 }
             };
 
-            _mockOtherMoneyReceivedService.Setup(service => service.Update(payStub.Id, otherRecivedMoneyModel)).ReturnsAsync(true);
+            _mockOtherMoneyReceivedService.Setup(service => service.CreateOrUpdate(payStub.Id, otherRecivedMoneyModel)).ReturnsAsync(true);
 
             //Act
             var result = await _otherMoneyReceivedController.Update(payStub.Id, otherRecivedMoneyModel);
@@ -452,7 +452,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
                 }
             };
 
-            _mockOtherMoneyReceivedService.Setup(service => service.Update(12, otherRecivedMoneyModel)).ReturnsAsync(false);
+            _mockOtherMoneyReceivedService.Setup(service => service.CreateOrUpdate(12, otherRecivedMoneyModel)).ReturnsAsync(false);
 
             //Act
             var result = await _otherMoneyReceivedController.Update(12, otherRecivedMoneyModel);
@@ -573,7 +573,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
                 Payroll = payroll,
             };
 
-            _mockOtherMoneyReceivedService.Setup(service => service.Create(payStub.Id, otherRecivedMoneyModel)).ReturnsAsync(true);
+            _mockOtherMoneyReceivedService.Setup(service => service.CreateOrUpdate(payStub.Id, otherRecivedMoneyModel)).ReturnsAsync(true);
 
             //Act 
             var result = await _otherMoneyReceivedController.Create(1, otherRecivedMoneyModel);
@@ -633,7 +633,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
                 Payroll = payroll,
             };
 
-            _mockOtherMoneyReceivedService.Setup(service => service.Create(51, otherRecivedMoneyModel)).ReturnsAsync(false);
+            _mockOtherMoneyReceivedService.Setup(service => service.CreateOrUpdate(51, otherRecivedMoneyModel)).ReturnsAsync(false);
 
             //Act 
             var result = await _otherMoneyReceivedController.Create(51, otherRecivedMoneyModel);

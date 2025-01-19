@@ -18,18 +18,19 @@ public class UsersController : Controller
     private readonly IUserService _userService;
     private readonly IEmploymentService<EmploymentModel, Employment> _employmentService;
     private readonly IPersonService<PersonModel, Person> _personService;
-
     private readonly ITimecardUsaService _timecardService;
+    private readonly IDayOffRequestService<DayOffRequestModel, DayOffRequest> _dayOffRequestService;
 
     public UsersController(IUserService userService, IPersonService<PersonModel, Person> personService, IInvitationService<InvitationModel, 
-        Invitation> invitationService, IEmploymentService<EmploymentModel, Employment> employmentService, ITimecardUsaService timecardService)
+        Invitation> invitationService, IEmploymentService<EmploymentModel, Employment> employmentService, ITimecardUsaService timecardService
+        ,IDayOffRequestService<DayOffRequestModel, DayOffRequest> dayOffRequestService)
     {
         _userService = userService;
         _personService = personService;
         _invitationService = invitationService;
         _employmentService = employmentService;
         _timecardService = timecardService;
-
+        _dayOffRequestService = dayOffRequestService;
     }
 
 
@@ -69,12 +70,15 @@ public class UsersController : Controller
 
             var email = result.Item1.Attributes["email"];
             var employments = _employmentService.GetByEmail(email).ToList();
-            var personId = employments.Select(e => e.PersonId).Distinct().ToList();
+            var personIds = employments.Select(e => e.PersonId).Distinct().ToList();
+            var dayOffs = await GetPendingDayOffsAsync(employments);
+
             if (employments != null && employments.Count > 0)
             {
                 loginResult.FullName = employments.First().Person;
-                loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(personId);
+                loginResult.OpenTimeCard = _timecardService.GetOpenTimeCard(personIds);
                 loginResult.Employments = employments;
+                loginResult.DayOffRequests = dayOffs;                
             }
 
             return Ok(loginResult);
@@ -134,7 +138,7 @@ public class UsersController : Controller
     {
         if (ModelState.IsValid)
         {
-            var invitation = _invitationService.GetAllByActivaionCodeAndInviteeEmail2(user.ActivationCode, user.Email);
+            var invitation = _invitationService.GetAllByActivationCodeAndInviteeEmail2(user.ActivationCode, user.Email);
 
             var result = await _userService.SignUpAsync(user,UserRole.User, invitation.Job.CompanyId, invitation.JobId.Value);
             if (result.Succeeded)
@@ -182,7 +186,7 @@ public class UsersController : Controller
     [HttpPost("confirmTfa")]
     public async Task<IActionResult> ConfirmTwoFactorCodeAsync(TwoFactoreModel user)
     {
-        var returnUrl = Url.Content("~/");
+        //var returnUrl = Url.Content("~/");
         if (ModelState.IsValid)
         {
             var result = await _userService.ConfirmTwoFactorCodeAsync(user);
@@ -236,7 +240,7 @@ public class UsersController : Controller
             string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             if (Regex.IsMatch(email, pattern))
             {
-                var forgetUsernameResult = await _userService.SendForgettenUsername(email);
+                var forgetUsernameResult = await _userService.SendForgottenUsername(email);
                 if (forgetUsernameResult)
                 {
                     return Ok("Your username was delivered to your email address.Check your email, please.");
@@ -256,6 +260,17 @@ public class UsersController : Controller
             throw new ApplicationException("Please enter email address.");
         }
 
+    }
+
+
+    private async Task<List<DayOffRequestModel>> GetPendingDayOffsAsync(List<EmploymentModel> employments)
+    {
+        var result= new List<DayOffRequestModel>();
+        foreach (var item in employments.Where(e => e.IsPayrollAdmin))
+        {
+            result.AddRange(_dayOffRequestService.GetPendingRequestsByCompanyId(item.Job.CompanyId));
+        }
+        return result;
     }
 
     private async Task<PersonModel> CreateProfileFromUserAsync(User user, int companyId)

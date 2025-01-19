@@ -10,7 +10,7 @@ public interface IIncomeTaxRateService<IncomeTaxRateModel, IncomeTaxRate> : IDat
 {
     IList<IncomeTaxRateModel> GetModelByCountryId(int countryId);
     IList<IncomeTaxRate> GetByCountryId(int countryId);
-
+    IList<IncomeTaxRate> GetByCountryIdAndPayrollYear(int countryId, int payrollYear);
 }
 
 public class IncomeTaxRateService : IIncomeTaxRateService<IncomeTaxRateModel, IncomeTaxRate>
@@ -50,6 +50,18 @@ public class IncomeTaxRateService : IIncomeTaxRateService<IncomeTaxRateModel, In
             return dto;
         }
         catch(Exception ex)
+        { return null; }
+    }
+
+    public IList<IncomeTaxRate> GetByCountryIdAndPayrollYear(int countryId, int payrollYear)
+    {
+        try
+        {
+            var dto = _context.IncomeTaxRate.Include(e => e.IncomeTaxType).Where(e => e.IncomeTaxType.CountryId == countryId && e.EffectiveYear == payrollYear).ToList();
+
+            return dto;
+        }
+        catch (Exception ex)
         { return null; }
     }
 

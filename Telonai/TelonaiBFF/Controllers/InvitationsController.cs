@@ -15,15 +15,15 @@ public class InvitationsController : ControllerBase
 {
     private readonly IInvitationService<InvitationModel, Invitation> _service;
     private readonly ILogger<InvitationsController> _logger;
-    private readonly IScopedAuthorization _scopedAuthrorization;
+    private readonly IScopedAuthorization _scopedAuthorization;
     private readonly IEmployerSubscriptionService _employerSubscriptionservice;
 
     public InvitationsController(IInvitationService<InvitationModel, Invitation> service, 
-        ILogger<InvitationsController> logger, IScopedAuthorization scopedAuthrorization, IEmployerSubscriptionService employerSubscriptionservice)
+        ILogger<InvitationsController> logger, IScopedAuthorization scopedAuthorization, IEmployerSubscriptionService employerSubscriptionservice)
     {
         _service = service;
         _logger = logger;
-        _scopedAuthrorization = scopedAuthrorization;
+        _scopedAuthorization = scopedAuthorization;
         _employerSubscriptionservice = employerSubscriptionservice;
     }
 
@@ -32,7 +32,7 @@ public class InvitationsController : ControllerBase
     public IActionResult GetById(Guid id)
     {
         var result = _service.GetById(id);
-        _scopedAuthrorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, result.JobId.Value);
+        _scopedAuthorization.ValidateByJobId(Request.HttpContext.User, AuthorizationType.Admin, result.JobId.Value);
 
         return Ok(result);
     }
@@ -72,7 +72,7 @@ public class InvitationsController : ControllerBase
         if (!InputValidator.IsValidEmail(model.Email))
             throw new InvalidDataException("Invalid Email");
 
-        var result = _service.GetAllByActivaionCodeAndInviteeEmail(model.code,model.Email);
+        var result = _service.GetAllByActivationCodeAndInviteeEmail(model.code,model.Email);
         return Ok(result);
     }
 
@@ -80,7 +80,7 @@ public class InvitationsController : ControllerBase
     [HttpPost]
     public IActionResult InviteEmployee([FromBody] InvitationModel model)
     {
-        _scopedAuthrorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, model.Employment.CompanyId);
+        _scopedAuthorization.ValidateByCompanyId(Request.HttpContext.User, AuthorizationType.Admin, model.Employment.CompanyId);
         _service.CreateAsync(model,true);        
         return Ok();
     }
@@ -118,7 +118,6 @@ public class InvitationsController : ControllerBase
             City = model.City,
             State = model.State,
             Zip = model.Zip,
-            //Phone=model.PhoneNumber,
             AgentCode = agentCode,
             CompanyAddress = model.Address,
             NumberOfEmployees = model.NumberOfEmployees, 
@@ -129,6 +128,15 @@ public class InvitationsController : ControllerBase
         await _employerSubscriptionservice.CreateAsync(subscriptionModel);
 
         return Ok();
+    }
+
+    [Authorize]
+    [HttpPost("employer/quote/")]
+    public async Task<IActionResult> SendQuote([FromBody] QuoteModel model)
+    {
+
+        await _service.SendQuoteAsync(model);
+        return Ok("Quote sent.");
     }
 
     [Authorize(Policy = "SystemAdmin")]

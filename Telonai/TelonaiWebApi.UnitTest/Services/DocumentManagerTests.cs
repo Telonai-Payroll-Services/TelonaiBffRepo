@@ -31,7 +31,6 @@ namespace TelonaiWebAPI.UnitTest.Services
             {
                 Fixture fixture = CustomFixture.Create();
                 var paystub = fixture.Create<PayStub>();
-                var otherMoneyReceived = paystub.OtherMoneyReceived;
                 var addlMoneyReceived = fixture.CreateMany<AdditionalOtherMoneyReceived>().ToList();
                 var incomeTax = fixture.CreateMany<IncomeTax>().ToList();
                 incomeTax.Select(x => x.PayStub = paystub);
@@ -41,7 +40,7 @@ namespace TelonaiWebAPI.UnitTest.Services
                 var document = new Document {  /* set properties */ };
 
                 // Act
-                var result = await _documentManager.CreatePayStubPdfAsync(paystub, otherMoneyReceived, addlMoneyReceived,
+                var result = await _documentManager.CreatePayStubPdfAsync(paystub, addlMoneyReceived,
                     incomeTax);
 
                 // Assert

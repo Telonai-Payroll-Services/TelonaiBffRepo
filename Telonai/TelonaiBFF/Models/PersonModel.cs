@@ -29,9 +29,11 @@ public class PersonModel
     public int StateId { get; set; }
     public string State { get; set; }
 
+    public int CountyId { get; set; }
+    public string County { get; set; }
+
     public int CountryId { get; set; }
     public string Country { get; set; }
-
     public string Ssn { get; set; }
 
     public bool Deactivated { get; set; }
@@ -42,8 +44,10 @@ public class PersonModel
     public bool IsTwopercentshareholder { get; set; }
     public string RoutingNumber { get; set; }
     public string BankAccountNumber { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
     public INineVerificationStatusModel INineVerificationStatus { get; set; }
     public StateWithholdingDocumentStatusModel StateWithholdingDocumentStatus { get; set; }
     public WFourWithholdingDocumentStatusModel WFourWithholdingDocumentStatus { get; set; }
+    public string InternalEmployeeId { get; set; }
 
 }

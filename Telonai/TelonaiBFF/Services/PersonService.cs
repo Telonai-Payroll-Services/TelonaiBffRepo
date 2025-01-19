@@ -2,6 +2,7 @@ namespace TelonaiWebApi.Services;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Threading.Tasks;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
@@ -18,8 +19,8 @@ public interface IPersonService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     IList<PersonModel> GetIncompleteInineByCompanyId(int companyId);
     Task<PersonModel> GetByEmailAndCompanyIdAsync(string email, int companyId);
     Task<Person> GetCurrentUserAsync();
-    Task<Person> GetPersonById(int Id);
-
+    Person GetPersonById(int Id);
+    bool IsEmployeeMinor(DateOnly dateOfBirth);
 }
 
 public class PersonService : IPersonService<PersonModel,Person>
@@ -163,12 +164,15 @@ public class PersonService : IPersonService<PersonModel,Person>
             person.AddressLine2 = string.IsNullOrWhiteSpace(model.AddressLine2) ? person.AddressLine2 : model.AddressLine2;
             person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
             person.Ssn = string.IsNullOrWhiteSpace(model.Ssn) ? person.Ssn : model.Ssn;
+            person.InternalEmployeeId = string.IsNullOrWhiteSpace(model.InternalEmployeeId) ? person.InternalEmployeeId : model.InternalEmployeeId;
+
             if (model.ZipcodeId > 0)
             {
                 if (person.Zipcode == null)
                 {
                     person.Zipcode = _zipCodeService.GetById(model.ZipcodeId);
                     person.ZipcodeId = model.ZipcodeId;
+                    person.CountyId = model.CountyId;
                     person.Zipcode.City = _cityService.GetById(person.Zipcode.CityId);
                     person.Zipcode.City.State = _stateService.GetById(person.Zipcode.City.StateId);
                 }
@@ -177,6 +181,8 @@ public class PersonService : IPersonService<PersonModel,Person>
                     person.ZipcodeId = model.ZipcodeId == 0 ? person.ZipcodeId : model.ZipcodeId;
                     person.Zipcode.CityId = model.CityId == 0 ? person.Zipcode.CityId : model.CityId;
                     person.Zipcode.City.StateId = model.StateId == 0 ? person.Zipcode.City.StateId : model.StateId;
+                    person.CountyId = model.CountyId == 0 ? person.CountyId : model.CountyId;
+
                 }
             }
             if (model.Ssn != null)
@@ -201,9 +207,9 @@ public class PersonService : IPersonService<PersonModel,Person>
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Person> GetPersonById(int Id)
+    public Person GetPersonById(int Id)
     {
-        var result = await _context.Person.Include(z => z.Zipcode).Include(c => c.Zipcode.City).FirstOrDefaultAsync(p => p.Id == Id);
+        var result = _context.Person.Include(z => z.Zipcode).Include(c => c.Zipcode.City).FirstOrDefault(p => p.Id == Id);
         return result;
     }
 
@@ -220,5 +226,18 @@ public class PersonService : IPersonService<PersonModel,Person>
             var person = await _context.Person.FirstOrDefaultAsync(e => e.Email.ToLower() == currentUserEmail) ?? throw new InvalidDataException("User not found");
             return person;       
         
+    }
+
+    public  bool IsEmployeeMinor(DateOnly dateOfBirth)
+    {
+        var yearDifference = DateTime.Today.Subtract(dateOfBirth.ToDateTime(TimeOnly.MinValue));
+        if((yearDifference.TotalDays / 365.25) <= 17)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }

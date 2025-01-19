@@ -1,17 +1,10 @@
 ﻿using AutoMapper;
-using iTextSharp.text.pdf.qrcode;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Moq;
 using Xunit;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
@@ -444,6 +437,36 @@ namespace TelonaiWebApi.UnitTest.Services
             _mockContext.Setup(c => c.Person.Find(id)).Returns((Person)null);     
             
             await Assert.ThrowsAsync<AppException>(async () => await _service.DeleteAsync(id));
+        }
+
+        [Fact]
+        public async Task IsEmployeeMinor_EnterPersonBirthDayForMinor_ReturnTrue()
+        {
+            //Arrange
+            DateOnly dateofbirth = new DateOnly(2010, 2, 20);
+            var person = new Person { Id = 1, DateOfBirth = dateofbirth };
+
+            //Act
+            var result = _service.IsEmployeeMinor(person.DateOfBirth.Value);
+
+
+            //Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task IsEmployeeMinor_EnterPersonBirthDayForMinor_ReturnFalse()
+        {
+            //Arrange
+            DateOnly dateofbirth = new DateOnly(1984, 2, 20);
+            var person = new Person { Id = 1, DateOfBirth = dateofbirth };
+
+            //Act
+            var result = _service.IsEmployeeMinor(person.DateOfBirth.Value);
+
+
+            //Assert
+            Assert.False(result);
         }
     }
 }

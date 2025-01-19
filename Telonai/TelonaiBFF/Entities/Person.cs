@@ -15,7 +15,9 @@ public class Person : BaseTracker
     public string AddressLine2 { get; set; }
     public string AddressLine3 { get; set; }
     public int? ZipcodeId { get; set; }
+    public int? CountyId { get; set; }
     public string Ssn { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
     public bool Deactivated { get; set; }
     public int CompanyId { get; set; }
     public bool IsTwopercentshareholder { get; set; }
@@ -29,5 +31,6 @@ public class Person : BaseTracker
     public virtual StateWithholdingDocumentStatus StateWithholdingDocumentStatus { get; set; }
     public virtual int WfourWithholdingDocumentStatusId { get; set; }
     public virtual WfourWithholdingDocumentStatus WfourWithholdingDocumentStatus { get; set; }
+    public virtual string InternalEmployeeId { get; set; }
 
 }

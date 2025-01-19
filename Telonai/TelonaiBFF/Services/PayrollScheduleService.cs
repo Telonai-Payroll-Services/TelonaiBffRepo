@@ -76,9 +76,8 @@ public class PayrollScheduleService : IPayrollScheduleService
             _context.PayrollSchedule.Update(currentSchedule);
         }
         else
-        {  //check if this is the first schedule and if so update status
-            var count = _context.PayrollSchedule.Count(e => e.CompanyId == model.CompanyId);
-            if (count < 1)
+        {  //check if this is the first schedule and if so update sign-up status
+            if(!_context.PayrollSchedule.Any(e => e.CompanyId == model.CompanyId))            
             {
                 var emp = _context.Employment.First(e => e.Job.CompanyId == model.CompanyId && !e.Deactivated);
                 if (emp.SignUpStatusTypeId < (int)SignUpStatusTypeModel.PayrollScheduleCreationCompleted)
@@ -87,7 +86,7 @@ public class PayrollScheduleService : IPayrollScheduleService
                     _context.Employment.Update(emp);
                 }
             }
-        }
+        } 
         var newSchedule = new PayrollSchedule
         {
             PayrollScheduleTypeId = (int)Enum.Parse(typeof(PayrollScheduleTypeModel), model.PayrollScheduleType),
@@ -102,7 +101,7 @@ public class PayrollScheduleService : IPayrollScheduleService
         
         //Create the first payroll for the new schedule.
         //If there is existing payroll to be run, close it
-        var existingPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefault();
+        var existingPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefault(e=>e.CompanyId==model.CompanyId);
         if (existingPayroll != null)
         {
             if (existingPayroll.ScheduledRunDate >= newSchedule.StartDate)
