@@ -34,13 +34,13 @@ public class UserService : IUserService
     private readonly IMailSender _mailSender;
     private readonly IPersonService<PersonModel,Person> _personService;
 
-    public UserService(UserManager<CognitoUser> userManager, CognitoSignInManager<CognitoUser> signInManager,ILogger<UserService> logger, 
+    public UserService(UserManager<CognitoUser> userManager, SignInManager<CognitoUser> signInManager,ILogger<UserService> logger, 
                       CognitoUserPool pool, IMailSender mailSender, IPersonService<PersonModel, Person> personService)
     {
         _userManager = userManager as CognitoUserManager<CognitoUser>;
         _logger = logger;
         _pool = pool;
-        _signInManager = signInManager;
+        _signInManager = signInManager as CognitoSignInManager<CognitoUser>;
         _mailSender = mailSender;
         _personService = personService;
     }
@@ -271,12 +271,12 @@ public class UserService : IUserService
     private static string CreateTextEmailBody(string fullName, string username)
     {
         return $"Dear {fullName} \r\n" +
-              "We received a request to retrieve the username associated with this email address." +
-              $"Your username is: { username}" +
-              $"If you did not request this information, please ignore this email.Your account remains secure, and no further action is required." +
-              $"If you have any questions or need further assistance, feel free to contact our support team at support@telonai.com." +
-              $"Best regards, " +
-              $"Telonai Payroll Service.";
+              "We received a request to retrieve the username associated with this email address. \r\n" +
+              $"Your username is: { username} \r\n" +
+              $"If you did not request this information, please ignore this email.Your account remains secure, and no further action is required. \r\n" +
+              $"If you have any questions or need further assistance, please contact our support team at service@telonai.com .\r\n" +
+              "\r\n Thank you for choosing Telonai. \r\n" +
+              "Telonai Payroll Services Inc.";
     }
 
     private static string CreateHtmlEmailBody(string fullName, string username)
@@ -285,8 +285,8 @@ public class UserService : IUserService
               $"<br/>We received a request to retrieve the username associated with this email address." +
               $"<br/><p>Your username is: <b>{username}</b></p>" +
               $"<br/>If you did not request this information, please ignore this email.Your account remains secure, and no further action is required." +
-              $"<br/>If you have any questions or need further assistance, feel free to contact our support team at support@telonai.com." +
-              $"<br/>Best regards, " +
-              $"<br/>Telonai Payroll Service.";
+              $"<br/>If you have any questions or need further assistance, feel free to contact our support team at service@telonai.com ." +
+              $"<br/>Thank you for choosing Telonai., " +
+              $"<br/>Telonai Payroll Services Inc.";
     }
 }
