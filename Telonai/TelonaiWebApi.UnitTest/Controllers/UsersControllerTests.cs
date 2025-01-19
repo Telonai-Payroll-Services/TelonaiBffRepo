@@ -1,22 +1,17 @@
 ﻿
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Reflection;
-using Microsoft.AspNetCore.Mvc;
-using Xunit;
+using Amazon.Extensions.CognitoAuthentication;
 using AutoFixture;
-using AutoFixture.AutoMoq;
-using AutoFixture.Xunit2;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
+using System.Reflection;
 using TelonaiWebApi.Controllers;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
 using TelonaiWebAPI.UnitTest.Helper;
-using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
-using Microsoft.EntityFrameworkCore.Metadata;
+using Xunit;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 public class UsersControllerTests
 {
     private readonly IFixture _fixture;
@@ -74,9 +69,8 @@ public class UsersControllerTests
         // Assert
         Assert.IsType<NoContentResult>(result);
     }
-
     [Fact]
-    public async Task ForgetPasswordReset_ValidModelReturnsNoContent()
+    public async Task ForgetPasswordReset_ValidModel_ReturnsNoContent()
     {
         // Arrange
         var username = "birass";
@@ -114,27 +108,309 @@ public class UsersControllerTests
         _mockUserService.Verify(s => s.ForgotPasswordResponse(passwordResetObject.Username, passwordResetObject.Code, passwordResetObject.NewPassword), Times.Never);
         Assert.IsType<NoContentResult>(result);
     }
+    [Fact]
+    public async Task ConfirmTwoFactorCodeAsync_ValidModel_ReturnsOkResult()
+    {
+        var tfa = new TwoFactoreModel()
+        {
+            Password = "^YHNmju7",
+            Username = "birass",
+            RememberMachine = true,
+            RememberMe = true,
+            TwoFactorCode = "2356"
+        };
+        var signResult = SignInResult.Success;
+        _mockUserService.Setup(x => x.ConfirmTwoFactorCodeAsync(tfa)).ReturnsAsync(signResult);
 
-    //[Fact]
-    //public async Task ConfirmTwoFactorCodeAsync_ValidModel_ReturnsOkResult()
-    //{
-    //    var tfa = new TwoFactoreModel()
-    //    {
-    //        Password = "^YHNmju7",
-    //        Username = "birass",
-    //        RememberMachine = true,
-    //        RememberMe = true,
-    //        TwoFactorCode = "2356"
-    //    };
-    //    var signResult = new Microsoft.AspNetCore.Identity.SignInResult();
-    //    _mockUserService.Setup(x => x.ConfirmTwoFactorCodeAsync(tfa)).ReturnsAsync(signResult.Succeeded);
-    //    // Act
-    //    var result = await _controller.ConfirmTwoFactorCodeAsync(tfa);
+        // Act
+        var result = await _controller.ConfirmTwoFactorCodeAsync(tfa);
 
-    //    // Assert
-    //    _mockUserService.Verify(s => s.ConfirmTwoFactorCodeAsync(tfa), Times.Once);
-    //    Assert.IsType<OkObjectResult>(result);
-    //}
+        // Assert
+        _mockUserService.Verify(s => s.ConfirmTwoFactorCodeAsync(tfa), Times.Once);
+        Assert.IsType<OkObjectResult>(result);
+    }
+    [Fact]
+    public async Task ConfirmTwoFactorCodeAsync_InValidModel_ReturnsBadRequestResult()
+    {
+        TwoFactoreModel tfa = null;
+        var signResult = SignInResult.NotAllowed;
+        _mockUserService.Setup(x => x.ConfirmTwoFactorCodeAsync(tfa)).ReturnsAsync(signResult);
+
+        // Act
+        var result = await _controller.ConfirmTwoFactorCodeAsync(tfa);
+
+        // Assert
+        _mockUserService.Verify(s => s.ConfirmTwoFactorCodeAsync(tfa), Times.Once);
+        Assert.IsType<BadRequestResult>(result);
+    }
+    [Fact]
+    public async Task ConfirmAccountAsync_ValidModel_ReturnsOkResult()
+    {
+        //assert
+        string username = "biras";
+        string code = "8347";
+        _mockUserService.Setup(x => x.ConfirmAccount(username,code)).ReturnsAsync("Success");
+            
+        //Act
+        var result = await _controller.ConfirmAccountAsync(username,code);
+
+        // Assert
+        _mockUserService.Verify(s => s.ConfirmAccount(username,code), Times.Once);
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.Equal("Success", okResult.Value.ToString());
+    }
+    [Fact]
+    public async Task ConfirmAccountAsync_ValidModel_ReturnsOkRequestResult()
+    {
+        //assert
+        string username = "biras";
+        string code = "8347";
+        _mockUserService.Setup(x => x.ConfirmAccount(username, code)).ReturnsAsync("NewCodeSent");
+
+        //Act
+        var result = await _controller.ConfirmAccountAsync(username, code);
+
+        // Assert
+        _mockUserService.Verify(s => s.ConfirmAccount(username, code), Times.Once);
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.Equal("NewCodeSent", okResult.Value.ToString());
+    }
+    [Fact]
+    public async Task ConfirmAccountAsync_ValidModelNewCodeSent_ReturnsOkRequestResult()
+    {
+        //assert
+        string username = "biras";
+        string code = "8347";
+        _mockUserService.Setup(x => x.ConfirmAccount(username, code)).ReturnsAsync("NewCodeSent");
+
+        //Act
+        var result = await _controller.ConfirmAccountAsync(username, code);
+
+        // Assert
+        _mockUserService.Verify(s => s.ConfirmAccount(username, code), Times.Once);
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.Equal("NewCodeSent", okResult.Value.ToString());
+    }
+    [Fact]
+    public async Task ConfirmAccountAsync_WhenInvalidModelPassed_ReturnsBadRequestResult()
+    {
+        //assert
+        string username = null;
+        string code = null;
+        _mockUserService.Setup(x => x.ConfirmAccount(username, code)).ReturnsAsync("");
+        _controller.ModelState.AddModelError("username", "The username parameter is required.");
+
+        //Act
+        var result = await _controller.ConfirmAccountAsync(username, code);
+
+        // Assert
+        _mockUserService.Verify(s => s.ConfirmAccount(username, code), Times.Never);
+        Assert.IsType<BadRequestResult>(result);
+    }
+    [Fact]
+    public async Task CheckUserNameAvailability_WhenValidModelPassed_ReturnOkRequestResult()
+    {
+        //Assert
+        string username = "birass";
+        _mockUserService.Setup(x => x.CheckUsernameAvailability(username)).ReturnsAsync(false);
+
+        //Act
+        var result = await _controller.CheckUserNameAvailability(username);
+
+        // Assert
+        _mockUserService.Verify(s => s.CheckUsernameAvailability(username), Times.Once);
+        Assert.IsType<OkResult>(result);
+    }
+    [Fact]
+    public async Task CheckUserNameAvailability_WhenUserNameExists_ReturnBadRequestResult()
+    {
+        //Assert
+        string username = "birass";
+        _mockUserService.Setup(x => x.CheckUsernameAvailability(username)).ReturnsAsync(true);
+
+        //Act
+        var result = await _controller.CheckUserNameAvailability(username);
+
+        // Assert
+        _mockUserService.Verify(s => s.CheckUsernameAvailability(username), Times.Once);
+        var response =  Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal("Invalid", response.Value.ToString());
+    }
+    [Fact]
+    public async Task CheckUserNameAvailability_WhenInValidModelPassed_ReturnOkRequestResult()
+    {
+        //Assert
+        string username = "";
+        _mockUserService.Setup(x => x.CheckUsernameAvailability(username)).ReturnsAsync(false);
+
+        //Act
+        var result = await _controller.CheckUserNameAvailability(username);
+
+        // Assert
+        _mockUserService.Verify(s => s.CheckUsernameAvailability(username), Times.Never);
+        var objResponse = Assert.IsType<OkObjectResult>(result);
+        Assert.Equal("Please provide the username to check whether it is available or not", objResponse.Value.ToString());
+    }
+    [Fact]
+    public async Task ForgetUsername_WhenValidEmailPassed_ReturnOkResult()
+    {
+        //Assert
+        string username = "biras7070@gmail.com";
+        _mockUserService.Setup(x => x.SendForgettenUsername(username)).ReturnsAsync(true);
+
+        //Act
+        var result = await _controller.ForgetUsername(username);
+
+        // Assert
+        _mockUserService.Verify(s => s.SendForgettenUsername(username), Times.Once);
+        var objResponse = Assert.IsType<OkObjectResult>(result);
+        Assert.Equal("Your username was delivered to your email address.Check your email, please.", objResponse.Value.ToString());
+    }
+    [Fact]
+    public async Task ForgetUsername_WhenPassedNonExistingEmail_ReturnNotFoundResult()
+    {
+        //Assert
+        string username = "biras7070@gmail.com";
+        _mockUserService.Setup(x => x.SendForgettenUsername(username)).ReturnsAsync(false);
+
+        //Act
+        var result = await _controller.ForgetUsername(username);
+
+        // Assert
+        _mockUserService.Verify(s => s.SendForgettenUsername(username), Times.Once);
+        Assert.IsType<NotFoundResult>(result);
+    }
+    [Fact]
+    public async Task ForgetUsername_WhenInvalidEmailAddressPassed_ReturnException()
+    {
+        //Assert
+        string username = "biras7070gmail.com";
+        _mockUserService.Setup(x => x.SendForgettenUsername(username)).ReturnsAsync(false);
+
+        //Act and Assert
+        var exception = await Assert.ThrowsAsync<ApplicationException>(() => _controller.ForgetUsername(username));
+        Assert.Equal("Please enter a valid email address.", exception.Message);
+        _mockUserService.Verify(s => s.SendForgettenUsername(username), Times.Never);
+    }
+    [Fact]
+    public async Task ForgetUsername_WhenEmptyEmailAddressPassed_ReturnException()
+    {
+        //Assert
+        string username = string.Empty;
+        _mockUserService.Setup(x => x.SendForgettenUsername(username)).ReturnsAsync(false);
+
+        //Act and Assert
+        var exception = await Assert.ThrowsAsync<ApplicationException>(() => _controller.ForgetUsername(username));
+        Assert.Equal("Please enter email address.", exception.Message);
+        _mockUserService.Verify(s => s.SendForgettenUsername(username), Times.Never);
+    }
+    [Fact]
+    public async Task ChangePassword_WhenPassedValidChangePassword_ReturnsOKResult()
+    {
+        //Arrange
+        var Username = "birass";
+        var NewPassword = "!QAZxdr5";
+        var OldPassword = "^YHNmju7";
+        var changePassword = new UserChangePasswordModel()
+        {
+            Username = Username,
+            NewPassword = NewPassword,
+            OldPassword = OldPassword
+        };
+
+        var signResult = SignInResult.Success;
+        _mockUserService.Setup(x => x.ChangePasswordAsync(Username,OldPassword,NewPassword));
+
+        //Act
+        var result = await _controller.ChangePassword(changePassword);
+
+        //Assert 
+        _mockUserService.Verify(s => s.ChangePasswordAsync(Username, OldPassword, NewPassword), Times.Once);
+        Assert.IsType<OkResult>(result);
+    }
+    [Fact]
+    public async Task ChangePassword_WhenPassedInValidChangePassword_ReturnsOKResult()
+    {
+        //Arrange
+        var Username = "birass";
+        var NewPassword = "!QAZxdr5";
+        var OldPassword = "^YHNmju7";
+        UserChangePasswordModel changePassword = null;
+
+        var signResult = SignInResult.Success;
+        _mockUserService.Setup(x => x.ChangePasswordAsync(Username, OldPassword, NewPassword));
+        _controller.ModelState.AddModelError("change password", "There is no values for changing password");
+
+        //Act
+        var result = await _controller.ChangePassword(changePassword);
+
+        //Assert 
+        _mockUserService.Verify(s => s.ChangePasswordAsync(Username, OldPassword, NewPassword), Times.Never);
+        Assert.IsType<OkResult>(result);
+    }
+    [Fact]
+    public async Task Login_WithSuccessfulAuthentication_ReturnsOkResult()
+    {
+        //Arrange
+        var userInfo = new BaseUser()
+        {
+            Username = "birass",
+            Password = "^YHNmju",
+            RememberMe = true
+        };
+        var signResult =  new Tuple<CognitoUser, SignInManagerResponse>(null, SignInManagerResponse.LoginSucceeded);
+        _mockUserService.Setup(x=>x.LoginAsync(userInfo.Username,userInfo.Password,true)).ReturnsAsync(signResult);
+
+        //Act
+        var result = await _controller.Login(userInfo);
+
+        //Assert
+        Assert.IsType<OkObjectResult>(result);
+    }
+    [Fact]
+    public async Task Login_WithRequiresTwoFactorSuccessfulAuthentication_ReturnsOkResult()
+    {
+        //Arrange
+        var userInfo = new BaseUser()
+        {
+            Username = "birass",
+            Password = "^YHNmju",
+            RememberMe = true
+        };
+        
+        var signResult = new Tuple<CognitoUser, SignInManagerResponse>(null, SignInManagerResponse.RequiresTwoFactor);
+        _mockUserService.Setup(x => x.LoginAsync(userInfo.Username, userInfo.Password, true)).ReturnsAsync(signResult);
+
+        //Act
+        var result = await _controller.Login(userInfo);
+
+        //Assert
+        var response = Assert.IsType<OkObjectResult>(result);
+        var loginResult = (LoginResult)response.Value;
+        Assert.Equal("RequiresTwoFactor", loginResult.Error.ToString());
+    }
+    [Fact]
+    public async Task Login_WithInvalidCredentials_ReturnsOkResult()
+    {
+        //Arrange
+        var userInfo = new BaseUser()
+        {
+            Username = "birass",
+            Password = "^YHNmju",
+            RememberMe = true
+        };
+
+        var signResult = new Tuple<CognitoUser, SignInManagerResponse>(null, SignInManagerResponse.InvalidCredentials);
+        _mockUserService.Setup(x => x.LoginAsync(userInfo.Username, userInfo.Password, true)).ReturnsAsync(signResult);
+
+        //Act
+        var result = await _controller.Login(userInfo);
+
+        //Assert
+        var response = Assert.IsType<OkObjectResult>(result);
+        var loginResult = (LoginResult)response.Value;
+        Assert.Equal("InvalidCredentials", loginResult.Error.ToString());
+    }
 
     [Theory, CustomAutoData]
     public async Task SignUp_ValidModel_ReturnsOk(User user)
@@ -223,7 +499,8 @@ public class UsersControllerTests
 
         Assert.NotNull(result); 
         Assert.Equal(person.FirstName, result.FirstName); 
-        Assert.Equal(person.LastName, result.LastName); } 
+        Assert.Equal(person.LastName, result.LastName); 
+    }
     [Theory, CustomAutoData] public async Task CreateEmploymment_ValidInputs_ReturnsEmploymentModel() {
 
         var jobId = 1; 

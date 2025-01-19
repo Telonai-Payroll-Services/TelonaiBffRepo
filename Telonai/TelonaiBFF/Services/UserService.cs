@@ -139,7 +139,6 @@ public class UserService : IUserService
     }
     public async Task ChangePasswordAsync(string username, string oldPassword, string newPassword)
     {
-
         var result = await _signInManager.PasswordSignInAsync(username, oldPassword, false, lockoutOnFailure: false);
 
         if (result.Succeeded)
