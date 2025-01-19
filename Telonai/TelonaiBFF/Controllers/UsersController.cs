@@ -228,7 +228,7 @@ public class UsersController : Controller
             string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             if (Regex.IsMatch(email, pattern))
             {
-                var forgetUsernameResult = await _userService.SendForgettenUsername(email);
+                var forgetUsernameResult = await _userService.SendForgottenUsername(email);
                 if (forgetUsernameResult)
                 {
                     return Ok("Your username was delivered to your email address.Check your email, please.");
@@ -273,8 +273,7 @@ public class UsersController : Controller
             CompanyId = companyId,
             //BankAccountNumber = user?.BankAccountNumber,
             //RoutingNumber = user?.RoutingNumber,
-            INineVerificationStatusId = (int)INineVerificationStatusModel.INineNotSubmitted,
-            InternalEmployeeId = user.InternalEmployeeId,
+            INineVerificationStatusId = (int)INineVerificationStatusModel.INineNotSubmitted
         };
         var exstingPerson=await _personService.GetByEmailAsync(user?.Email);
         if (exstingPerson != null) 
