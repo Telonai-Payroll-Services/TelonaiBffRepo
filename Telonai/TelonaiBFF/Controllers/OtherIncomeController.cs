@@ -71,9 +71,10 @@ public class OtherIncomeController : ControllerBase
 
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "SystemAdmin")]
     public async Task<IActionResult> Delete(int id)
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         var result = await _otherIncomeService.Delete(id);
         if(result)
         {

@@ -98,9 +98,11 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpPost("generate")]
-    [Authorize(Policy = "SystemAdmin")]
+    [Authorize]
     public IActionResult CreateNextPayrollForAll()
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         var countryId = 2;
 
         lock (_scopedAuthorization)
@@ -123,9 +125,11 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "SystemAdmin")]
+    [Authorize]
     public IActionResult Delete(int id)
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         _payrollService.Delete(id);
         return Ok(new { message = "Payroll deleted." });
     }

@@ -155,9 +155,9 @@ public class PayrollService : IPayrollService
             .GroupBy(e => e.CompanyId)
             .Select(g => g.First()).ToList();
 
-        var currentPayrolls = _context.Payroll.OrderByDescending(e=>e.ScheduledRunDate)
+        var currentPayrolls = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
             .Include(e => e.PayrollSchedule)
-            .Where(e => e.ScheduledRunDate >= today && e.ScheduledRunDate <= threeDaysFromNow)
+            .Where(e => e.ScheduledRunDate >= today)
             .GroupBy(e => e.CompanyId)
             .Where(g => g.Count() == 1) //This line will filter out those already created in the previous day
             .Select(g => g.First()).ToList();
