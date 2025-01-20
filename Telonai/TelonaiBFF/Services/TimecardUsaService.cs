@@ -146,7 +146,7 @@ public class TimecardUsaService : ITimecardUsaService
         var currentPayroll = _context.Payroll.FirstOrDefault(e => e.CompanyId == companyId
             && e.StartDate <= today  && e.ScheduledRunDate >= today);
         
-        var startDate = currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue);
+        var startDate = currentPayroll?.StartDate.ToDateTime(TimeOnly.MinValue);
         var obj = _context.TimecardUsa.Where(e => e.ClockIn >= startDate && e.Job.CompanyId == companyId 
         && e.PersonId == personId);
         

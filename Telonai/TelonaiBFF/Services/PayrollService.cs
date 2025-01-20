@@ -155,7 +155,8 @@ public class PayrollService : IPayrollService
             .GroupBy(e => e.CompanyId)
             .Select(g => g.First()).ToList();
 
-        var currentPayrolls = _context.Payroll.OrderByDescending(e=>e.ScheduledRunDate).Include(e => e.PayrollSchedule)
+        var currentPayrolls = _context.Payroll.OrderByDescending(e=>e.ScheduledRunDate)
+            .Include(e => e.PayrollSchedule)
             .Where(e => e.ScheduledRunDate >= today && e.ScheduledRunDate <= threeDaysFromNow)
             .GroupBy(e => e.CompanyId)
             .Where(g => g.Count() == 1) //This line will filter out those already created in the previous day
@@ -163,7 +164,8 @@ public class PayrollService : IPayrollService
 
         foreach (var payroll in currentPayrolls)
         {
-            var newSchedule = paySchedules.Where(e => e.CompanyId == payroll.CompanyId).OrderByDescending(e => e.Id).FirstOrDefault();
+            var newSchedule = paySchedules.Where(e => e.CompanyId == payroll.CompanyId)
+                .OrderByDescending(e => e.Id).FirstOrDefault();
             var existingSchedule = payroll.PayrollSchedule;
             var scheduleChanged = newSchedule.Id != existingSchedule.Id;
 
@@ -487,8 +489,9 @@ public class PayrollService : IPayrollService
     public async Task CreateNextPaystubForAllCurrentPayrollsAsync()
     {
         var today = DateOnly.FromDateTime(DateTime.Now);
-        var payrolls = _context.Payroll.Include(e => e.PayrollSchedule).Where(e => e.StartDate <= today && e.ScheduledRunDate >= today
-        && e.TrueRunDate == null).ToList();
+        var payrolls = _context.Payroll.Include(e => e.PayrollSchedule)
+            .Where(e => e.StartDate <= today && e.ScheduledRunDate >= today
+                && e.TrueRunDate == null).ToList();
 
         for (int i = 0; i < payrolls.Count; i++)
         {
