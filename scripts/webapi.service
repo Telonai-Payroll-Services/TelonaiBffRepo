@@ -1,5 +1,5 @@
 [Unit]
-Description=BFF for Telonai
+Description=Telonai BFF 
 
 [Service]
 WorkingDirectory=/var/www/
