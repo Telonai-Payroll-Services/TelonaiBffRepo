@@ -93,9 +93,10 @@ public class PersonsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "SystemAdmin")]
     public IActionResult Delete(int id)
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         _service.DeleteAsync(id);
         return Ok(new { message = "Account deleted" });
     }

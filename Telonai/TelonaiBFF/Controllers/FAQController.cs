@@ -47,8 +47,8 @@ public class FAQController : ControllerBase
         return Ok(item);
     }
 
-    [Authorize(Policy = "SystemAdmin")]
     [HttpPost]
+    [Authorize]
     public IActionResult Create(FAQModel faq)
     {
         _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
@@ -56,8 +56,8 @@ public class FAQController : ControllerBase
         return Ok();
     }
 
-    [Authorize(Policy = "SystemAdmin")]
     [HttpPut("{id}")]
+    [Authorize]
     public IActionResult Update(int id, FAQModel faq)
     {
         _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
@@ -65,8 +65,8 @@ public class FAQController : ControllerBase
         return Ok();
     }
 
-    [Authorize(Policy = "SystemAdmin")]
     [HttpDelete("{id}")]
+    [Authorize]
     public IActionResult Delete(int id)
     {
         _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);

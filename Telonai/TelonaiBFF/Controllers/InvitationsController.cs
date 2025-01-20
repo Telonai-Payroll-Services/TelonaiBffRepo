@@ -139,10 +139,10 @@ public class InvitationsController : ControllerBase
         return Ok("Quote sent.");
     }
 
-    [Authorize(Policy = "SystemAdmin")]
     [HttpDelete("{id}")]
     public IActionResult Delete(Guid id)
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
         _service.DeleteAsync(id);
         return Ok(new { message = "Invitation deleted" });
     }
