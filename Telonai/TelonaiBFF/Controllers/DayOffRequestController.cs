@@ -123,6 +123,7 @@ public class DayOffRequestController : ControllerBase
                 string message = approveDayOffRequest.IsApproved ? "The dayoff request of the employee is approved successfully":
                                                                   "The dayoff request of the employee is rejected successfully";
                 return Ok(message);
+                return Ok(message);
             }
             else
             {

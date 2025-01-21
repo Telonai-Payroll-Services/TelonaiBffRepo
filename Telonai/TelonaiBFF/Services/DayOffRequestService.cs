@@ -124,6 +124,9 @@ public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,Day
         }
 
         _scopedAuthorization.ValidateByJobId(_httpContextAccessor.HttpContext.User, AuthorizationType.User, emp.JobId);
+        
+        if (model.FromDate.CompareTo(DateTime.Now) < 0)
+            throw new AppException("Requesting a day off for past dates is not allowed.");
 
         var dayOff = _context.DayOffRequest.FirstOrDefault(e => e.EmploymentId == model.EmploymentId
         && !e.IsCancelled && model.FromDate <= e.ToDate && e.FromDate <= model.ToDate);
