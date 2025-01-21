@@ -1,5 +1,5 @@
 
-# AWS CodeBuild spec to build .net 6 app 
+# AWS CodeBuild spec to build .net 6 app just test build
 version: 0.2
     
 phases:

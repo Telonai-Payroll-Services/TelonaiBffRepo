@@ -14,6 +14,9 @@ using TelonaiWebApi.Models.FileScan;
 using TelonaiWebApi.Helpers.FileScan;
 using TelonaiWebApi.Helpers.Interface;
 using TelonaiWebApi.Helpers.Configuration;
+using Amazon.Extensions.CognitoAuthentication;
+using Microsoft.AspNetCore.Identity;
+using Amazon.AspNetCore.Identity.Cognito;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,6 +112,8 @@ var builder = WebApplication.CreateBuilder(args);
         config.AddAWSProvider(configuration.GetAWSLoggingConfigSection());
         config.SetMinimumLevel(LogLevel.Debug);
     });
+    //services.AddTransient<CognitoSignInManager<CognitoUser>>();
+    //services.AddTransient<CognitoUserManager<CognitoUser>>();
 
     var fileScanSettings = builder.Configuration.GetSection("FileScan");
     builder.Services.Configure<FileScanSettings>(fileScanSettings);
@@ -174,7 +179,5 @@ var app = builder.Build();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
 
-
-
-//app.Run("http://localhost:5000");
 app.Run();
+

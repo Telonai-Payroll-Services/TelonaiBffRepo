@@ -91,11 +91,23 @@ public class UsersController : Controller
     [HttpPost("changepassword")]
     public async Task<IActionResult> ChangePassword(UserChangePasswordModel user)
     {
-        if (ModelState.IsValid)
+
+        if (ModelState.IsValid && user != null)
         {
-            await _userService.ChangePasswordAsync(user.Username, user.OldPassword, user.NewPassword);
+            var result = await _userService.ChangePasswordAsync(user.Username, user.OldPassword, user.NewPassword);
+            if(result)
+            {
+                return Ok("Your password changed successfully");
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
-        return Ok();
+        else
+        {
+            return BadRequest();
+        }
     }
 
 
@@ -174,7 +186,7 @@ public class UsersController : Controller
     [HttpPost("confirmTfa")]
     public async Task<IActionResult> ConfirmTwoFactorCodeAsync(TwoFactoreModel user)
     {
-        var returnUrl = Url.Content("~/");
+        //var returnUrl = Url.Content("~/");
         if (ModelState.IsValid)
         {
             var result = await _userService.ConfirmTwoFactorCodeAsync(user);
@@ -228,7 +240,7 @@ public class UsersController : Controller
             string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             if (Regex.IsMatch(email, pattern))
             {
-                var forgetUsernameResult = await _userService.SendForgettenUsername(email);
+                var forgetUsernameResult = await _userService.SendForgottenUsername(email);
                 if (forgetUsernameResult)
                 {
                     return Ok("Your username was delivered to your email address.Check your email, please.");
