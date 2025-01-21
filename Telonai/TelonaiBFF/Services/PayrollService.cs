@@ -579,13 +579,16 @@ public class PayrollService : IPayrollService
 
         var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId && e.PayRateBasisId!=null &&
         (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate))).ToList();
-        var dayOffRequest = await _dayOffRequestService.GetUnpaidCountDayOffRequestForSpecificPayrollSchedule(companyId, currentPayroll.StartDate, currentPayroll.ScheduledRunDate);
+
+        var dayOffRequest = await _dayOffRequestService.GetUnpaidDaysOffForPayrollSchedule(companyId, 
+            currentPayroll.StartDate, currentPayroll.ScheduledRunDate);
+
         foreach (var emp in employments)
-        {
-            
+        {            
             var payrate = emp.PayRate;
             var payRateBasis = emp.PayRateBasisId;
             var numberofDayOff = dayOffRequest.Count(x => x.EmploymentId == emp.Id);
+
             if (payRateBasis == null)
                 continue;
 
@@ -600,7 +603,7 @@ public class PayrollService : IPayrollService
             if (payRateBasis == (int)PayRateBasisModel.Daily)
             {
                 var pay = CalculatePayForDailyRatedEmployee(timecards, currentPayroll, emp);
-                regularPay = Math.Round(pay.Item1, 2);
+                regularPay = pay.Item1;
                 regularHours = pay.Item2 * 8;
 
                 if (currentPaystub == null)
@@ -619,9 +622,7 @@ public class PayrollService : IPayrollService
                 }
                 else
                 {
-                    currentPaystub.EmploymentId = emp.Id;
                     currentPaystub.RegularHoursWorked = regularHours;
-                    currentPaystub.PayrollId = currentPayroll.Id;
                     currentPaystub.RegularPay = regularPay;
                     currentPaystub.GrossPay = regularPay;
                     currentPaystub.NetPay = regularPay;
@@ -638,7 +639,7 @@ public class PayrollService : IPayrollService
                         {
                             if (numberofDayOff > 0)
                             {
-                                var dailyPayrate = payrate / 260;
+                                var dailyPayrate = payrate / 260; 
                                 regularPay = (payrate / 12) - (dailyPayrate * numberofDayOff);
                             }
                             else
@@ -651,7 +652,7 @@ public class PayrollService : IPayrollService
                         {
                             if (numberofDayOff > 0)
                             {
-                                var dailyPayrate = (payrate * 12) / 260;
+                                var dailyPayrate = (payrate * 12) / 260; 
                                 regularPay = payrate - (dailyPayrate * numberofDayOff);
                             }
                             else
@@ -690,7 +691,7 @@ public class PayrollService : IPayrollService
                         {
                             if (numberofDayOff > 0)
                             {
-                                var dailyPayrate = payrate / 260;
+                                var dailyPayrate = (payrate * 12) / 260;
                                 regularPay = (payrate/2) - (dailyPayrate * numberofDayOff);
                             }
                             else
@@ -703,12 +704,12 @@ public class PayrollService : IPayrollService
                         {
                             if(numberofDayOff > 0)
                             {
-                                var dailyPayrate = payrate / 260;
-                                regularPay = (payrate / 4) - (dailyPayrate * numberofDayOff);
+                                var dailyPayrate = payrate / 5;
+                                regularPay = (payrate * 52/24) - (dailyPayrate * numberofDayOff);
                             }
                             else
                             { 
-                                regularPay = payrate /2;
+                                regularPay = (payrate * 52 / 24);
                             }
                             
                             break;
@@ -745,7 +746,7 @@ public class PayrollService : IPayrollService
                         {
                             if (numberofDayOff > 0)
                             {
-                                var dailyPayrate = payrate / 260;
+                                var dailyPayrate = (payrate * 12) / 260;
                                 regularPay = (payrate * 12 / 26) - (dailyPayrate * numberofDayOff);
                             }
                             else 
@@ -758,7 +759,7 @@ public class PayrollService : IPayrollService
                         {
                             if (numberofDayOff > 0)
                             {
-                                var dailyPayrate = payrate / 260;
+                                var dailyPayrate = payrate / 5;
                                 regularPay = (payrate * 2) - (dailyPayrate * numberofDayOff);
                             }
                             else
@@ -785,7 +786,7 @@ public class PayrollService : IPayrollService
                             if (numberofDayOff > 0)
                             {
                                 var dailyPayrate = payrate / 260;
-                                regularPay = (payrate * 52) - (dailyPayrate * numberofDayOff);
+                                regularPay = (payrate / 52) - (dailyPayrate * numberofDayOff);
                             }
                             else
                             {
@@ -797,12 +798,12 @@ public class PayrollService : IPayrollService
                         {
                             if (numberofDayOff > 0)
                             {
-                                var dailyPayrate = payrate / 260;
-                                regularPay = (payrate * 4) - (dailyPayrate * numberofDayOff);
+                                var dailyPayrate = payrate * 12 / 260;
+                                regularPay = (payrate * 12 / 52) - (dailyPayrate * numberofDayOff);
                             }
                             else
                             {
-                                regularPay = payrate * 4;
+                                regularPay = (payrate * 12 / 52);
                             }
                            
                             break;
@@ -811,7 +812,7 @@ public class PayrollService : IPayrollService
                         {
                             if (numberofDayOff > 0)
                             {
-                                var dailyPayrate = payrate / 260;
+                                var dailyPayrate = payrate / 5;
                                 regularPay = payrate - (dailyPayrate * numberofDayOff);
                             }
                             else
@@ -843,21 +844,22 @@ public class PayrollService : IPayrollService
                     EmploymentId = emp.Id,
                     RegularHoursWorked = regularHours,
                     OverTimeHoursWorked = otHours,
-                    OverTimePay = Math.Round(otPay,2),
+                    OverTimePay = Math.Round(otPay, 2),
                     PayrollId = currentPayroll.Id,
-                    RegularPay = Math.Round(regularPay,2),
-                    GrossPay = Math.Round(otPay + regularPay,2),
+                    RegularPay = Math.Round(regularPay, 2),
+                    GrossPay = Math.Round(otPay + regularPay, 2),
+                    NetPay = Math.Round(regularPay, 2) //This is initializing the netpay. It will be adjusted when we deduct tax
                 };
                 newPaystubs.Add(paystub);
             }
             else
             {
-                currentPaystub.EmploymentId = emp.Id;
+                currentPaystub.OverTimeHoursWorked = otHours;
+                currentPaystub.OverTimePay = Math.Round(otPay, 2);
                 currentPaystub.RegularHoursWorked = regularHours;
-                currentPaystub.PayrollId = currentPayroll.Id;
-                currentPaystub.RegularPay = Math.Round(regularPay);
-                currentPaystub.GrossPay = Math.Round(regularPay);
-                currentPaystub.NetPay = Math.Round(regularPay);
+                currentPaystub.RegularPay = Math.Round(regularPay, 2);
+                currentPaystub.GrossPay = Math.Round(regularPay,2);
+                currentPaystub.NetPay = Math.Round(regularPay,2);
             }
         }
         
@@ -1124,12 +1126,12 @@ public class PayrollService : IPayrollService
         if(myTimeCards.Count()<1)
             return Tuple.Create(0.0, 0.0, 0.0, 0.0);
 
-        var totalHoursWorked = myTimeCards.Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds/60 / 60)).ToList();
+        var totalHoursWorked = myTimeCards.Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds/60 / 60,2)).ToList();
 
         var firstWeekHours = myTimeCards.Where(e => e.ClockIn < currentPayroll.StartDate.AddDays(7).ToDateTime(TimeOnly.MinValue))
             .Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60,2)).ToList().Sum();
 
-        var firstWeekOverTime = Math.Max(firstWeekHours - 40,0);
+        var firstWeekOverTime = Math.Max(firstWeekHours - 40,0); //TODO: the 40 hours should come form database
 
         var secondWeekHours=0.0;
         var secondWeekOverTime = 0.0;
@@ -1144,7 +1146,8 @@ public class PayrollService : IPayrollService
             secondWeekHours = myTimeCards.Where(e => e.ClockIn >= currentPayroll.StartDate.AddDays(7).ToDateTime(TimeOnly.MinValue)
             && e.ClockIn < currentPayroll.StartDate.AddDays(14).ToDateTime(TimeOnly.MinValue))
             .Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60, 2)).ToList().Sum();
-            secondWeekOverTime = secondWeekHours - 40;
+
+            secondWeekOverTime = Math.Max(secondWeekHours - 40, 0);
         }
 
         if (frequency == PayrollScheduleTypeModel.Monthly)
@@ -1152,31 +1155,31 @@ public class PayrollService : IPayrollService
             thirdWeekHours = myTimeCards.Where(e => e.ClockIn >= currentPayroll.StartDate.AddDays(14).ToDateTime(TimeOnly.MinValue)
            && e.ClockIn < currentPayroll.StartDate.AddDays(21).ToDateTime(TimeOnly.MinValue))
                .Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60,2)).ToList().Sum();
-            thirdWeekOverTime = thirdWeekHours - 40;
+
+            thirdWeekOverTime = Math.Max(thirdWeekHours - 40, 0);
 
             fourthWeekHours = myTimeCards.Where(e => e.ClockIn >= currentPayroll.StartDate.AddDays(21)
             .ToDateTime(TimeOnly.MinValue) && e.ClockIn < currentPayroll.StartDate.AddDays(28)
             .ToDateTime(TimeOnly.MinValue)).Select(e => Math.Round(e.HoursWorked.Value.TotalSeconds / 60 / 60, 2)).ToList().Sum();
-            fourthWeekOverTime = fourthWeekHours - 40;
+            
+            fourthWeekOverTime = Math.Max(fourthWeekHours - 40, 0);
         }
 
         var overTimeHours = firstWeekOverTime + secondWeekOverTime + thirdWeekOverTime + fourthWeekOverTime;
         var regularHours = totalHoursWorked.Sum() - overTimeHours;
 
         var regularPay = Math.Round(emp.PayRate * regularHours,2);
-        var overTimePayAmount = Math.Round(emp.PayRate * 1.5 * overTimeHours,2); //TO DO: get the 1.5 value from CountrySpecificFields table in DB
+        var overTimePayAmount = Math.Round(emp.PayRate * 1.5 * overTimeHours,2); //TODO: get the 1.5 value from CountrySpecificFields table in DB
         return Tuple.Create(regularPay, regularHours, overTimePayAmount,overTimeHours);
     }
     private static Tuple<double, int> CalculatePayForDailyRatedEmployee(List<TimecardUsa> timecards, 
         Payroll currentPayroll, Employment emp)
     {
-        var myTimeCards = timecards.Where(e => e.PersonId == emp.PersonId &&
-                            e.ClockIn > currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue) &&
-                            e.ClockIn < currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MaxValue));
+        var myTimeCards = timecards.Where(e => e.PersonId == emp.PersonId);
 
         var totalDaysWorked = myTimeCards.Select(e => e.ClockIn.Day).Distinct().Count();
 
-        var regularPay = Math.Round(emp.PayRate * totalDaysWorked,2);
+        var regularPay = Math.Round(emp.PayRate * totalDaysWorked, 2);
 
         return Tuple.Create(regularPay, totalDaysWorked);
     }
