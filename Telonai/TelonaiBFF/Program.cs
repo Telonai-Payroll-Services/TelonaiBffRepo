@@ -180,5 +180,4 @@ var app = builder.Build();
 }
 
 
-app.Run("http://localhost:5000");
-//app.Run();
+app.Run();

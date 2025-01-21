@@ -256,13 +256,13 @@ public class UsersControllerTests
     {
         //Assert
         string username = "biras7070@gmail.com";
-        _mockUserService.Setup(x => x.SendForgettenUsername(username)).ReturnsAsync(true);
+        _mockUserService.Setup(x => x.SendForgottenUsername(username)).ReturnsAsync(true);
 
         //Act
         var result = await _controller.ForgetUsername(username);
 
         // Assert
-        _mockUserService.Verify(s => s.SendForgettenUsername(username), Times.Once);
+        _mockUserService.Verify(s => s.SendForgottenUsername(username), Times.Once);
         var objResponse = Assert.IsType<OkObjectResult>(result);
         Assert.Equal("Your username was delivered to your email address.Check your email, please.", objResponse.Value.ToString());
     }
@@ -271,13 +271,13 @@ public class UsersControllerTests
     {
         //Assert
         string username = "biras7070@gmail.com";
-        _mockUserService.Setup(x => x.SendForgettenUsername(username)).ReturnsAsync(false);
+        _mockUserService.Setup(x => x.SendForgottenUsername(username)).ReturnsAsync(false);
 
         //Act
         var result = await _controller.ForgetUsername(username);
 
         // Assert
-        _mockUserService.Verify(s => s.SendForgettenUsername(username), Times.Once);
+        _mockUserService.Verify(s => s.SendForgottenUsername(username), Times.Once);
         Assert.IsType<NotFoundResult>(result);
     }
     [Fact]
@@ -285,24 +285,24 @@ public class UsersControllerTests
     {
         //Assert
         string username = "biras7070gmail.com";
-        _mockUserService.Setup(x => x.SendForgettenUsername(username)).ReturnsAsync(false);
+        _mockUserService.Setup(x => x.SendForgottenUsername(username)).ReturnsAsync(false);
 
         //Act and Assert
         var exception = await Assert.ThrowsAsync<ApplicationException>(() => _controller.ForgetUsername(username));
         Assert.Equal("Please enter a valid email address.", exception.Message);
-        _mockUserService.Verify(s => s.SendForgettenUsername(username), Times.Never);
+        _mockUserService.Verify(s => s.SendForgottenUsername(username), Times.Never);
     }
     [Fact]
     public async Task ForgetUsername_WhenEmptyEmailAddressPassed_ReturnException()
     {
         //Assert
         string username = string.Empty;
-        _mockUserService.Setup(x => x.SendForgettenUsername(username)).ReturnsAsync(false);
+        _mockUserService.Setup(x => x.SendForgottenUsername(username)).ReturnsAsync(false);
 
         //Act and Assert
         var exception = await Assert.ThrowsAsync<ApplicationException>(() => _controller.ForgetUsername(username));
         Assert.Equal("Please enter email address.", exception.Message);
-        _mockUserService.Verify(s => s.SendForgettenUsername(username), Times.Never);
+        _mockUserService.Verify(s => s.SendForgottenUsername(username), Times.Never);
     }
     [Fact]
     public async Task ChangePassword_WhenPassedValidChangePassword_ReturnsOKResult()

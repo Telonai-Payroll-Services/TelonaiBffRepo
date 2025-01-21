@@ -7,7 +7,7 @@
         "environmentVariables": {
             "ASPNETCORE_ENVIRONMENT": "dev"
         },
-        "applicationUrl": "https://localhost:60887;http://localhost:80"
+        "applicationUrl": "https://localhost:60887"
     },
     "WSL": {
       "commandName": "WSL2",
@@ -15,7 +15,7 @@
       "launchUrl": "swagger/index.html",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "dev",
-        "ASPNETCORE_URLS": "https://localhost:60887;http://localhost:80"
+        "ASPNETCORE_URLS": "https://localhost:60887"
       },
       "distributionName": ""
     }

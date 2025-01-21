@@ -22,6 +22,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
         private readonly Mock<IEmploymentService<EmploymentModel, Employment>> _employmentService;
         private readonly Mock<IPersonService<PersonModel, Person>> _personService;
         private readonly Mock<ITimecardUsaService> _timecardService;
+        private readonly Mock<DayOffRequestService> _dayOffRequestService;
         private readonly UsersController _usersController;
 
         public UserControllerTest()
@@ -31,7 +32,8 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             _invitationService = new Mock<IInvitationService<InvitationModel, Invitation>>();
             _personService = new Mock<IPersonService<PersonModel, Person>>();
             _timecardService = new Mock<ITimecardUsaService>();
-            _usersController = new UsersController(_userService.Object, _personService.Object, _invitationService.Object, _employmentService.Object, _timecardService.Object);
+            _dayOffRequestService = new Mock<DayOffRequestService>();   
+            _usersController = new UsersController(_userService.Object, _personService.Object, _invitationService.Object, _employmentService.Object, _timecardService.Object,_dayOffRequestService.Object);
         }
 
         [Fact]
