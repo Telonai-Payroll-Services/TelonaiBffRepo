@@ -36,9 +36,11 @@ public class CompaniesController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = "SystemAdmin")]
+    [Authorize]
     public IActionResult GetAll()
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         var companies = _service.Get();
         return Ok(companies);
     }

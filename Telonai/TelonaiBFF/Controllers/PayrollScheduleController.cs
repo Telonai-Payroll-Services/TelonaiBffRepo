@@ -60,9 +60,10 @@ public class PayrollScheduleController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "SystemAdmin")]
     public IActionResult Delete(int id)
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         _PayrollScheduleService.Delete(id);
         return Ok(new { message = "Payroll Schedule deleted." });
     }
