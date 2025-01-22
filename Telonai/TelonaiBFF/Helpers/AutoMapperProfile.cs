@@ -131,7 +131,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId))
             .ForMember(dest => dest.Zipcode, opt => opt.MapFrom(src => src.Zipcode.Code))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
-             .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (INineVerificationStatusModel)src.INineVerificationStatusId))
+            .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (INineVerificationStatusModel)src.INineVerificationStatusId))
             .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.MapFrom(src => (StateWithholdingDocumentStatusModel)src.StateWithholdingDocumentStatusId))
             .ForMember(dest => dest.WFourWithholdingDocumentStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
