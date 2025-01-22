@@ -68,6 +68,11 @@ public class DayOffRequestController : ControllerBase
     [HttpPost]
     public IActionResult CreateDayOffRequest([FromBody] DayOffRequestModel model)
     {
+        if (model.FromDate.CompareTo(model.ToDate) > 0)
+            throw new AppException("From date should be before To date");
+
+        if (model.FromDate.CompareTo(DateOnly.FromDateTime(DateTime.Now)) < 0)
+            throw new AppException("Requesting a day off for past dates is not allowed.");
 
         _service.CreateAsync(model);
         return Ok();
