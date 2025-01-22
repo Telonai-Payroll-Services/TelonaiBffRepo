@@ -102,7 +102,7 @@ namespace TelonaiWebApi.Services
         }
         public List<State> GetStatesByCountryId(int id)
         {
-            return _cache.Get<List<State>>($"State_CountyId_{id}", f => _stateService.GetByCountryId(id).ToList());
+            return _cache.Get<List<State>>($"State_CountryId_{id}", f => _stateService.GetByCountryId(id).ToList());
         }
         public City GetCityById(int id)
         {
