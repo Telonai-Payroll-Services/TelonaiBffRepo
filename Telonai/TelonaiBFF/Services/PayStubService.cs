@@ -183,7 +183,7 @@ public class PayStubService : IPayStubService
                 }
                 //Create PDFs 
                 docId = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, _newIncomeTaxesToHold.ToList());
-                var doc = new Document { Id = docId, DocumentTypeId = (int)DocumentTypeModel.PayStub, FileName = string.Format("PayStub-" + payStub.Id + "-" + dTime.ToString("yyyyMMddmmss") + ".pdf") };
+                var doc = new Document { Id = docId, DocumentTypeId = (int)DocumentTypeModel.PayStub, FileName = string.Format("PayStub-" + payStub.Id + "-" + today.ToString("yyyyMMddmmss") + ".pdf") };
                 _context.Document.Add(doc);
 
                 payStub.DocumentId = docId;
