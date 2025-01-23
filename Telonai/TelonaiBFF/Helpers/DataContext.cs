@@ -178,4 +178,5 @@ public class DataContext : DbContext
     public DbSet<FAQ> FAQ { get; set; }
     public DbSet<TelonaiSpecificFieldValue> TelonaiSpecificFieldValue { get; set; }
     public DbSet<TelonaiSpecificField> TelonaiSpecificField { get; set; }
+    public DbSet<ExemptFromFutaTaxType> ExemptFromFutaTaxType { get; set; }
 }
