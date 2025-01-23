@@ -9,7 +9,7 @@ RestartSec=10
 KillSignal=SIGINT
 SyslogIdentifier=webapi
 
-Environment=ASPNETCORE_Environment=QA
+Environment=ASPNETCORE_Environment=Dev
 
 Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
 Environment=ASPNETCORE_URLS=http://*:81
