@@ -1,5 +1,5 @@
 
-# AWS CodeBuild spec to build .net 6 app 
+# AWS CodeBuild spec to build .net 6 app just test build
 version: 0.2
     
 phases:
@@ -24,9 +24,12 @@ phases:
     commands:
       - echo Publish started on `date`
       # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/dotnet-linux-platform-bundle-app.html
-      - dotnet publish -c Release  -o Telonai/TelonaiBFF/ Telonai/TelonaiBFF/TelonaiWebApi.csproj
-      
+
+      - dotnet publish -c Release  --output Telonai/TelonaiBFF/ Telonai/TelonaiBFF/TelonaiWebApi.csproj
+
 artifacts:
   files:
     - "**/*"
+
   base-directory: "./"
+

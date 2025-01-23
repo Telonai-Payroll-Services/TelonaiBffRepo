@@ -72,7 +72,7 @@ public class InvitationsController : ControllerBase
         if (!InputValidator.IsValidEmail(model.Email))
             throw new InvalidDataException("Invalid Email");
 
-        var result = _service.GetAllByActivaionCodeAndInviteeEmail(model.code,model.Email);
+        var result = _service.GetAllByActivationCodeAndInviteeEmail(model.code,model.Email);
         return Ok(result);
     }
 
@@ -139,10 +139,10 @@ public class InvitationsController : ControllerBase
         return Ok("Quote sent.");
     }
 
-    [Authorize(Policy = "SystemAdmin")]
     [HttpDelete("{id}")]
     public IActionResult Delete(Guid id)
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
         _service.DeleteAsync(id);
         return Ok(new { message = "Invitation deleted" });
     }

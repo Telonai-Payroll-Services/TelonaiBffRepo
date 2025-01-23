@@ -14,6 +14,9 @@ using TelonaiWebApi.Models.FileScan;
 using TelonaiWebApi.Helpers.FileScan;
 using TelonaiWebApi.Helpers.Interface;
 using TelonaiWebApi.Helpers.Configuration;
+using Amazon.Extensions.CognitoAuthentication;
+using Microsoft.AspNetCore.Identity;
+using Amazon.AspNetCore.Identity.Cognito;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,8 +35,8 @@ var builder = WebApplication.CreateBuilder(args);
     
     builder.Host.ConfigureAppConfiguration((_, configurationBuilder) =>
     {
-        configurationBuilder.AddAmazonSecretsManager("us-east-2", "FileScanAuthSettings");
-        configurationBuilder.AddAmazonSecretsManager("us-east-2", "AwsUserPoolSettings");
+        configurationBuilder.AddAmazonSecretsManager("us-east-2", $"FileScanAuthSettings-{env.EnvironmentName}");
+        configurationBuilder.AddAmazonSecretsManager("us-east-2", $"AwsUserPoolSettings-{env.EnvironmentName}");
         configurationBuilder.AddJsonStream(s3ObjectStream);
     });
 
@@ -86,6 +89,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IDocumentService, DocumentService>();
     services.AddScoped<IDocumentManager, DocumentManager>();
     services.AddScoped<IFileScanRequest, FileScanRequest>();
+    services.AddScoped<IEncryption, EncryptionHelper>();
     services.AddScoped<IEmployeeWithholdingService<EmployeeWithholdingModel, EmployeeWithholding>, EmployeeWithholdingService>();
     services.AddScoped<IScopedAuthorization, ScopedAuthorization>();
     services.AddScoped<IIRSService, IRSService>();
@@ -109,9 +113,14 @@ var builder = WebApplication.CreateBuilder(args);
         config.AddAWSProvider(configuration.GetAWSLoggingConfigSection());
         config.SetMinimumLevel(LogLevel.Debug);
     });
+    //services.AddTransient<CognitoSignInManager<CognitoUser>>();
+    //services.AddTransient<CognitoUserManager<CognitoUser>>();
 
     var fileScanSettings = builder.Configuration.GetSection("FileScan");
     builder.Services.Configure<FileScanSettings>(fileScanSettings);
+    
+    var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
+    builder.Services.Configure<EncryptionSettings>(encryptionSettings);
 
     builder.Services.Configure<FileScanAuthSettings>(builder.Configuration);
     builder.Services.Configure<AwsUserPoolSettings>(builder.Configuration);
@@ -174,7 +183,5 @@ var app = builder.Build();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
 
-
-
-//app.Run("http://localhost:5000");
 app.Run();
+

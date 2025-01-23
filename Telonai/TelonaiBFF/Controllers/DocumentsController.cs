@@ -128,9 +128,10 @@ public class DocumentsController : ControllerBase
     }
 
     [HttpPost("documentType/{documentType}/unsigned")]
-    [Authorize(Policy = "SystemAdmin")]
     public async Task<IActionResult> AddGovernmentDocument(IFormFile file, DocumentTypeModel documentType)
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         if (file == null || file.Length == 0)
         {
             return BadRequest("No file uploaded.");
@@ -165,7 +166,6 @@ public class DocumentsController : ControllerBase
 
 
     [HttpPut("{id}")]
-    [Authorize(Policy = "SystemAdmin")]
     public async Task<IActionResult> Update(Guid id, DocumentModel model)
     {
         _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
@@ -183,7 +183,6 @@ public class DocumentsController : ControllerBase
 
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "SystemAdmin")]
     public async Task<IActionResult> Delete(Guid id)
     {
         _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);

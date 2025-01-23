@@ -9,6 +9,7 @@ using System.Drawing;
 public class AutoMapperProfile : Profile
 {
     private readonly IStaticDataService _dataService;
+    private int _ncToUtcTimeDifference = -5; //This value should come from DB. This is a temporary fix. 
 
     public AutoMapperProfile(IStaticDataService dataService)
     {
@@ -130,9 +131,9 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId))
             .ForMember(dest => dest.Zipcode, opt => opt.MapFrom(src => src.Zipcode.Code))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
-             .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (INineVerificationStatusModel)src.INineVerificationStatusId))
+            .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (INineVerificationStatusModel)src.INineVerificationStatusId))
             .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.MapFrom(src => (StateWithholdingDocumentStatusModel)src.StateWithholdingDocumentStatusId))
-            .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
+            .ForMember(dest => dest.WFourWithholdingDocumentStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
             .ForMember(dest => dest.Ssn, opt => opt.MapFrom(src => $"*****{src.Ssn.Substring(5)}"))
             .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.Zipcode.City.StateId));
@@ -213,7 +214,12 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
 
         CreateMap<TimecardUsa, TimecardUsaModel>()
+           .ForMember(dest => dest.ClockIn, opt => opt.MapFrom(src => src.ClockIn.AddHours(_ncToUtcTimeDifference)))
+           .ForMember(dest => dest.ClockOut, opt => opt.MapFrom(src => 
+               src.ClockOut.HasValue? src.ClockOut.Value.AddHours(_ncToUtcTimeDifference):
+               null as DateTime?))
            .ForMember(dest => dest.Job, opt => opt.MapFrom(src => src.Job.LocationName));
+
         CreateMap<TimecardUsaModel, TimecardUsa>()
              .ForMember(dest => dest.Id, opt => opt.Ignore())
              .ForMember(dest => dest.Person, opt => opt.Ignore())
@@ -386,8 +392,14 @@ public class AutoMapperProfile : Profile
         CreateMap<DayOffRequestModel, DayOffRequest>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.DayOffTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffType)))
-            .ForMember(dest => dest.DayOffPayTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffPayType)));
-
+            .ForMember(dest => dest.DayOffPayTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffPayType)))
+            .ForMember(dest => dest.IsApproved, opt => opt.Ignore())
+            .ForMember(dest => dest.IsCancelled, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
+        
         CreateMap<DayOffRequest, DayOffRequestModel>()
         .ForMember(dest => dest.DayOffType, opt => opt.MapFrom(src => (DayOffTypes)src.DayOffTypeId))
         .ForMember(dest => dest.DayOffPayType, opt => opt.MapFrom(src => (DayOffPayTypeModel)src.DayOffPayTypeId))
@@ -410,4 +422,5 @@ public class AutoMapperProfile : Profile
         CreateMap<TelonaiSpecificFieldModel, TelonaiSpecificField>()
              .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
+
 }

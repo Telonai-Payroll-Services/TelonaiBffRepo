@@ -37,19 +37,23 @@ public class MobileAppVersionController : ControllerBase
         return Ok(version);
     }
 
-    [Authorize(Policy = "SystemAdmin")]
+    [Authorize]
     [HttpGet]
     [Route("All")]
     public IActionResult GetAll()
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         var versions = _mobileAppVersionService.GetAll();
         return Ok(versions.Result);
     }
 
-    [Authorize(Policy = "SystemAdmin")]
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<MobileAppVersionModel>> Create(MobileAppVersionModel mobileAppVersion)
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         if (mobileAppVersion == null)
         {
             return BadRequest();
@@ -60,19 +64,23 @@ public class MobileAppVersionController : ControllerBase
         return Ok();
     }
 
-    [Authorize(Policy = "SystemAdmin")]
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, MobileAppVersionModel mobileAppVersion)
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         await _mobileAppVersionService.UpdateAsync(id, mobileAppVersion);
 
         return NoContent();
     }
 
-    [Authorize(Policy = "SystemAdmin")]
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         await _mobileAppVersionService.DeleteAsync(id);
 
         return NoContent();

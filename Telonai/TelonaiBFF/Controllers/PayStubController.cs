@@ -145,10 +145,11 @@ public class PayStubController : ControllerBase
 
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "SystemAdmin")]
     public IActionResult Delete(int id)
     {
-        if(_PayStubService.Delete(id))
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
+        if (_PayStubService.Delete(id))
         {
             return Ok(new { message = "PayStub deleted." });
         }

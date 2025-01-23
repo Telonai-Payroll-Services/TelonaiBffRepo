@@ -2,6 +2,7 @@ namespace TelonaiWebApi.Services;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Ocsp;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
@@ -104,6 +105,8 @@ public class EmployeeWithholdingService : IEmployeeWithholdingService<EmployeeWi
 
     public async Task UpdateAsync(int id, EmployeeWithholdingModel model)
     {
+        _scopedAuthorization.Validate(_httpContextAccessor.HttpContext.User, AuthorizationType.SystemAdmin);
+
         var emp = GetEmployeeWithholding(id) ?? throw new AppException("EmployeeWithholding not found");
 
         _mapper.Map(model, emp);
@@ -113,6 +116,8 @@ public class EmployeeWithholdingService : IEmployeeWithholdingService<EmployeeWi
 
     public async Task DeleteAsync(int id)
     {
+        _scopedAuthorization.Validate(_httpContextAccessor.HttpContext.User, AuthorizationType.SystemAdmin);
+
         var emp = _context.EmployeeWithholding.Find(id);
         if (emp != null)
         {

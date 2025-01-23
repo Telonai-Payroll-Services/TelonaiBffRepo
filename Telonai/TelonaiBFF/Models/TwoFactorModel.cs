@@ -1,10 +1,8 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace TelonaiWebApi.Models
 {
-
     public class TwoFactoreModel : BaseUser
     {
         [JsonRequired]
@@ -14,6 +12,6 @@ namespace TelonaiWebApi.Models
         public string TwoFactorCode { get; set; }
         [JsonRequired]
         public bool RememberMachine { get; set; }
-       
+
     }
 }
