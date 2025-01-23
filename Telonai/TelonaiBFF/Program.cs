@@ -35,8 +35,8 @@ var builder = WebApplication.CreateBuilder(args);
     
     builder.Host.ConfigureAppConfiguration((_, configurationBuilder) =>
     {
-        configurationBuilder.AddAmazonSecretsManager("us-east-2", "FileScanAuthSettings");
-        configurationBuilder.AddAmazonSecretsManager("us-east-2", "AwsUserPoolSettings");
+        configurationBuilder.AddAmazonSecretsManager("us-east-2", $"FileScanAuthSettings-{env.EnvironmentName}");
+        configurationBuilder.AddAmazonSecretsManager("us-east-2", $"AwsUserPoolSettings-{env.EnvironmentName}");
         configurationBuilder.AddJsonStream(s3ObjectStream);
     });
 
