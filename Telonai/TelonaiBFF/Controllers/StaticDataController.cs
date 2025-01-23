@@ -81,4 +81,10 @@ public class StaticDataController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("County/{id}")]
+    public IActionResult GetCountyById(int id)
+    {
+        var result = _service.
+    }
+
 }

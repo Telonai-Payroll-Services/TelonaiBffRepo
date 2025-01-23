@@ -38,6 +38,9 @@ namespace TelonaiWebApi.Services
         List<IncomeTaxRate> GetIncomeTaxRatesByCountryId(int countryId);
         List<StateStandardDeduction> GetStateStandardDeductionsByStateId(int stateId, int year);
         List<IncomeTaxRate> GetIncomeTaxRatesByCountryIdAndPayrollYear(int countryId, int payrollYear);
+        County GetCountyById();
+        List<County> GetCountyByStateId();
+        County GetCountyByNameAndStateId(string name, int stateId);
     }
 
     public class StaticDataService: IStaticDataService
@@ -53,11 +56,12 @@ namespace TelonaiWebApi.Services
         private readonly IHolidaysService _holidaysService;
         private readonly IIncomeTaxRateService<IncomeTaxRateModel,IncomeTaxRate> _incomeTaxService;
         private readonly IStateStandardDeductionService _stateStandardDeduction;
+        private readonly ICountyService _countyService;
 
         public StaticDataService(ITelonaiCache cache, ICityService cityService, ICountryService countryService, IStateService stateService,
             IZipcodeService zipcodeService, IBusinessTypeService businessTypeService, IContactTypeService contactTypeService,
             IRoleTypeService roleTypeService, IHolidaysService holidaysService, IIncomeTaxRateService<IncomeTaxRateModel, IncomeTaxRate> incomeTaxService,
-            IStateStandardDeductionService stateStandardDeductionService)
+            IStateStandardDeductionService stateStandardDeductionService, ICountryService countyService)
         {
             _cache = cache;
             _cityService = cityService;
@@ -70,6 +74,7 @@ namespace TelonaiWebApi.Services
             _holidaysService = holidaysService;
             _incomeTaxService = incomeTaxService;
             _stateStandardDeduction = stateStandardDeductionService;
+            _countyService = countyService;
         }
 
 
@@ -147,8 +152,6 @@ namespace TelonaiWebApi.Services
         {
             return _cache.Get<List<ContactType>>($"ContactTypes", f => _contactTypeService.GetAll().ToList());
         }
-
-
         public List<RoleType> GetRoleTypes()
         {
             return _cache.Get<List<RoleType>>($"RoleTypes", f => _roleTypeService.GetAll().ToList());
@@ -165,5 +168,19 @@ namespace TelonaiWebApi.Services
 
         }
 
+        public County GetCountyById(int id)
+        {
+            return _cace.Get<County>($"County_{id}",f => _countyService.);
+        }
+
+        public List<County> GetCountyByStateId()
+        {
+            throw new NotImplementedException();
+        }
+
+        public County GetCountyByNameAndStateId(string name, int stateId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

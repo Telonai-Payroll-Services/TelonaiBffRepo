@@ -192,13 +192,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
                 Id = 1,
                 Name = "USA"
             };
-            var state = new State
-            {
-                Id = 1,
-                Name = "State A",
-                Country = country,
-                CountryId = 1
-            };
+
             var stateModel = new StateModel
             {
                 Id = 1,
@@ -206,9 +200,7 @@ namespace TelonaiWebAPI.UnitTest.Controllers
                 Country = "USA",
                 CountryId = 1
             };
-            _mockStateService.Setup(x => x.GetById(11))
-                             .Throws(new Exception("State not found"));
-
+            _mockStateService.Setup(x => x.GetById(11)).Throws(new Exception("State not found"));
             //Act
             var result = _StatesController.GetById(11);
 

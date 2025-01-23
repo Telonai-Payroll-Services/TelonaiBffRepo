@@ -34,7 +34,8 @@ namespace TelonaiWebAPI.UnitTest.Services
 
             var county = new CountyModel
             {
-
+                Id = 1,
+                Name = "USA"
             };
 
             var cities = new List<City>
@@ -44,9 +45,10 @@ namespace TelonaiWebAPI.UnitTest.Services
             };
             var citiesModel = new List<CityModel>
             {
-                new CityModel { Id = 1, Name = "City A", State = state, Countrys =  },
-                new CityModel { Id = 2, Name = "City B", State = state, CountryId = 1}
+                new CityModel { Id = 1, Name = "City A", State = state},
+                new CityModel { Id = 2, Name = "City B", State = state}
             };
+
             _mockCityService.Setup(x => x.GetByCountryId(1)).Returns(cities);
             _mockMapper.Setup(x => x.Map<IList<CityModel>>(cities)).Returns(citiesModel);
             //Act
