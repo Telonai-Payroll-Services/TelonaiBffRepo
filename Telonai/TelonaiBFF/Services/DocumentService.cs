@@ -510,8 +510,8 @@ public class DocumentService : IDocumentService
     }
 
     public DateTime GetInvitationDateForEmployee(int id)
-    {
-        var person = _personService.GetById(id);
+    {      
+        var person = _personService.GetByIdAsNoTracking(id);
         var invitation = _invitationService.GetByInviteeEmail(person.Email).FirstOrDefault();
         var effectiveDate = invitation.CreatedDate;
         return effectiveDate;
@@ -587,6 +587,7 @@ public class DocumentService : IDocumentService
 
         _person = emp.Person;
         var documentTypeId = (int)DocumentTypeModel.WFourUnsigned;
+        var documentname = DocumentTypeModel.WFourUnsigned.GetDisplayName();
         var document = _context.Document.FirstOrDefault(e => e.DocumentTypeId == documentTypeId && !e.IsDeleted && e.FileName == DocumentTypeModel.WFourUnsigned.GetDisplayName());
 
         if (document == null)
