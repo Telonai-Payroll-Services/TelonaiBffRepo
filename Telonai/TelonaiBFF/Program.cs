@@ -113,14 +113,14 @@ var builder = WebApplication.CreateBuilder(args);
     });
 
 
-    var fileScanSettings = builder.Configuration.GetSection("FileScan");
+    var fileScanSettings = builder.Configuration.GetSection("FileScanLogin");
     builder.Services.Configure<FileScanSettings>(fileScanSettings);
     
     var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
     builder.Services.Configure<EncryptionSettings>(encryptionSettings);
 
-    builder.Services.Configure<FileScanAuthSettings>(builder.Configuration);
-    builder.Services.Configure<AwsUserPoolSettings>(builder.Configuration);
+    var awsUserPoolSettings = builder.Configuration.GetSection("AWS");
+    builder.Services.Configure<AwsUserPoolSettings>(awsUserPoolSettings);
 
     // Adds Amazon Cognito as Identity Provider
     services.AddCognitoIdentity();
