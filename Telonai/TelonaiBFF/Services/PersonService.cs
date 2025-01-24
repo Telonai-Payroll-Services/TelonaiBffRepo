@@ -171,7 +171,7 @@ public class PersonService : IPersonService<PersonModel,Person>
             person.AddressLine2 = string.IsNullOrWhiteSpace(model.AddressLine2) ? person.AddressLine2 : model.AddressLine2;
             person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
             person.Ssn = string.IsNullOrWhiteSpace(model.Ssn) ? person.Ssn : _encryption.Encrypt(model.Ssn);
-            person.InternalEmployeeId = string.IsNullOrWhiteSpace(model.InternalEmployeeId) ? person.InternalEmployeeId : _encryption.Encrypt(model.InternalEmployeeId);
+            person.InternalEmployeeId = string.IsNullOrWhiteSpace(model.InternalEmployeeId) ? person.InternalEmployeeId : model.InternalEmployeeId;
 
             if (model.ZipcodeId > 0)
             {
@@ -252,8 +252,6 @@ public class PersonService : IPersonService<PersonModel,Person>
     Person DecryptPerson(Person person) {
         if (!string.IsNullOrEmpty(person.Ssn))
             person.Ssn = _encryption.Decrypt(person.Ssn);
-        if (!string.IsNullOrEmpty(person.InternalEmployeeId))
-            person.InternalEmployeeId = _encryption.Decrypt(person.InternalEmployeeId);
         if (!string.IsNullOrEmpty(person.BankAccountNumber)) 
             person.BankAccountNumber = _encryption.Decrypt(person.BankAccountNumber);
 
@@ -264,8 +262,6 @@ public class PersonService : IPersonService<PersonModel,Person>
     {
         if (!string.IsNullOrEmpty(person.Ssn))
             person.Ssn = _encryption.Encrypt(person.Ssn);
-        if (!string.IsNullOrEmpty(person.InternalEmployeeId))
-            person.InternalEmployeeId = _encryption.Encrypt(person.InternalEmployeeId);
         if (!string.IsNullOrEmpty(person.BankAccountNumber))
             person.BankAccountNumber = _encryption.Encrypt(person.BankAccountNumber);
 
