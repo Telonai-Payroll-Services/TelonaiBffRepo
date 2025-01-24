@@ -35,8 +35,6 @@ var builder = WebApplication.CreateBuilder(args);
     
     builder.Host.ConfigureAppConfiguration((_, configurationBuilder) =>
     {
-        configurationBuilder.AddAmazonSecretsManager("us-east-2", "FileScanAuthSettings");
-        configurationBuilder.AddAmazonSecretsManager("us-east-2", "AwsUserPoolSettings");
         configurationBuilder.AddJsonStream(s3ObjectStream);
     });
 
@@ -122,8 +120,11 @@ var builder = WebApplication.CreateBuilder(args);
     var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
     builder.Services.Configure<EncryptionSettings>(encryptionSettings);
 
-    builder.Services.Configure<FileScanAuthSettings>(builder.Configuration);
-    builder.Services.Configure<AwsUserPoolSettings>(builder.Configuration);
+    var fileScanAuthSettings = builder.Configuration.GetSection("FileScanLogin");
+    builder.Services.Configure<FileScanAuthSettings>(fileScanAuthSettings);
+
+    var awsUserPoolSettings = builder.Configuration.GetSection("AWS");
+    builder.Services.Configure<AwsUserPoolSettings>(awsUserPoolSettings);
 
     // Adds Amazon Cognito as Identity Provider
     services.AddCognitoIdentity();
