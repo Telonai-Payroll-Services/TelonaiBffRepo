@@ -101,6 +101,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IDayOffRequestService<DayOffRequestModel, DayOffRequest>, DayOffRequestService>();
     services.AddScoped<IDayOffTypeService, DayOffTypeService>();
     services.AddScoped<IFAQService, FAQService>();
+    services.AddScoped<ICountyService, CountyService>();
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen();
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());

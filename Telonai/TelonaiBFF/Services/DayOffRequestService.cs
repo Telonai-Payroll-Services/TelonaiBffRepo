@@ -17,6 +17,7 @@ public interface IDayOffRequestService<Tmodel, Tdto> : IDataService<Tmodel, Tdto
     Task<bool> CancelDayOffRequest(int dayOffRequestId);
     DayOffRequest GetDayOffRequestDetail(int id);
     Task<List<DayOffRequest>> GetUnpaidDaysOffForPayrollSchedule(int companyId, DateOnly payrollStartDate, DateOnly payrollRunDate);
+    Task<List<DayOffRequest>> GetPaidDaysOffForPayrollSchedule(int companyId, DateOnly payrollStartDate, DateOnly payrollRunDate);
 }
 
 public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,DayOffRequest>
@@ -219,11 +220,20 @@ public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,Day
                                                         d.ToDate <= payrollRunDate).ToListAsync();
         return unpaidDayOff;
     }
+    
+    public async Task<List<DayOffRequest>> GetPaidDaysOffForPayrollSchedule(int companyId, DateOnly payrollStartDate, DateOnly payrollRunDate)
+    {
+        var paidDayOff = await _context.DayOffRequest.Where(d => d.DayOffPayTypeId == (int)DayOffPayTypeModel.Paid &&
+                                                        d.Employment.Job.CompanyId == companyId &&
+                                                        d.FromDate >= payrollStartDate &&
+                                                        d.ToDate <= payrollRunDate).ToListAsync();
+        return paidDayOff;
+    }
 
     private DayOffRequest GetDayOff(int id)
     {
         return _context.DayOffRequest.Find(id);
     }
 
-
+    
 }

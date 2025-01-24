@@ -14,7 +14,7 @@ public class CitiesController : ControllerBase
     private readonly ICityService _service;
     private readonly IMapper _mapper;
 
-    public CitiesController(ICityService service, IMapper mapper)
+    public CitiesController(ICityService service,  IMapper mapper)
     {
         _service = service;
         _mapper = mapper;
