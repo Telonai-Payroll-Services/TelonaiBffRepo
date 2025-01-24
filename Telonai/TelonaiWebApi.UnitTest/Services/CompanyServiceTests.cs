@@ -27,7 +27,7 @@ public class CompanyServiceTests
         _mockPersonService= new Mock<IPersonService<PersonModel, Person>>();
         _mockZipcode = new Mock<IZipcodeService>();
         _service = new CompanyService(_mockContext.Object, _mockMapper.Object, null, _mockPayrollService.Object,
-             _mockCompanyContactService.Object,_mockPersonService.Object,_mockZipcode.Object,null,null );
+             _mockCompanyContactService.Object,_mockPersonService.Object,_mockZipcode.Object,null,null,null );
     }
 
     [Fact]

@@ -7,5 +7,4 @@ public class CityModel
     public int Id { get; set; }
     public string Name { get; set; }
     public StateModel State { get; set; }
-    public List<CountryModel> Countrys { get; set; }
 }

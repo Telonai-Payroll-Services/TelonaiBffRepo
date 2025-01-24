@@ -187,12 +187,6 @@ namespace TelonaiWebAPI.UnitTest.Controllers
         public void GetById_WithProvidingExistingStateName_ReturnsOkWithNullResult()
         {
             //Arrange
-            var country = new Country
-            {
-                Id = 1,
-                Name = "USA"
-            };
-
             var stateModel = new StateModel
             {
                 Id = 1,
@@ -200,7 +194,8 @@ namespace TelonaiWebAPI.UnitTest.Controllers
                 Country = "USA",
                 CountryId = 1
             };
-            _mockStateService.Setup(x => x.GetById(11)).Throws(new Exception("State not found"));
+            _mockStateService.Setup(x => x.GetById(11)).Returns((State)null);
+
             //Act
             var result = _StatesController.GetById(11);
 

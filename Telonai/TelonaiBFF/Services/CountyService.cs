@@ -10,7 +10,7 @@ namespace TelonaiWebApi.Services
 
         Task<List<County>> GetByStateId(int stateid);
 
-        Task<County> GetByNameAndStateId(string name, int stateId); 
+        County GetByNameAndStateId(string name, int stateId); 
     }
     public class CountyService : ICountyService
     {
@@ -25,9 +25,9 @@ namespace TelonaiWebApi.Services
             return await GetCountyById(id);
         }
 
-        public async Task<County> GetByNameAndStateId(string name, int stateId)
+        public County GetByNameAndStateId(string name, int stateId)
         {
-            return  await _context.County.FirstOrDefaultAsync(e => e.Name == name && e.StateId == stateId);
+            return _context.County.FirstOrDefault(e => e.Name == name && e.StateId == stateId);
         }
 
         public async Task<List<County>> GetByStateId(int stateid)

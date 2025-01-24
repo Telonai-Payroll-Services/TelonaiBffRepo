@@ -38,8 +38,8 @@ namespace TelonaiWebApi.Services
         List<IncomeTaxRate> GetIncomeTaxRatesByCountryId(int countryId);
         List<StateStandardDeduction> GetStateStandardDeductionsByStateId(int stateId, int year);
         List<IncomeTaxRate> GetIncomeTaxRatesByCountryIdAndPayrollYear(int countryId, int payrollYear);
-        County GetCountyById();
-        List<County> GetCountyByStateId();
+        County GetCountyById(int id);
+        List<County> GetCountyByStateId(int stateId);
         County GetCountyByNameAndStateId(string name, int stateId);
     }
 
@@ -61,7 +61,7 @@ namespace TelonaiWebApi.Services
         public StaticDataService(ITelonaiCache cache, ICityService cityService, ICountryService countryService, IStateService stateService,
             IZipcodeService zipcodeService, IBusinessTypeService businessTypeService, IContactTypeService contactTypeService,
             IRoleTypeService roleTypeService, IHolidaysService holidaysService, IIncomeTaxRateService<IncomeTaxRateModel, IncomeTaxRate> incomeTaxService,
-            IStateStandardDeductionService stateStandardDeductionService, ICountryService countyService)
+            IStateStandardDeductionService stateStandardDeductionService, ICountyService countyService)
         {
             _cache = cache;
             _cityService = cityService;
@@ -170,17 +170,17 @@ namespace TelonaiWebApi.Services
 
         public County GetCountyById(int id)
         {
-            return _cace.Get<County>($"County_{id}",f => _countyService.);
+            return _cache.Get<County>($"County_{id}", f => _countyService.GetById(id).Result);
         }
 
-        public List<County> GetCountyByStateId()
+        public List<County> GetCountyByStateId(int stateId)
         {
-            throw new NotImplementedException();
+            return _cache.Get<List<County>>($"CountyByStateId_{stateId}", f => _countyService.GetByStateId(stateId).Result);
         }
 
-        public County GetCountyByNameAndStateId(string name, int stateId)
+        public County GetCountyByNameAndStateId(string name,int stateId)
         {
-            throw new NotImplementedException();
+            return _cache.Get<County>($"CountyByNameAndStateId_{name}_{stateId}", f => _countyService.GetByNameAndStateId(name,stateId));
         }
     }
 }

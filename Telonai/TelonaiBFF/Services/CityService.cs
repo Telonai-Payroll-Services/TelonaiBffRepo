@@ -12,11 +12,11 @@ public interface ICityService
     void Delete(int id);
 }
 
-public class CountyService : ICityService
+public class CityService : ICityService
 {
     private readonly DataContext _context;
 
-    public CountyService(DataContext context)
+    public CityService(DataContext context)
     {
         _context = context;
     }

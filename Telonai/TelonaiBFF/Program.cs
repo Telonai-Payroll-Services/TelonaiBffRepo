@@ -63,7 +63,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddSingleton<IMailSender, MailSender>();
 
     services.AddScoped<IBusinessTypeService, BusinessTypeService>();
-    services.AddScoped<ICityService, CountyService>();
+    services.AddScoped<ICityService, CityService>();
     services.AddScoped<ICompanyService<CompanyModel, Company>, CompanyService>();
     services.AddScoped<IContactTypeService, ContactTypeService>();
     services.AddScoped<ICountryService, CountryService>();
@@ -103,6 +103,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IDayOffRequestService<DayOffRequestModel, DayOffRequest>, DayOffRequestService>();
     services.AddScoped<IDayOffTypeService, DayOffTypeService>();
     services.AddScoped<IFAQService, FAQService>();
+    services.AddScoped<ICountyService, CountyService>();
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen();
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());

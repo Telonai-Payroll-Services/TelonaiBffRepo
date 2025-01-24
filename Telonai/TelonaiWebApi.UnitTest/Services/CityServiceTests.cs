@@ -16,11 +16,11 @@ namespace TelonaiWebAPI.UnitTest.Services
     public class CityServiceTests
     {
         public Mock<DataContext> _mockContext;
-        public CountyService _mockCityService;
-        public CityServiceTests() 
+        public CityService _mockCityService;
+        public CityServiceTests()
         {
             _mockContext = new Mock<DataContext>();
-            _mockCityService = new CountyService(_mockContext.Object);
+            _mockCityService = new CityService(_mockContext.Object);
         }
 
         [Fact]
