@@ -116,7 +116,7 @@ var builder = WebApplication.CreateBuilder(args);
     var fileScanSettings = builder.Configuration.GetSection("FileScan");
     builder.Services.Configure<FileScanSettings>(fileScanSettings);
 
-    var fileScanAuthSettings = builder.Configuration.GetSection("fileScanAuthSettings");
+    var fileScanAuthSettings = builder.Configuration.GetSection("FileScanLogin");
     builder.Services.Configure<FileScanAuthSettings>(fileScanAuthSettings);
 
     var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
