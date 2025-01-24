@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TelonaiWebApi.Entities;
+using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 using TelonaiWebApi.Services;
 
@@ -38,7 +39,6 @@ public class EmployeeWithholdingController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Policy = "SystemAdmin")]
     public IActionResult Update(int id, EmployeeWithholdingModel model)
     {
         _empWithholdingservice.UpdateAsync(id, model);
@@ -47,7 +47,6 @@ public class EmployeeWithholdingController : ControllerBase
 
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "SystemAdmin")]
     public IActionResult Delete(int id)
     {
         _empWithholdingservice.DeleteAsync(id);

@@ -131,7 +131,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId))
             .ForMember(dest => dest.Zipcode, opt => opt.MapFrom(src => src.Zipcode.Code))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
-             .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (INineVerificationStatusModel)src.INineVerificationStatusId))
+            .ForMember(dest => dest.INineVerificationStatus, opt => opt.MapFrom(src => (INineVerificationStatusModel)src.INineVerificationStatusId))
             .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.MapFrom(src => (StateWithholdingDocumentStatusModel)src.StateWithholdingDocumentStatusId))
             .ForMember(dest => dest.WFourWithholdingDocumentStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
@@ -392,8 +392,14 @@ public class AutoMapperProfile : Profile
         CreateMap<DayOffRequestModel, DayOffRequest>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.DayOffTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffType)))
-            .ForMember(dest => dest.DayOffPayTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffPayType)));
-
+            .ForMember(dest => dest.DayOffPayTypeId, opt => opt.MapFrom(src => Convert.ToInt32(src.DayOffPayType)))
+            .ForMember(dest => dest.IsApproved, opt => opt.Ignore())
+            .ForMember(dest => dest.IsCancelled, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
+        
         CreateMap<DayOffRequest, DayOffRequestModel>()
         .ForMember(dest => dest.DayOffType, opt => opt.MapFrom(src => (DayOffTypes)src.DayOffTypeId))
         .ForMember(dest => dest.DayOffPayType, opt => opt.MapFrom(src => (DayOffPayTypeModel)src.DayOffPayTypeId))
@@ -416,4 +422,5 @@ public class AutoMapperProfile : Profile
         CreateMap<TelonaiSpecificFieldModel, TelonaiSpecificField>()
              .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
+
 }

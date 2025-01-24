@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyModel, Company>
 {
@@ -22,9 +23,10 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
         private readonly IZipcodeService _zipCodeService;
         private readonly ICityService _cityService;
         private readonly IStateService _stateService;
-        public CompanyService(DataContext context, IMapper mapper, IStaticDataService staticDataService, IPayrollService payrollService,
+        private readonly IEncryption _encryption;
+    public CompanyService(DataContext context, IMapper mapper, IStaticDataService staticDataService, IPayrollService payrollService,
                              ICompanyContactService companyContactService, IPersonService<PersonModel, Person> personService,
-                             IZipcodeService zipCodeService, ICityService cityService, IStateService stateService)
+                             IZipcodeService zipCodeService, ICityService cityService, IStateService stateService, IEncryption encryption)
         {
                 _context = context;
                 _mapper = mapper;
@@ -35,6 +37,7 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
                 _zipCodeService = zipCodeService;
                 _cityService = cityService;
                 _stateService = stateService;
+                _encryption = encryption;
         }
 
         public IList<CompanyModel> Get()
@@ -72,13 +75,19 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
         {
             var obj = GetCompany(id);
             var result = _mapper.Map<CompanyModel>(obj);
+            if (!string.IsNullOrEmpty(result.TaxId))
+            {
+                result.TaxId = _encryption.Decrypt(result.TaxId);
+            }
             return result;
         }
 
         public async Task<Company> CreateAsync(CompanyModel model)
         {
-            var existing = GetByTaxId(model.TaxId);
+            if (!string.IsNullOrEmpty(model.TaxId))
+                model.TaxId = _encryption.Encrypt(model.TaxId);
 
+            var existing = GetByTaxId(model.TaxId);
             if (existing == null || existing.Count() < 1)
             {
                 var result = _mapper.Map<Company>(model);
@@ -99,34 +108,39 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
                 company.Name = string.IsNullOrEmpty(model.Name) ? company.Name : model.Name;
                 company.AddressLine1 = string.IsNullOrEmpty(model.AddressLine1) ? company.AddressLine1 : model.AddressLine1;
                 company.AddressLine2 = string.IsNullOrEmpty(model.AddressLine2) ? company.AddressLine2 : model.AddressLine2;
-            if (model.ZipcodeId != null && model.ZipcodeId > 0)
-            {
-                if (company.Zipcode == null)
+                if (model.ZipcodeId != null && model.ZipcodeId > 0)
                 {
-                    company.Zipcode = _zipCodeService.GetById(model.ZipcodeId);
-                    company.ZipcodeId = model.ZipcodeId;
-                    company.Zipcode.City = _cityService.GetById(company.Zipcode.CityId);
-                    company.Zipcode.City.State = _stateService.GetById(company.Zipcode.City.StateId);
+                    if (company.Zipcode == null)
+                    {
+                        company.Zipcode = _zipCodeService.GetById(model.ZipcodeId);
+                        company.ZipcodeId = model.ZipcodeId;
+                        company.Zipcode.City = _cityService.GetById(company.Zipcode.CityId);
+                        company.Zipcode.City.State = _stateService.GetById(company.Zipcode.City.StateId);
+                    }
+                    else
+                    {
+                        company.ZipcodeId = model.ZipcodeId == 0 ? company.ZipcodeId : model.ZipcodeId;
+                        company.Zipcode.CityId = model.CityId == 0 ? company.Zipcode.CityId : model.CityId;
+                        company.Zipcode.City.StateId = model.StateId == 0 ? company.Zipcode.City.StateId : model.StateId;
+                    }
                 }
-                else
+                if (companyContact != null)
                 {
-                    company.ZipcodeId = model.ZipcodeId == 0 ? company.ZipcodeId : model.ZipcodeId;
-                    company.Zipcode.CityId = model.CityId == 0 ? company.Zipcode.CityId : model.CityId;
-                    company.Zipcode.City.StateId = model.StateId == 0 ? company.Zipcode.City.StateId : model.StateId;
+                    var person =  _personService.GetPersonById(companyContact.PersonId);
+                    if (person != null)
+                    {
+                        person.FirstName = string.IsNullOrEmpty(model.ReprsentativeFirstName) ? person.FirstName : model.ReprsentativeFirstName;
+                        person.LastName = string.IsNullOrEmpty(model.ReprsentativeLastName) ? person.LastName : model.ReprsentativeLastName;
+                        person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
+                        _context.Person.Update(person);
+                    }
                 }
-            }
-            if (companyContact != null)
-            {
-                var person =  _personService.GetPersonById(companyContact.PersonId);
-                if (person != null)
+
+                if(!string.IsNullOrEmpty(model.TaxId))
                 {
-                    person.FirstName = string.IsNullOrEmpty(model.ReprsentativeFirstName) ? person.FirstName : model.ReprsentativeFirstName;
-                    person.LastName = string.IsNullOrEmpty(model.ReprsentativeLastName) ? person.LastName : model.ReprsentativeLastName;
-                    person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
-                    _context.Person.Update(person);
+                    company.TaxId = _encryption.Encrypt(model.TaxId);
                 }
-            }
-            _context.Company.Update(company);
+                _context.Company.Update(company);
                 await _context.SaveChangesAsync();
             }
         }
