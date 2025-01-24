@@ -587,7 +587,6 @@ public class DocumentService : IDocumentService
 
         _person = emp.Person;
         var documentTypeId = (int)DocumentTypeModel.WFourUnsigned;
-        var documentname = DocumentTypeModel.WFourUnsigned.GetDisplayName();
         var document = _context.Document.FirstOrDefault(e => e.DocumentTypeId == documentTypeId && !e.IsDeleted && e.FileName == DocumentTypeModel.WFourUnsigned.GetDisplayName());
 
         if (document == null)
