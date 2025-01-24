@@ -35,8 +35,6 @@ var builder = WebApplication.CreateBuilder(args);
     
     builder.Host.ConfigureAppConfiguration((_, configurationBuilder) =>
     {
-        configurationBuilder.AddAmazonSecretsManager("us-east-2", "FileScanAuthSettings");
-        configurationBuilder.AddAmazonSecretsManager("us-east-2", "AwsUserPoolSettings");
         configurationBuilder.AddJsonStream(s3ObjectStream);
     });
 
@@ -114,17 +112,19 @@ var builder = WebApplication.CreateBuilder(args);
         config.AddAWSProvider(configuration.GetAWSLoggingConfigSection());
         config.SetMinimumLevel(LogLevel.Debug);
     });
-    //services.AddTransient<CognitoSignInManager<CognitoUser>>();
-    //services.AddTransient<CognitoUserManager<CognitoUser>>();
+
 
     var fileScanSettings = builder.Configuration.GetSection("FileScan");
     builder.Services.Configure<FileScanSettings>(fileScanSettings);
-    
+
+    var fileScanAuthSettings = builder.Configuration.GetSection("FileScanLogin");
+    builder.Services.Configure<FileScanAuthSettings>(fileScanAuthSettings);
+
     var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
     builder.Services.Configure<EncryptionSettings>(encryptionSettings);
 
-    builder.Services.Configure<FileScanAuthSettings>(builder.Configuration);
-    builder.Services.Configure<AwsUserPoolSettings>(builder.Configuration);
+    var awsUserPoolSettings = builder.Configuration.GetSection("AWS");
+    builder.Services.Configure<AwsUserPoolSettings>(awsUserPoolSettings);
 
     // Adds Amazon Cognito as Identity Provider
     services.AddCognitoIdentity();
@@ -136,7 +136,7 @@ var builder = WebApplication.CreateBuilder(args);
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
         options.ReturnUrlParameter = CookieAuthenticationDefaults.ReturnUrlParameter;
         options.SlidingExpiration = true;
-        options.LoginPath = "/Users/Login";
+        options.LoginPath = "/Users/login";
         options.AccessDeniedPath = "/Users/AccessDenied";
     });
 
@@ -145,7 +145,7 @@ var builder = WebApplication.CreateBuilder(args);
         {
             options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
             options.SlidingExpiration = true;
-            options.LoginPath = "/Users/Login";
+            options.LoginPath = "/Users/login";
             options.AccessDeniedPath = "/Users/AccessDenied";
         });
 

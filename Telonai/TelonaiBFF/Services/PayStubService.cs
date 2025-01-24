@@ -133,7 +133,7 @@ public class PayStubService : IPayStubService
 
     public async Task GeneratePayStubPdfs(int payrollId, int companyId)
     {
-        var dTime = DateTime.UtcNow;
+        var today = DateTime.UtcNow;
         var payroll = _context.Payroll.Include(e => e.PayrollSchedule).Include(e => e.Company)
             .ThenInclude(e => e.Zipcode).ThenInclude(e => e.City).ThenInclude(e => e.State)
             .FirstOrDefault(e => e.Id == payrollId && e.CompanyId == companyId)
@@ -173,7 +173,7 @@ public class PayStubService : IPayStubService
                 var paymentExemptFromFutaTax = additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0);
                 payStub.NetPay = payStub.GrossPay;
                 var is2percentShareHolder = payStub.Employment.Person.IsTwopercentshareholder;
-                if (!payStub.Employment.IsTenNinetyNine && !is2percentShareHolder)
+                if (!payStub.Employment.IsTenNinetyNine && !is2percentShareHolder) //Phase 2: probably add a second flag to show if this individual still want to get paid like any other employee 
                 {
                     await CalculateFederalWitholdingsAsync(payStub, additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0).ToList());
                     await CalculateStateWitholdingAsync(payStub, additionalMoneyReceived.Where(e => e.ExemptFromFutaTaxTypeId > 0).ToList());
@@ -183,7 +183,7 @@ public class PayStubService : IPayStubService
                 }
                 //Create PDFs 
                 docId = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, _newIncomeTaxesToHold.ToList());
-                var doc = new Document { Id = docId, DocumentTypeId = (int)DocumentTypeModel.PayStub, FileName = string.Format("PayStub-" + payStub.Id + "-" + dTime.ToString("yyyyMMddmmss") + ".pdf") };
+                var doc = new Document { Id = docId, DocumentTypeId = (int)DocumentTypeModel.PayStub, FileName = string.Format("PayStub-" + payStub.Id + "-" + today.ToString("yyyyMMddmmss") + ".pdf") };
                 _context.Document.Add(doc);
 
                 payStub.DocumentId = docId;
@@ -278,8 +278,12 @@ public class PayStubService : IPayStubService
         var previousIncomeTaxes = _context.IncomeTax.OrderByDescending(e => e.CreatedDate).Where(
             e => e.CreatedDate.Year == _currentYear && !e.PayStub.IsCancelled && e.PayStub.EmploymentId == stub.EmploymentId);
 
-        var withHolingForms = _context.EmployeeWithholding.Include(e => e.Field).Where(e => e.EmploymentId == stub.EmploymentId && e.Field.WithholdingYear == _currentYear).ToList();
-        var w4Form = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.WFourUnsigned).ToList(); // we use w4unsigned because the original employee withholding document is w4-unsigned  
+        var withHolingForms = _context.EmployeeWithholding.Include(e => e.Field).Where(e => e.EmploymentId == stub.EmploymentId 
+        && e.Field.WithholdingYear == _currentYear).ToList();
+
+        // we use w4unsigned because the original employee withholding document is w4-unsigned  
+        //TO DO: Do the necessary investigation and change the DocumentType from WFourUnsigned to WFour
+        var w4Form = withHolingForms.Where(e => e.Field.DocumentTypeId == (int)DocumentTypeModel.WFourUnsigned).ToList(); 
 
         var fedFilingStatus = FilingStatusTypeModel.SingleOrMarriedFilingSeparately;
 
@@ -437,7 +441,10 @@ public class PayStubService : IPayStubService
                     {
                         var ssOrMediPay = Math.Max(item.Maximum - stub.YtdGrossPay - paymentExemptFromSocialAndMedi, 0);
                         var ssOrMediTax = ssOrMediPay * item.Rate;
+                        var daysOffPayAmount = 200;
+                        var daysOffPayAmountTax = daysOffPayAmount * item.Rate ;
 
+                        ssOrMediTax = ssOrMediTax - daysOffPayAmountTax;
                         _newIncomeTaxesToHold.Add(new IncomeTax
                             {
                                 Amount = ssOrMediTax,
@@ -486,7 +493,7 @@ public class PayStubService : IPayStubService
                     + $"[{stub.Employment.Person.FirstName} {stub.Employment.Person.LastName}]");
             }
 
-                var annualDeduction = ncAnnualStandardDeductions.First(e => e.FilingStatusId == (int)ncFilingStatus);
+            var annualDeduction = ncAnnualStandardDeductions.First(e => e.FilingStatusId == (int)ncFilingStatus);
 
             var employeeStateRates = incomeTaxRates.Where(e => e.IncomeTaxType.ForEmployee).ToList();
             var employerStateRates = incomeTaxRates.Where(e => !e.IncomeTaxType.ForEmployee).ToList();
