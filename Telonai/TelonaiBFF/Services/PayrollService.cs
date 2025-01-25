@@ -580,7 +580,7 @@ public class PayrollService : IPayrollService
         var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId && e.PayRateBasisId!=null &&
         (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate))).ToList();
 
-        var dayOffRequest = await _dayOffRequestService.GetUnpaidDaysOffForPayrollSchedule(companyId, 
+        var dayOffRequest = _dayOffRequestService.GetUnpaidDaysOffForPayrollSchedule(companyId,
             currentPayroll.StartDate, currentPayroll.ScheduledRunDate);
 
         foreach (var emp in employments)

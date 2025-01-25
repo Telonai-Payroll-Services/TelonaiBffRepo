@@ -14,9 +14,6 @@ using TelonaiWebApi.Models.FileScan;
 using TelonaiWebApi.Helpers.FileScan;
 using TelonaiWebApi.Helpers.Interface;
 using TelonaiWebApi.Helpers.Configuration;
-using Amazon.Extensions.CognitoAuthentication;
-using Microsoft.AspNetCore.Identity;
-using Amazon.AspNetCore.Identity.Cognito;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,10 +84,10 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IDocumentService, DocumentService>();
     services.AddScoped<IDocumentManager, DocumentManager>();
     services.AddScoped<IFileScanRequest, FileScanRequest>();
-    services.AddScoped<IEncryption, EncryptionHelper>();
     services.AddScoped<IEmployeeWithholdingService<EmployeeWithholdingModel, EmployeeWithholding>, EmployeeWithholdingService>();
     services.AddScoped<IScopedAuthorization, ScopedAuthorization>();
     services.AddScoped<IIRSService, IRSService>();
+    services.AddScoped<IEncryption, EncryptionHelper>();
     services.AddScoped<IFormNineFortyOneService, FormNineFortyOneService>();
     services.AddScoped<IFormNineFortyFourService, FormNineFortyFourService>();
     services.AddScoped<IFormNineFortyService, FormNineFortyService>();

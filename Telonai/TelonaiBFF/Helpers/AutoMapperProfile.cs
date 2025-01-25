@@ -5,16 +5,16 @@ using TelonaiWebApi.Services;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Models;
 using System.Drawing;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 public class AutoMapperProfile : Profile
 {
-    private readonly IStaticDataService _dataService;
-    private int _ncToUtcTimeDifference = -5; //This value should come from DB. This is a temporary fix. 
+    private readonly int _ncToUtcTimeDifference = -5; //TODO: This value should come from DB. This is a temporary fix. 
+    private readonly static string _encryptionKey = "A4O5CL8BOmxISa0PyiusDPfRZaZ1r7i5"; //TODO: This value should come from secrets manager
+    private readonly static string _encryptionIV = "VZjbON7qgFiBTntX"; //TODO: This value should come from secres manager
 
-    public AutoMapperProfile(IStaticDataService dataService)
-    {
-        _dataService = dataService;
-    }
     public AutoMapperProfile()
     {
         CreateMap<PayStub, PayStubModel>()
@@ -135,7 +135,8 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.MapFrom(src => (StateWithholdingDocumentStatusModel)src.StateWithholdingDocumentStatusId))
             .ForMember(dest => dest.WFourWithholdingDocumentStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
-            .ForMember(dest => dest.Ssn, opt => opt.MapFrom(src => $"*****{src.Ssn.Substring(5)}"))
+            .ForMember(dest => dest.Ssn, opt => opt.MapFrom(src => $"*****{Decrypt(src.Ssn).Substring(5)}"))
+            .ForMember(dest => dest.BankAccountNumber, opt => opt.MapFrom(src => $"*****{Decrypt(src.BankAccountNumber)}"))
             .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.Zipcode.City.StateId));
 
         CreateMap<PersonModel, Person>()
@@ -148,6 +149,8 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.INineVerificationStatusId, opt => opt.MapFrom(src => (int)src.INineVerificationStatus))
              .ForMember(dest => dest.StateWithholdingDocumentStatusId, opt => opt.MapFrom(src => (int)src.StateWithholdingDocumentStatus))
              .ForMember(dest => dest.WfourWithholdingDocumentStatusId, opt => opt.MapFrom(src => (int)src.WFourWithholdingDocumentStatus))
+             .ForMember(dest => dest.Ssn, opt => opt.MapFrom(src => Encrypt(src.Ssn)))
+             .ForMember(dest => dest.BankAccountNumber, opt => opt.MapFrom(src => Encrypt(src.BankAccountNumber)))
              .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
              .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
              .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
@@ -176,12 +179,13 @@ public class AutoMapperProfile : Profile
            .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.Zipcode.City.State.Name))
            .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
            .ForMember(dest => dest.ZipCode, opt => opt.MapFrom(src => src.Zipcode.Code))
+           .ForMember(dest => dest.TaxId, opt => opt.MapFrom(src => Decrypt(src.TaxId)))
            .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.Zipcode.City.StateId));
-
 
         CreateMap<CompanyModel, Company>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
              .ForMember(dest => dest.BusinessType, opt => opt.Ignore())
+             .ForMember(dest => dest.TaxId, opt => opt.MapFrom(src => Decrypt(src.TaxId)))
              .ForMember(dest => dest.BusinessTypeId, opt => opt.MapFrom(src => (int)src.BusinessType))
              .ForMember(dest => dest.ZipcodeId, opt => opt.MapFrom(src => (int)src.ZipcodeId))
              .ForMember(dest => dest.Zipcode, opt => opt.Ignore())
@@ -202,21 +206,10 @@ public class AutoMapperProfile : Profile
              .ForMember(dest => dest.CompanySpecificField, opt => opt.Ignore())
              .ForMember(dest => dest.Id, opt => opt.Ignore());
 
-        CreateMap<CompanyModel, Company>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-             .ForMember(dest => dest.BusinessType, opt => opt.Ignore())
-             .ForMember(dest => dest.BusinessTypeId, opt => opt.MapFrom(src => (int)src.BusinessType))
-             .ForMember(dest => dest.ZipcodeId, opt => opt.MapFrom(src => (int)src.ZipcodeId))
-             .ForMember(dest => dest.Zipcode, opt => opt.Ignore())
-             .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
-             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
-             .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
-             .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
-
         CreateMap<TimecardUsa, TimecardUsaModel>()
            .ForMember(dest => dest.ClockIn, opt => opt.MapFrom(src => src.ClockIn.AddHours(_ncToUtcTimeDifference)))
-           .ForMember(dest => dest.ClockOut, opt => opt.MapFrom(src => 
-               src.ClockOut.HasValue? src.ClockOut.Value.AddHours(_ncToUtcTimeDifference):
+           .ForMember(dest => dest.ClockOut, opt => opt.MapFrom(src =>
+               src.ClockOut.HasValue ? src.ClockOut.Value.AddHours(_ncToUtcTimeDifference) :
                null as DateTime?))
            .ForMember(dest => dest.Job, opt => opt.MapFrom(src => src.Job.LocationName));
 
@@ -278,10 +271,12 @@ public class AutoMapperProfile : Profile
            .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Job == null || src.Job.Company == null ? src.CompanyName : src.Job.Company.Name))
            .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Name))
            .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.CountryId))
+           .ForMember(dest => dest.TaxId, opt => opt.MapFrom(src => Decrypt(src.TaxId)))
            .ForMember(dest => dest.PhoneCountryCode, opt => opt.MapFrom(src => src.Country.PhoneCountryCode));
 
         CreateMap<InvitationModel, Invitation>()
              .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.Company))
+             .ForMember(dest => dest.TaxId, opt => opt.MapFrom(src => Encrypt(src.TaxId)))
              .ForMember(dest => dest.Id, opt => opt.Ignore())
              .ForMember(dest => dest.Job, opt => opt.Ignore())
              .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
@@ -399,7 +394,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
-        
+
         CreateMap<DayOffRequest, DayOffRequestModel>()
         .ForMember(dest => dest.DayOffType, opt => opt.MapFrom(src => (DayOffTypes)src.DayOffTypeId))
         .ForMember(dest => dest.DayOffPayType, opt => opt.MapFrom(src => (DayOffPayTypeModel)src.DayOffPayTypeId))
@@ -416,11 +411,75 @@ public class AutoMapperProfile : Profile
 
         CreateMap<TelonaiSpecificFieldValueModel, TelonaiSpecificFieldValue>()
             .ForMember(dest => dest.TelonaiSpecificField, opt => opt.Ignore());
-        
+
         CreateMap<TelonaiSpecificField, TelonaiSpecificFieldModel>();
 
         CreateMap<TelonaiSpecificFieldModel, TelonaiSpecificField>()
              .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
+    public static string Encrypt(string plainText)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(plainText))
+                return plainText;
+
+            if (plainText.EndsWith("==")) //This is already encrypted
+                return plainText;
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = Encoding.UTF8.GetBytes(_encryptionKey);
+                aes.IV = Encoding.UTF8.GetBytes(_encryptionIV);
+
+                using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                using (var ms = new MemoryStream())
+                {
+                    using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                    using (var writer = new StreamWriter(cs))
+                    {
+                        writer.Write(plainText);
+                    }
+                    return Convert.ToBase64String(ms.ToArray());
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Encryption error: {ex.Message}");
+            return plainText;
+        }
+    }
+
+    public static string Decrypt(string encryptedText)
+    {
+        if (string.IsNullOrEmpty(encryptedText))
+            return encryptedText;
+
+        if (!encryptedText.EndsWith("==")) //This is not encrypted
+            return encryptedText;
+
+        try
+        {
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = Encoding.UTF8.GetBytes(_encryptionKey);
+                aes.IV = Encoding.UTF8.GetBytes(_encryptionIV);
+
+                using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                using (var ms = new MemoryStream(Convert.FromBase64String(encryptedText)))
+                using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+                using (var reader = new StreamReader(cs))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Decryption error: {ex.Message}");
+            return encryptedText;
+        }
+    }
 }
