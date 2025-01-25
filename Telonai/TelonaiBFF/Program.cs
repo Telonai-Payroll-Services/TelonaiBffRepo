@@ -87,6 +87,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IEmployeeWithholdingService<EmployeeWithholdingModel, EmployeeWithholding>, EmployeeWithholdingService>();
     services.AddScoped<IScopedAuthorization, ScopedAuthorization>();
     services.AddScoped<IIRSService, IRSService>();
+    services.AddScoped<IEncryption, EncryptionHelper>();
     services.AddScoped<IFormNineFortyOneService, FormNineFortyOneService>();
     services.AddScoped<IFormNineFortyFourService, FormNineFortyFourService>();
     services.AddScoped<IFormNineFortyService, FormNineFortyService>();
