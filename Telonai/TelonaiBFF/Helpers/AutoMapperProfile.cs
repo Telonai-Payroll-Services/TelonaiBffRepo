@@ -447,6 +447,7 @@ public class AutoMapperProfile : Profile
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Encryption error: {ex.Message}");
             return plainText;
         }
     }
@@ -477,6 +478,7 @@ public class AutoMapperProfile : Profile
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Decryption error: {ex.Message}");
             return encryptedText;
         }
     }

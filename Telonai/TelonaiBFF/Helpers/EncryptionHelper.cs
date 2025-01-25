@@ -26,38 +26,54 @@ namespace TelonaiWebApi.Helpers
 
         public string Encrypt(string plainText)
         {
-            using (Aes aes = Aes.Create())
+            try
             {
-                aes.Key = Encoding.UTF8.GetBytes(_encryptionSettings.Key);
-                aes.IV = Encoding.UTF8.GetBytes(_encryptionSettings.IV);
-
-                using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
-                using (var ms = new MemoryStream())
+                using (Aes aes = Aes.Create())
                 {
-                    using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-                    using (var writer = new StreamWriter(cs))
+                    aes.Key = Encoding.UTF8.GetBytes(_encryptionSettings.Key);
+                    aes.IV = Encoding.UTF8.GetBytes(_encryptionSettings.IV);
+
+                    using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                    using (var ms = new MemoryStream())
                     {
-                        writer.Write(plainText);
+                        using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                        using (var writer = new StreamWriter(cs))
+                        {
+                            writer.Write(plainText);
+                        }
+                        return Convert.ToBase64String(ms.ToArray());
                     }
-                    return Convert.ToBase64String(ms.ToArray());
                 }
             }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Encryption error: {ex.Message}");
+                return plainText;
+            }
         }
-
         public string Decrypt(string encryptedText)
         {
-            using (Aes aes = Aes.Create())
+            try
             {
-                aes.Key = Encoding.UTF8.GetBytes(_encryptionSettings.Key);
-                aes.IV = Encoding.UTF8.GetBytes(_encryptionSettings.IV);
-
-                using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
-                using (var ms = new MemoryStream(Convert.FromBase64String(encryptedText)))
-                using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
-                using (var reader = new StreamReader(cs))
+                using (Aes aes = Aes.Create())
                 {
-                    return reader.ReadToEnd();
+                    aes.Key = Encoding.UTF8.GetBytes(_encryptionSettings.Key);
+                    aes.IV = Encoding.UTF8.GetBytes(_encryptionSettings.IV);
+
+                    using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                    using (var ms = new MemoryStream(Convert.FromBase64String(encryptedText)))
+                    using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+                    using (var reader = new StreamReader(cs))
+                    {
+                        return reader.ReadToEnd();
+                    }
                 }
+            }
+
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Decryption error: {ex.Message}");
+                return encryptedText;
             }
         }
     }
