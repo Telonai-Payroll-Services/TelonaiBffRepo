@@ -135,7 +135,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.StateWithholdingDocumentStatus, opt => opt.MapFrom(src => (StateWithholdingDocumentStatusModel)src.StateWithholdingDocumentStatusId))
             .ForMember(dest => dest.WFourWithholdingDocumentStatus, opt => opt.MapFrom(src => (WFourWithholdingDocumentStatusModel)src.WfourWithholdingDocumentStatusId))
             .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Zipcode.CityId))
-            .ForMember(dest => dest.Ssn, opt => opt.MapFrom(src =>  $"*****{Decrypt(src.Ssn).Substring(5)}"))
+            .ForMember(dest => dest.Ssn, opt => opt.MapFrom(src => $"*****{Decrypt(src.Ssn).Substring(5)}"))
             .ForMember(dest => dest.BankAccountNumber, opt => opt.MapFrom(src => $"*****{Decrypt(src.BankAccountNumber)}"))
             .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.Zipcode.City.StateId));
 
@@ -208,8 +208,8 @@ public class AutoMapperProfile : Profile
 
         CreateMap<TimecardUsa, TimecardUsaModel>()
            .ForMember(dest => dest.ClockIn, opt => opt.MapFrom(src => src.ClockIn.AddHours(_ncToUtcTimeDifference)))
-           .ForMember(dest => dest.ClockOut, opt => opt.MapFrom(src => 
-               src.ClockOut.HasValue? src.ClockOut.Value.AddHours(_ncToUtcTimeDifference):
+           .ForMember(dest => dest.ClockOut, opt => opt.MapFrom(src =>
+               src.ClockOut.HasValue ? src.ClockOut.Value.AddHours(_ncToUtcTimeDifference) :
                null as DateTime?))
            .ForMember(dest => dest.Job, opt => opt.MapFrom(src => src.Job.LocationName));
 
@@ -394,7 +394,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
-        
+
         CreateMap<DayOffRequest, DayOffRequestModel>()
         .ForMember(dest => dest.DayOffType, opt => opt.MapFrom(src => (DayOffTypes)src.DayOffTypeId))
         .ForMember(dest => dest.DayOffPayType, opt => opt.MapFrom(src => (DayOffPayTypeModel)src.DayOffPayTypeId))
@@ -411,7 +411,7 @@ public class AutoMapperProfile : Profile
 
         CreateMap<TelonaiSpecificFieldValueModel, TelonaiSpecificFieldValue>()
             .ForMember(dest => dest.TelonaiSpecificField, opt => opt.Ignore());
-        
+
         CreateMap<TelonaiSpecificField, TelonaiSpecificFieldModel>();
 
         CreateMap<TelonaiSpecificFieldModel, TelonaiSpecificField>()
@@ -420,28 +420,34 @@ public class AutoMapperProfile : Profile
 
     public static string Encrypt(string plainText)
     {
-
-        if (string.IsNullOrEmpty(plainText))
-            return plainText;
-
-        if (plainText.EndsWith("==")) //This is already encrypted
-            return plainText;
-
-        using (Aes aes = Aes.Create())
+        try
         {
-            aes.Key = Encoding.UTF8.GetBytes(_encryptionKey);
-            aes.IV = Encoding.UTF8.GetBytes(_encryptionIV);
+            if (string.IsNullOrEmpty(plainText))
+                return plainText;
 
-            using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
-            using (var ms = new MemoryStream())
+            if (plainText.EndsWith("==")) //This is already encrypted
+                return plainText;
+
+            using (Aes aes = Aes.Create())
             {
-                using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-                using (var writer = new StreamWriter(cs))
+                aes.Key = Encoding.UTF8.GetBytes(_encryptionKey);
+                aes.IV = Encoding.UTF8.GetBytes(_encryptionIV);
+
+                using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                using (var ms = new MemoryStream())
                 {
-                    writer.Write(plainText);
+                    using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                    using (var writer = new StreamWriter(cs))
+                    {
+                        writer.Write(plainText);
+                    }
+                    return Convert.ToBase64String(ms.ToArray());
                 }
-                return Convert.ToBase64String(ms.ToArray());
             }
+        }
+        catch (Exception ex)
+        {
+            return plainText;
         }
     }
 
@@ -453,18 +459,25 @@ public class AutoMapperProfile : Profile
         if (!encryptedText.EndsWith("==")) //This is not encrypted
             return encryptedText;
 
-        using (Aes aes = Aes.Create())
+        try
         {
-            aes.Key = Encoding.UTF8.GetBytes(_encryptionKey);
-            aes.IV = Encoding.UTF8.GetBytes(_encryptionIV);
-
-            using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
-            using (var ms = new MemoryStream(Convert.FromBase64String(encryptedText)))
-            using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
-            using (var reader = new StreamReader(cs))
+            using (Aes aes = Aes.Create())
             {
-                return reader.ReadToEnd();
+                aes.Key = Encoding.UTF8.GetBytes(_encryptionKey);
+                aes.IV = Encoding.UTF8.GetBytes(_encryptionIV);
+
+                using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                using (var ms = new MemoryStream(Convert.FromBase64String(encryptedText)))
+                using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+                using (var reader = new StreamReader(cs))
+                {
+                    return reader.ReadToEnd();
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            return encryptedText;
         }
     }
 }
