@@ -21,6 +21,7 @@ public interface IPersonService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     Task<Person> GetCurrentUserAsync();
     Person GetPersonById(int Id);
     bool IsEmployeeMinor(DateOnly dateOfBirth);
+    PersonModel GetByIdAsNoTracking(int id);
 }
 
 public class PersonService : IPersonService<PersonModel,Person>
@@ -265,5 +266,20 @@ public class PersonService : IPersonService<PersonModel,Person>
             person.BankAccountNumber = _encryption.Encrypt(person.BankAccountNumber);
 
         return person;
+    }
+    public PersonModel GetByIdAsNoTracking(int id)
+    {
+        var obj = GetPersonAsNoTracking(id);
+        DecryptPerson(obj);
+        var result = _mapper.Map<PersonModel>(obj);
+        return result;
+    }
+    private Person GetPersonAsNoTracking(int id)
+    {
+        return _context.Person
+            .AsNoTracking()
+            .Include(z => z.Zipcode)
+            .Include(c => c.Zipcode.City)
+            .FirstOrDefault(p => p.Id == id);
     }
 }
