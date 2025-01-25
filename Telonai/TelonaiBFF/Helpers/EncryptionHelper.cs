@@ -1,10 +1,6 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text;
-using TelonaiWebApi.Entities;
-using TelonaiWebApi.Models;
-using TelonaiWebApi.Models.FileScan;
 
 namespace TelonaiWebApi.Helpers
 {

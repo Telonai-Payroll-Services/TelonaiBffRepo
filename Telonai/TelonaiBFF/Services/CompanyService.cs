@@ -75,18 +75,12 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
         {
             var obj = GetCompany(id);
             var result = _mapper.Map<CompanyModel>(obj);
-            if (!string.IsNullOrEmpty(result.TaxId))
-            {
-                result.TaxId = _encryption.Decrypt(result.TaxId);
-            }
+            
             return result;
         }
 
         public async Task<Company> CreateAsync(CompanyModel model)
         {
-            if (!string.IsNullOrEmpty(model.TaxId))
-                model.TaxId = _encryption.Encrypt(model.TaxId);
-
             var existing = GetByTaxId(model.TaxId);
             if (existing == null || existing.Count() < 1)
             {
@@ -136,7 +130,7 @@ public interface ICompanyService<CompanyModel, Company> : IDataService<CompanyMo
                     }
                 }
 
-                if(!string.IsNullOrEmpty(model.TaxId))
+                if(!string.IsNullOrEmpty(model.TaxId) && model.TaxId!= company.TaxId)
                 {
                     company.TaxId = _encryption.Encrypt(model.TaxId);
                 }

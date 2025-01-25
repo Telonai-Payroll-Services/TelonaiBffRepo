@@ -488,9 +488,9 @@ public class PayrollService : IPayrollService
 
     public async Task CreateNextPaystubForAllCurrentPayrollsAsync()
     {
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = DateOnly.FromDateTime(DateTime.Now.AddDays(-3));
         var payrolls = _context.Payroll.Include(e => e.PayrollSchedule)
-            .Where(e => e.StartDate <= today && e.ScheduledRunDate >= today
+            .Where(e => e.StartDate <= today && e.ScheduledRunDate >= today && e.CompanyId==77
                 && e.TrueRunDate == null).ToList();
 
         for (int i = 0; i < payrolls.Count; i++)
@@ -580,7 +580,7 @@ public class PayrollService : IPayrollService
         var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId && e.PayRateBasisId!=null &&
         (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate))).ToList();
 
-        var dayOffRequest = await _dayOffRequestService.GetUnpaidDaysOffForPayrollSchedule(companyId, 
+        var dayOffRequest = _dayOffRequestService.GetUnpaidDaysOffForPayrollSchedule(companyId,
             currentPayroll.StartDate, currentPayroll.ScheduledRunDate);
 
         foreach (var emp in employments)
