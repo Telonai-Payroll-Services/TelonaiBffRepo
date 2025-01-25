@@ -488,9 +488,9 @@ public class PayrollService : IPayrollService
 
     public async Task CreateNextPaystubForAllCurrentPayrollsAsync()
     {
-        var today = DateOnly.FromDateTime(DateTime.Now.AddDays(-3));
+        var today = DateOnly.FromDateTime(DateTime.Now);
         var payrolls = _context.Payroll.Include(e => e.PayrollSchedule)
-            .Where(e => e.StartDate <= today && e.ScheduledRunDate >= today && e.CompanyId==77
+            .Where(e => e.StartDate <= today && e.ScheduledRunDate >= today
                 && e.TrueRunDate == null).ToList();
 
         for (int i = 0; i < payrolls.Count; i++)
