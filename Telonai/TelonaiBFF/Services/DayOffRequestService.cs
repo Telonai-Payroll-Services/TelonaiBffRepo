@@ -214,18 +214,11 @@ public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,Day
 
     public List<DayOffRequest> GetUnpaidDaysOffForPayrollSchedule(int companyId, DateOnly payrollStartDate, DateOnly payrollRunDate)
     {
-        try
-        {
-            var unpaidDayOff = _context.DayOffRequest.Where(d => d.DayOffPayTypeId == (int)DayOffPayTypeModel.Unpaid &&
-                                                            d.Employment.Job.CompanyId == companyId &&
-                                                            d.FromDate >= payrollStartDate &&
-                                                            d.ToDate <= payrollRunDate).ToList();
-            return unpaidDayOff;
-        }
-        catch (Exception ex)
-        { 
-            return null;
-        }
+        var unpaidDayOff = _context.DayOffRequest.Where(d => d.DayOffPayTypeId == (int)DayOffPayTypeModel.Unpaid &&
+                                                        d.Employment.Job.CompanyId == companyId &&
+                                                        d.FromDate >= payrollStartDate &&
+                                                        d.ToDate <= payrollRunDate).ToList();
+        return unpaidDayOff;
     }
     
     public async Task<List<DayOffRequest>> GetPaidDaysOffForPayrollSchedule(int companyId, DateOnly payrollStartDate, DateOnly payrollRunDate)
