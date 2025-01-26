@@ -363,9 +363,9 @@ public class DocumentManager : IDocumentManager
             paragraph.Add(new Phrase("              " + _person.AddressLine2, fontSmall));
         }
         paragraph.Add(new Phrase("\n", fontSmall));
-        paragraph.Add(new Phrase($"              { _person.Zipcode.City.Name}", fontSmall));
+        paragraph.Add(new Phrase($"              { _person.Zipcode?.City.Name}", fontSmall));
         paragraph.Add(new Phrase("\n", fontSmall));
-        paragraph.Add(new Phrase($"              { _person.Zipcode.City.State.StateCode} {_person.Zipcode.Code}", fontSmall));
+        paragraph.Add(new Phrase($"              { _person.Zipcode?.City.State.StateCode} {_person.Zipcode?.Code}", fontSmall));
         
 
         _tableLayout.AddCell(new PdfPCell(paragraph)
