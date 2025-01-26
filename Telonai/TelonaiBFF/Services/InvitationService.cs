@@ -313,7 +313,7 @@ public class InvitationService : IInvitationService<InvitationModel, Invitation>
          + "<br/>If you are an iOS (iPhone or iPad) user, download the app from:  <a href='https://apps.apple.com/us/app/telonai/id6738379955'> App Store </a> ."
          + "<br/>If you are an Android user, download the app from: <a href='https://play.google.com/store/apps/details?id=com.telonai.app'> Google Play </a> ."
          + $"<br/>When prompted for activation code, please enter <strong>{activationCode}</strong>"
-         + "<br/>Thank you for choosing Telonai!</p>"
+         + "<br/><br/>Thank you for choosing Telonai!</p>"
          + "Telonai Payroll Services Inc.";
     }
     private static string GetActivationCode(Guid invitationId)

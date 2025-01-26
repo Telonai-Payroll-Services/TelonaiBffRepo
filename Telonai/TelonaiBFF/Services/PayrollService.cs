@@ -4,6 +4,7 @@ using Amazon.SimpleEmail.Model;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.ComponentModel.Design;
 using System.Diagnostics.Eventing.Reader;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
@@ -389,7 +390,7 @@ public class PayrollService : IPayrollService
         if (dto.TrueRunDate != null)
             throw new AppException("Payroll has already been run");
 
-        var stubs = CompletePayStubsForCurrentPayroll(dto);
+        var stubs = CreateOrUpdatePayStubsForCurrentPayrollAsync(dto,true).Result;
 
         dto.TrueRunDate = DateTime.UtcNow;
 
@@ -496,7 +497,7 @@ public class PayrollService : IPayrollService
         for (int i = 0; i < payrolls.Count; i++)
         {
             var payroll = payrolls[i];
-            var stubs = await CreateOrUpdatePayStubsForCurrentPayrollAsync(payroll);
+            var stubs = await CreateOrUpdatePayStubsForCurrentPayrollAsync(payroll,false);
             payroll.GrossPay = stubs.Item1.Sum(e => e.GrossPay) + stubs.Item2.Sum(e => e.GrossPay);
 
             if (stubs.Item1.Count > 0)
@@ -562,18 +563,26 @@ public class PayrollService : IPayrollService
     /// <param name="currentPayroll"></param>
     /// <returns>List of Updated paystubs as Item1, and list of new paystubs as item 2 of a Tuple</returns>
     /// <exception cref="AppException"></exception>
-    private async Task<Tuple<List<PayStub>, List<PayStub>>> CreateOrUpdatePayStubsForCurrentPayrollAsync(Payroll currentPayroll)
+    private async Task<Tuple<List<PayStub>, List<PayStub>>> CreateOrUpdatePayStubsForCurrentPayrollAsync(Payroll currentPayroll, bool isFinal)
     {
-
-        var payStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id && e.Employment.PayRateBasisId!=null).ToList();
-        var newPaystubs = new List<PayStub>();
-
         var companyId = currentPayroll.CompanyId;
         var currentYear = currentPayroll.ScheduledRunDate.Year;
-
         var timecards = _context.TimecardUsa.Where(e => e.Job.CompanyId == companyId &&
-        DateOnly.FromDateTime(e.ClockIn) >= currentPayroll.StartDate &&
-        DateOnly.FromDateTime(e.ClockIn) <= currentPayroll.ScheduledRunDate).ToList();
+            DateOnly.FromDateTime(e.ClockIn) >= currentPayroll.StartDate &&
+            DateOnly.FromDateTime(e.ClockIn) <= currentPayroll.ScheduledRunDate).ToList();
+
+        if (isFinal && timecards.Any(e => !e.IsApproved))
+            throw new AppException("You have not approved all timecards");
+
+        var currentPayStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id && e.Employment.PayRateBasisId!=null).ToList();
+        var newPaystubs = new List<PayStub>();
+
+        var previousPayrollId = _context.Payroll.OrderByDescending(e => e.Id).FirstOrDefault(e => e.Id < currentPayroll.Id
+            && e.CompanyId == companyId)?.Id;
+      
+        var previousPayStubs = _context.PayStub.OrderByDescending(e => e.Id).Where(e => e.Payroll.CompanyId == companyId &&
+        !e.IsCancelled && e.Payroll.ScheduledRunDate.Year==currentYear)
+            .GroupBy(e => e.EmploymentId).Select(g=>g.First()).ToList();
 
         var frequency = (PayrollScheduleTypeModel)currentPayroll.PayrollSchedule.PayrollScheduleTypeId;
 
@@ -582,6 +591,10 @@ public class PayrollService : IPayrollService
 
         var dayOffRequest = _dayOffRequestService.GetUnpaidDaysOffForPayrollSchedule(companyId,
             currentPayroll.StartDate, currentPayroll.ScheduledRunDate);
+
+
+        var additionalWithholdingTaxWageLimit = double.Parse(_context.CountrySpecificFieldValue.FirstOrDefault(e => e.EffectiveYear == currentYear &&
+        e.CountrySpecificField.FieldName == "AdditionalMedicareTaxWithholdingWageLimit")?.FieldValue ?? "0.0");
 
         foreach (var emp in employments)
         {            
@@ -592,251 +605,229 @@ public class PayrollService : IPayrollService
             if (payRateBasis == null)
                 continue;
 
-            var regularPay = 0.0;
-            var regularHours = 0.0;
-            var otPay = 0.0;
-            var otHours = 0.0;
+            var regularPay = 0.0;  var regularHours = 0.0; var otPay = 0.0; var otHours = 0.0;
             Tuple<double, double, double, double> calculatedPay = null;
 
-            var currentPaystub = payStubs.FirstOrDefault(e => e.EmploymentId == emp.Id);
-
+            var currentPaystub = currentPayStubs.FirstOrDefault(e => e.EmploymentId == emp.Id);
+            var previousPayStub = previousPayStubs.FirstOrDefault(e => e.EmploymentId == emp.Id);
+            
             if (payRateBasis == (int)PayRateBasisModel.Daily)
             {
                 var pay = CalculatePayForDailyRatedEmployee(timecards, currentPayroll, emp);
                 regularPay = pay.Item1;
                 regularHours = pay.Item2 * 8;
-
-                if (currentPaystub == null)
-                {
-                    var paystub1 = new PayStub
-                    {
-                        EmploymentId = emp.Id,
-                        RegularHoursWorked = regularHours,
-                        PayrollId = currentPayroll.Id,
-                        RegularPay = regularPay,
-                        GrossPay = regularPay,
-                        NetPay = regularPay,
-                    };
-
-                    newPaystubs.Add(paystub1);
-                }
-                else
-                {
-                    currentPaystub.RegularHoursWorked = regularHours;
-                    currentPaystub.RegularPay = regularPay;
-                    currentPaystub.GrossPay = regularPay;
-                    currentPaystub.NetPay = regularPay;
-                }
-
-                continue;
+                otPay = 0;
+                otHours = 0;              
             }
-
-            switch (frequency)
+            else
             {
-                case PayrollScheduleTypeModel.Monthly:
-                    {
-                        if (payRateBasis == (int)PayRateBasisModel.Annually) //(BusinessTypeModel)src.BusinessTypeId"Annually")
+                switch (frequency)
+                {
+                    case PayrollScheduleTypeModel.Monthly:
                         {
-                            if (numberofDayOff > 0)
+                            if (payRateBasis == (int)PayRateBasisModel.Annually) //(BusinessTypeModel)src.BusinessTypeId"Annually")
                             {
-                                var dailyPayrate = payrate / 260; 
-                                regularPay = (payrate / 12) - (dailyPayrate * numberofDayOff);
+                                if (numberofDayOff > 0)
+                                {
+                                    var dailyPayrate = payrate / 260;
+                                    regularPay = (payrate / 12) - (dailyPayrate * numberofDayOff);
+                                }
+                                else
+                                {
+                                    regularPay = payrate / 12;
+                                }
+                                break;
                             }
-                            else
+                            if (payRateBasis == (int)PayRateBasisModel.Monthly)
                             {
-                                regularPay = payrate / 12;
+                                if (numberofDayOff > 0)
+                                {
+                                    var dailyPayrate = (payrate * 12) / 260;
+                                    regularPay = payrate - (dailyPayrate * numberofDayOff);
+                                }
+                                else
+                                {
+                                    regularPay = payrate;
+                                }
+                                break;
                             }
-                            break;
+                            if (payRateBasis == (int)PayRateBasisModel.Hourly)
+                            {
+                                calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
+                                regularPay = calculatedPay.Item1;
+                                regularHours = calculatedPay.Item2;
+                                otPay = calculatedPay.Item3;
+                                otHours = calculatedPay.Item4;
+                                break;
+                            }
+                            throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Monthly payroll");
                         }
-                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
+                    case PayrollScheduleTypeModel.SemiMonthly:
                         {
-                            if (numberofDayOff > 0)
+                            if (payRateBasis == (int)PayRateBasisModel.Annually)
                             {
-                                var dailyPayrate = (payrate * 12) / 260; 
-                                regularPay = payrate - (dailyPayrate * numberofDayOff);
+                                if (numberofDayOff > 0)
+                                {
+                                    var dailyPayrate = payrate / 260;
+                                    regularPay = (payrate / 24) - (dailyPayrate * numberofDayOff);
+                                }
+                                else
+                                {
+                                    regularPay = payrate / 24;
+                                }
+                                break;
                             }
-                            else
+                            if (payRateBasis == (int)PayRateBasisModel.Monthly)
                             {
-                                regularPay = payrate;
+                                if (numberofDayOff > 0)
+                                {
+                                    var dailyPayrate = (payrate * 12) / 260;
+                                    regularPay = (payrate / 2) - (dailyPayrate * numberofDayOff);
+                                }
+                                else
+                                {
+                                    regularPay = payrate / 2;
+                                }
+                                break;
                             }
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
-                        {
-                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
-                            regularPay = calculatedPay.Item1;
-                            regularHours = calculatedPay.Item2;
-                            otPay = calculatedPay.Item3;
-                            otHours = calculatedPay.Item4;
-                            break;
-                        }
-                        throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Monthly payroll");
-                    }
-                case PayrollScheduleTypeModel.SemiMonthly:
-                    {
-                        if (payRateBasis == (int)PayRateBasisModel.Annually)
-                        {
-                            if (numberofDayOff > 0)
+                            if (payRateBasis == (int)PayRateBasisModel.Weekly)
                             {
-                                var dailyPayrate = payrate / 260;
-                                regularPay = (payrate / 24) - (dailyPayrate * numberofDayOff);
-                            }
-                            else
-                            {
-                                regularPay = payrate / 24;
-                            }
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
-                        {
-                            if (numberofDayOff > 0)
-                            {
-                                var dailyPayrate = (payrate * 12) / 260;
-                                regularPay = (payrate/2) - (dailyPayrate * numberofDayOff);
-                            }
-                            else
-                            {
-                                regularPay = payrate / 2;
-                            }
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Weekly)
-                        {
-                            if(numberofDayOff > 0)
-                            {
-                                var dailyPayrate = payrate / 5;
-                                regularPay = (payrate * 52/24) - (dailyPayrate * numberofDayOff);
-                            }
-                            else
-                            { 
-                                regularPay = (payrate * 52 / 24);
-                            }
-                            
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
-                        {
-                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
-                            regularPay = calculatedPay.Item1;
-                            regularHours = calculatedPay.Item2;
-                            otPay = calculatedPay.Item3;
-                            otHours = calculatedPay.Item4;
-                            break;
-                        }
+                                if (numberofDayOff > 0)
+                                {
+                                    var dailyPayrate = payrate / 5;
+                                    regularPay = (payrate * 52 / 24) - (dailyPayrate * numberofDayOff);
+                                }
+                                else
+                                {
+                                    regularPay = (payrate * 52 / 24);
+                                }
 
-                        throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Semi-Monthly payroll");
-                    }
-                case PayrollScheduleTypeModel.Biweekly:
-                    {
-                        if (payRateBasis == (int)PayRateBasisModel.Annually)
-                        {
-                            if (numberofDayOff > 0)
-                            {
-                                var dailyPayrate = payrate / 260;
-                                regularPay = (payrate / 26) - (dailyPayrate * numberofDayOff);
+                                break;
                             }
-                            else
+                            if (payRateBasis == (int)PayRateBasisModel.Hourly)
                             {
-                                regularPay = payrate / 26;
+                                calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
+                                regularPay = calculatedPay.Item1;
+                                regularHours = calculatedPay.Item2;
+                                otPay = calculatedPay.Item3;
+                                otHours = calculatedPay.Item4;
+                                break;
                             }
-                            
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
-                        {
-                            if (numberofDayOff > 0)
-                            {
-                                var dailyPayrate = (payrate * 12) / 260;
-                                regularPay = (payrate * 12 / 26) - (dailyPayrate * numberofDayOff);
-                            }
-                            else 
-                            {
-                                regularPay = payrate * 12 / 26;
-                            }
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Weekly)
-                        {
-                            if (numberofDayOff > 0)
-                            {
-                                var dailyPayrate = payrate / 5;
-                                regularPay = (payrate * 2) - (dailyPayrate * numberofDayOff);
-                            }
-                            else
-                            {
-                                regularPay = payrate * 2;
-                            }
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
-                        {
-                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
-                            regularPay = calculatedPay.Item1;
-                            regularHours = calculatedPay.Item2;
-                            otPay = calculatedPay.Item3;
-                            otHours = calculatedPay.Item4;
-                            break;
-                        }
-                        throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Bi-Weekly payroll");
-                    }
-                case PayrollScheduleTypeModel.Weekly:
-                    {
-                        if (payRateBasis == (int)PayRateBasisModel.Annually)
-                        {
-                            if (numberofDayOff > 0)
-                            {
-                                var dailyPayrate = payrate / 260;
-                                regularPay = (payrate / 52) - (dailyPayrate * numberofDayOff);
-                            }
-                            else
-                            {
-                                regularPay = payrate / 52;
-                            }
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
-                        {
-                            if (numberofDayOff > 0)
-                            {
-                                var dailyPayrate = payrate * 12 / 260;
-                                regularPay = (payrate * 12 / 52) - (dailyPayrate * numberofDayOff);
-                            }
-                            else
-                            {
-                                regularPay = (payrate * 12 / 52);
-                            }
-                           
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Weekly)
-                        {
-                            if (numberofDayOff > 0)
-                            {
-                                var dailyPayrate = payrate / 5;
-                                regularPay = payrate - (dailyPayrate * numberofDayOff);
-                            }
-                            else
-                            {
-                                regularPay = payrate;
-                            }
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
-                        {
-                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
-                            regularPay = calculatedPay.Item1;
-                            regularHours = calculatedPay.Item2;
-                            otPay = calculatedPay.Item3;
-                            otHours = calculatedPay.Item4;
-                            break;
-                        }
 
+                            throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Semi-Monthly payroll");
+                        }
+                    case PayrollScheduleTypeModel.Biweekly:
+                        {
+                            if (payRateBasis == (int)PayRateBasisModel.Annually)
+                            {
+                                if (numberofDayOff > 0)
+                                {
+                                    var dailyPayrate = payrate / 260;
+                                    regularPay = (payrate / 26) - (dailyPayrate * numberofDayOff);
+                                }
+                                else
+                                {
+                                    regularPay = payrate / 26;
+                                }
+
+                                break;
+                            }
+                            if (payRateBasis == (int)PayRateBasisModel.Monthly)
+                            {
+                                if (numberofDayOff > 0)
+                                {
+                                    var dailyPayrate = (payrate * 12) / 260;
+                                    regularPay = (payrate * 12 / 26) - (dailyPayrate * numberofDayOff);
+                                }
+                                else
+                                {
+                                    regularPay = payrate * 12 / 26;
+                                }
+                                break;
+                            }
+                            if (payRateBasis == (int)PayRateBasisModel.Weekly)
+                            {
+                                if (numberofDayOff > 0)
+                                {
+                                    var dailyPayrate = payrate / 5;
+                                    regularPay = (payrate * 2) - (dailyPayrate * numberofDayOff);
+                                }
+                                else
+                                {
+                                    regularPay = payrate * 2;
+                                }
+                                break;
+                            }
+                            if (payRateBasis == (int)PayRateBasisModel.Hourly)
+                            {
+                                calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
+                                regularPay = calculatedPay.Item1;
+                                regularHours = calculatedPay.Item2;
+                                otPay = calculatedPay.Item3;
+                                otHours = calculatedPay.Item4;
+                                break;
+                            }
+                            throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Bi-Weekly payroll");
+                        }
+                    case PayrollScheduleTypeModel.Weekly:
+                        {
+                            if (payRateBasis == (int)PayRateBasisModel.Annually)
+                            {
+                                if (numberofDayOff > 0)
+                                {
+                                    var dailyPayrate = payrate / 260;
+                                    regularPay = (payrate / 52) - (dailyPayrate * numberofDayOff);
+                                }
+                                else
+                                {
+                                    regularPay = payrate / 52;
+                                }
+                                break;
+                            }
+                            if (payRateBasis == (int)PayRateBasisModel.Monthly)
+                            {
+                                if (numberofDayOff > 0)
+                                {
+                                    var dailyPayrate = payrate * 12 / 260;
+                                    regularPay = (payrate * 12 / 52) - (dailyPayrate * numberofDayOff);
+                                }
+                                else
+                                {
+                                    regularPay = (payrate * 12 / 52);
+                                }
+
+                                break;
+                            }
+                            if (payRateBasis == (int)PayRateBasisModel.Weekly)
+                            {
+                                if (numberofDayOff > 0)
+                                {
+                                    var dailyPayrate = payrate / 5;
+                                    regularPay = payrate - (dailyPayrate * numberofDayOff);
+                                }
+                                else
+                                {
+                                    regularPay = payrate;
+                                }
+                                break;
+                            }
+                            if (payRateBasis == (int)PayRateBasisModel.Hourly)
+                            {
+                                calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
+                                regularPay = calculatedPay.Item1;
+                                regularHours = calculatedPay.Item2;
+                                otPay = calculatedPay.Item3;
+                                otHours = calculatedPay.Item4;
+                                break;
+                            }
+
+                            break;
+                        }
+                    default:
                         break;
-                    }
-                default:
-                    break;
+                }
             }
-
+           
             if (currentPaystub == null)
             {
                 var paystub = new PayStub
@@ -848,7 +839,16 @@ public class PayrollService : IPayrollService
                     PayrollId = currentPayroll.Id,
                     RegularPay = Math.Round(regularPay, 2),
                     GrossPay = Math.Round(otPay + regularPay, 2),
-                    NetPay = Math.Round(regularPay, 2) //This is initializing the netpay. It will be adjusted when we deduct tax
+                    NetPay = Math.Round(regularPay, 2), //This is initializing the netpay. It will be adjusted when we deduct tax
+                    YtdGrossPay = Math.Round(otPay + regularPay + (previousPayStub?.YtdGrossPay ?? 0), 2),
+                    YtdOverTimeHoursWorked = Math.Round(otHours + (previousPayStub?.YtdOverTimeHoursWorked ?? 0), 2),
+                    YtdOverTimePay = Math.Round(otPay + (previousPayStub?.YtdOverTimePay ?? 0), 2),
+                    YtdRegularHoursWorked = Math.Round(regularHours + (previousPayStub?.YtdRegularHoursWorked ?? 0), 2),
+                    YtdRegularPay = Math.Round(regularPay + (previousPayStub?.RegularPay ?? 0), 2),
+                    AmountSubjectToAdditionalMedicareTax = previousPayStub?.AmountSubjectToAdditionalMedicareTax > 0 ?
+                    Math.Round(otPay + regularPay, 2) :
+                    Math.Max(Math.Round(otPay + regularPay + previousPayStub?.YtdGrossPay ?? 0, 2) - additionalWithholdingTaxWageLimit, 0.0)
+
                 };
                 newPaystubs.Add(paystub);
             }
@@ -860,263 +860,25 @@ public class PayrollService : IPayrollService
                 currentPaystub.RegularPay = Math.Round(regularPay, 2);
                 currentPaystub.GrossPay = Math.Round(regularPay,2);
                 currentPaystub.NetPay = Math.Round(regularPay,2);
+                currentPaystub.YtdGrossPay = Math.Round(otPay + regularPay + (previousPayStub?.YtdGrossPay?? 0),2);
+                currentPaystub.YtdOverTimeHoursWorked = Math.Round(otHours + (previousPayStub?.YtdOverTimeHoursWorked ?? 0),2);
+                currentPaystub.YtdOverTimePay = Math.Round(otPay + (previousPayStub?.YtdOverTimePay ?? 0),2);
+                currentPaystub.YtdRegularHoursWorked = Math.Round(regularHours + (previousPayStub?.YtdRegularHoursWorked ?? 0),2);
+                currentPaystub.YtdRegularPay = Math.Round(regularPay + (previousPayStub?.RegularPay ?? 0),2);
+                currentPaystub.AmountSubjectToAdditionalMedicareTax = previousPayStub?.AmountSubjectToAdditionalMedicareTax > 0 ?
+                    Math.Round(otPay + regularPay, 2) :
+                    Math.Max(Math.Round(otPay + regularPay + previousPayStub?.YtdGrossPay ?? 0, 2) - additionalWithholdingTaxWageLimit, 0.0);
+
             }
         }
-        
-        return Tuple.Create(payStubs, newPaystubs);
-    }
 
-    /// <summary>
-    /// This method is invoked when Payrolls are run. Paystubs will not change after this method call
-    /// </summary>
-    /// <param name="currentPayroll"></param>
-    /// <returns>List of Updated paystubs as Item1, and list of new paystubs as item 2 of a Tuple</returns>
-    /// <exception cref="AppException"></exception>
-    private Tuple<List<PayStub>, List<PayStub>> CompletePayStubsForCurrentPayroll(Payroll currentPayroll)
-    {
-        var companyId = currentPayroll.CompanyId;
-        var company = currentPayroll.Company;
-        var currentYear = currentPayroll.ScheduledRunDate.Year;
-
-        var previousPayrollId = _context.Payroll.OrderByDescending(e => e.Id).FirstOrDefault(e => e.Id < currentPayroll.Id
-            && e.CompanyId == companyId)?.Id;
-
-        var previousPayStubs = _context.PayStub.Where(e => e.PayrollId == previousPayrollId).ToList();
-        var currentPayStubs = _context.PayStub.Where(e => e.PayrollId == currentPayroll.Id).ToList();
-
-        var newPayStubs = new List<PayStub>();
-       
-        var timecards = _context.TimecardUsa.Where(e => e.Job.CompanyId == companyId &&
-        DateOnly.FromDateTime(e.ClockIn) >= currentPayroll.StartDate &&
-        DateOnly.FromDateTime(e.ClockIn) <= currentPayroll.ScheduledRunDate).ToList();
-
-        if (timecards.Any(e => !e.IsApproved))
-            throw new AppException("You have not approved all timecards");
-               
-        var schedule = _context.PayrollSchedule.OrderByDescending(e=>e.StartDate).FirstOrDefault(e => e.CompanyId == companyId 
-        && e.StartDate <= currentPayroll.StartDate && (e.EndDate == null ||
-        e.EndDate >= currentPayroll.ScheduledRunDate));        
-
-        var frequency = (PayrollScheduleTypeModel)schedule?.PayrollScheduleTypeId;
-
-        var employments = _context.Employment.Where(e => e.Job.CompanyId == companyId && e.PayRateBasisId!=null &&
-        (!e.Deactivated || (e.EndDate != null && e.EndDate >= currentPayroll.StartDate))).ToList();
-
-        timecards.ForEach(e => e.IsLocked = true);
-        _context.UpdateRange(timecards);
-
-        var additionalWithholdingTaxWageLimit = double.Parse(_context.CountrySpecificFieldValue.FirstOrDefault(e => e.EffectiveYear == currentYear && 
-        e.CountrySpecificField.FieldName== "AdditionalMedicareTaxWithholdingWageLimit")?.FieldValue?? "0.0");
-
-        foreach (var emp in employments)
+        if (isFinal)
         {
-            var payrate = emp.PayRate;
-            var payRateBasis = emp.PayRateBasisId;
-
-            var regularPay = 0.0;
-            var regularHours = 0.0;
-            var otPay = 0.0;
-            var otHours = 0.0;
-            Tuple<double, double, double, double> calculatedPay = null;
-
-            var currentPaystub = currentPayStubs.FirstOrDefault(e => e.EmploymentId == emp.Id);
-            var previousPayStub = previousPayStubs.FirstOrDefault(e => e.EmploymentId == emp.Id);
-
-            if (payRateBasis == (int)PayRateBasisModel.Daily)
-            {
-                var pay = CalculatePayForDailyRatedEmployee(timecards, currentPayroll, emp);
-                regularPay = pay.Item1;
-                regularHours = pay.Item2 * 8;
-
-                if (currentPaystub == null)
-                {
-                    currentPaystub = new PayStub
-                    {
-                        EmploymentId = emp.Id,
-                        RegularHoursWorked = regularHours,
-                        PayrollId = currentPayroll.Id,
-                        RegularPay = regularPay,
-                        GrossPay = regularPay,
-                        NetPay = regularPay,
-                    };
-                    newPayStubs.Add(currentPaystub);
-                }
-                else
-                {
-                    currentPaystub.RegularHoursWorked = regularHours;
-                    currentPaystub.RegularPay = regularPay;
-                    currentPaystub.GrossPay = regularPay;
-                    currentPaystub.NetPay = regularPay;
-                }
-                if (previousPayStub != null)
-                {
-                    currentPaystub.YtdGrossPay = regularPay + previousPayStub.YtdGrossPay;
-                    currentPaystub.YtdOverTimeHoursWorked = previousPayStub.YtdOverTimeHoursWorked;
-                    currentPaystub.YtdOverTimePay = previousPayStub.YtdOverTimePay;
-                    currentPaystub.YtdRegularHoursWorked = regularHours + previousPayStub.YtdRegularHoursWorked;
-                    currentPaystub.YtdRegularPay = regularPay + previousPayStub.RegularPay;
-                    currentPaystub.AmountSubjectToAdditionalMedicareTax = previousPayStub.AmountSubjectToAdditionalMedicareTax > 0 ? otPay + regularPay :
-                        Math.Max(regularPay + previousPayStub.YtdGrossPay - additionalWithholdingTaxWageLimit, 0.0);
-                    currentPaystub.YtdNetPay = regularPay + previousPayStub.YtdNetPay;
-                }
-
-                continue;
-            }
-
-            switch (frequency)
-            {
-                case PayrollScheduleTypeModel.Monthly:
-                    {
-                        if (payRateBasis == (int)PayRateBasisModel.Annually) //(BusinessTypeModel)src.BusinessTypeId"Annually")
-                        {
-                            regularPay = payrate / 12;
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
-                        {
-                            regularPay = payrate;
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
-                        {
-                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
-                            regularPay = calculatedPay.Item1;
-                            regularHours = calculatedPay.Item2;
-                            otPay = calculatedPay.Item3;
-                            otHours = calculatedPay.Item4;
-                            break;
-                        }
-                        throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Monthly payroll");
-                    }
-                case PayrollScheduleTypeModel.SemiMonthly:
-                    {
-                        if (payRateBasis == (int)PayRateBasisModel.Annually)
-                        {
-                            regularPay = payrate / 24;
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
-                        {
-                            regularPay = payrate / 2;
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Weekly)
-                        {
-                            regularPay = payrate * 52 / 24;
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
-                        {
-                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
-                            regularPay = calculatedPay.Item1;
-                            regularHours = calculatedPay.Item2;
-                            otPay = calculatedPay.Item3;
-                            otHours = calculatedPay.Item4;
-                            break;
-                        }
-
-                        throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Semi-Monthly payroll");
-                    }
-                case PayrollScheduleTypeModel.Biweekly:
-                    {
-                        if (payRateBasis == (int)PayRateBasisModel.Annually)
-                        {
-                            regularPay = payrate / 26;
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
-                        {
-                            regularPay = payrate * 12 / 26;
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Weekly)
-                        {
-                            regularPay = payrate * 2;
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
-                        {
-                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
-                            regularPay = calculatedPay.Item1;
-                            regularHours = calculatedPay.Item2;
-                            otPay = calculatedPay.Item3;
-                            otHours = calculatedPay.Item4;
-                            break;
-                        }
-                        throw new AppException($"Employee {emp.Person.FirstName} {emp.Person.LastName} has Invalid pay rate for Bi-Weekly payroll");
-                    }
-                case PayrollScheduleTypeModel.Weekly:
-                    {
-                        if (payRateBasis == (int)PayRateBasisModel.Annually)
-                        {
-                            regularPay = payrate / 52;
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Monthly)
-                        {
-                            regularPay = payrate * 12 / 52;
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Weekly)
-                        {
-                            regularPay = payrate;
-                            break;
-                        }
-                        if (payRateBasis == (int)PayRateBasisModel.Hourly)
-                        {
-                            calculatedPay = CalculatePayForHourlyRatedEmployees(timecards, currentPayroll, emp, frequency);
-                            regularPay = calculatedPay.Item1;
-                            regularHours = calculatedPay.Item2;
-                            otPay = calculatedPay.Item3;
-                            otHours = calculatedPay.Item4;
-                            break;
-                        }
-
-                        break;
-                    }
-                default:
-                    break;
-            }
-            
-            regularPay= Math.Round(regularPay,2);
-            otPay = Math.Round(otPay, 2);
-
-            if (currentPaystub == null)
-            {
-                currentPaystub = new PayStub
-                {
-                    EmploymentId = emp.Id,
-                    RegularHoursWorked = regularHours,
-                    OverTimeHoursWorked = otHours,
-                    OverTimePay = otPay,
-                    PayrollId = currentPayroll.Id,
-                    RegularPay = regularPay,
-                    GrossPay = otPay + regularPay,
-                };
-                newPayStubs.Add(currentPaystub);
-            }
-            else
-            {
-                currentPaystub.RegularHoursWorked = regularHours;
-                currentPaystub.RegularPay = regularPay;
-                currentPaystub.GrossPay = otPay + regularPay;
-                currentPaystub.NetPay = otPay + regularPay;
-                currentPaystub.OverTimePay = otPay;
-                currentPaystub.OverTimeHoursWorked = otHours;
-            }
-            if (previousPayStub != null)
-            {
-                currentPaystub.YtdGrossPay = otPay + regularPay + previousPayStub.YtdGrossPay;
-                currentPaystub.YtdOverTimeHoursWorked = otHours + previousPayStub.YtdOverTimeHoursWorked;
-                currentPaystub.YtdOverTimePay = otPay + previousPayStub.YtdOverTimePay;
-                currentPaystub.YtdRegularHoursWorked = regularHours + previousPayStub.YtdRegularHoursWorked;
-                currentPaystub.YtdRegularPay = regularPay + previousPayStub.RegularPay;
-                currentPaystub.AmountSubjectToAdditionalMedicareTax = previousPayStub.AmountSubjectToAdditionalMedicareTax > 0 ? otPay + regularPay :
-                    Math.Max(otPay + regularPay + previousPayStub.YtdGrossPay - additionalWithholdingTaxWageLimit, 0.0);
-            }
+            timecards.ForEach(e => e.IsLocked = true);
+            _context.UpdateRange(timecards);
         }
 
-        return Tuple.Create(currentPayStubs, newPayStubs);
+        return Tuple.Create(currentPayStubs, newPaystubs);
     }
 
     private static Tuple<double,double,double,double> CalculatePayForHourlyRatedEmployees(List<TimecardUsa> timecards , Payroll currentPayroll, 

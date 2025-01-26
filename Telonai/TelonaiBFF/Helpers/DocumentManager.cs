@@ -30,9 +30,7 @@ public class DocumentManager : IDocumentManager
     private static Font _fontUnderLined = new(_baseFont, 10, Font.UNDERLINE);
     private static Font _fontBold = new(Font.FontFamily.TIMES_ROMAN, 10, Font.BOLD);
     private static Font _fontNormal = new(Font.FontFamily.TIMES_ROMAN, 10, Font.NORMAL);
-    private PdfPTable _tableLayout = new(2);
-    private PdfPTable _childTableLayout1 = new(5);
-    private PdfPTable _childTableLayout2 = new(3);
+ 
     private Company _company = null;
     private Person _person = null;
     private PayStub _payStub = null;
@@ -123,7 +121,7 @@ public class DocumentManager : IDocumentManager
             };
             doc.Add(subTitle);
 
-            var payDate = new Paragraph($"Pay Date: " + payStub.Payroll.ScheduledRunDate.ToShortDateString(), subTitleFont)
+            var payDate = new Paragraph($"Pay Date: " + payStub.Payroll.TrueRunDate.Value.ToShortDateString(), subTitleFont)
             {
                 Alignment = Element.ALIGN_CENTER,
                 SpacingAfter = 20
@@ -171,46 +169,51 @@ public class DocumentManager : IDocumentManager
 
     protected PdfPTable Add_Content_To_PDF()
     {
-        float[] headers = new float[] { 95f, 65f};   
-        _tableLayout.SetWidths(headers);  
-        _tableLayout.WidthPercentage = 100; 
-        _tableLayout.HeaderRows = 1;
+
+        PdfPTable tableLayout = new(2);
+        PdfPTable childTableLayout1 = new(5);
+        PdfPTable childTableLayout2 = new(3);
+
+        float[] headers = new float[] { 95f, 65f };
+        tableLayout.SetWidths(headers);
+        tableLayout.WidthPercentage = 100;
+        tableLayout.HeaderRows = 1;
         float[] incomeHeaders = new float[] { 55f, 40f, 35f, 60f, 60f };
-        _childTableLayout1.WidthPercentage = 100;
-        _childTableLayout1.HeaderRows = 1;
-        _childTableLayout1.SetWidths(incomeHeaders);
-        float[] headers2 = { 40f, 35f, 40f }; 
-        _childTableLayout2.SetWidths(headers2);
-        _childTableLayout2.WidthPercentage = 100;
-        _childTableLayout2.HeaderRows = 1;
- 
+        childTableLayout1.WidthPercentage = 100;
+        childTableLayout1.HeaderRows = 1;
+        childTableLayout1.SetWidths(incomeHeaders);
+        float[] headers2 = { 40f, 35f, 40f };
+        childTableLayout2.SetWidths(headers2);
+        childTableLayout2.WidthPercentage = 100;
+        childTableLayout2.HeaderRows = 1;
+
 
         var count = 1;
 
-        AddCompanyToHeader();
-        AddEmployeeToHeader();
+        AddCompanyToHeader(tableLayout);
+        AddEmployeeToHeader(tableLayout);
 
-        AddCellToBody(_childTableLayout1, "Earnings", count, _fontBold);
-        AddCellToBody(_childTableLayout1, "Rate", count, _fontBold);
-        AddCellToBody(_childTableLayout1, "Hours", count, _fontBold);
-        AddCellToBody(_childTableLayout1, "This Period", count, _fontBold);
-        AddCellToBody(_childTableLayout1, "Year To Date", count, _fontBold);
+        AddCellToBody(childTableLayout1, "Earnings", count, _fontBold);
+        AddCellToBody(childTableLayout1, "Rate", count, _fontBold);
+        AddCellToBody(childTableLayout1, "Hours", count, _fontBold);
+        AddCellToBody(childTableLayout1, "This Period", count, _fontBold);
+        AddCellToBody(childTableLayout1, "Year To Date", count, _fontBold);
 
         count++;
-        AddCellToBody(_childTableLayout1, "Regular", count, _fontNormal);
-        AddCellToBody(_childTableLayout1, _payStub.Employment.PayRate.ToString("0.00"), count, _fontNormal);
-        AddCellToBody(_childTableLayout1, _payStub.RegularHoursWorked.ToString("0.00"), count, _fontNormal);
-        AddCellToBody(_childTableLayout1, _payStub.RegularPay.ToString("0.00"), count, _fontNormal);
-        AddCellToBody(_childTableLayout1, _payStub.YtdRegularPay.ToString("0.00"), count, _fontNormal);
+        AddCellToBody(childTableLayout1, "Regular", count, _fontNormal);
+        AddCellToBody(childTableLayout1, _payStub.Employment.PayRate.ToString("0.00"), count, _fontNormal);
+        AddCellToBody(childTableLayout1, _payStub.RegularHoursWorked.ToString("0.00"), count, _fontNormal);
+        AddCellToBody(childTableLayout1, _payStub.RegularPay.ToString("0.00"), count, _fontNormal);
+        AddCellToBody(childTableLayout1, _payStub.YtdRegularPay.ToString("0.00"), count, _fontNormal);
 
         if (_payStub.YtdOverTimePay > 0.0)
         {
             count++;
-            AddCellToBody(_childTableLayout1, "Overtime", count, _fontNormal);
-            AddCellToBody(_childTableLayout1, (_payStub.Employment.PayRate * 1.5).ToString("0.00"), count, _fontNormal);
-            AddCellToBody(_childTableLayout1, _payStub.OverTimeHoursWorked.ToString("0.00"), count, _fontNormal);
-            AddCellToBody(_childTableLayout1, _payStub.OverTimePay.ToString("0.00"), count, _fontNormal);
-            AddCellToBody(_childTableLayout1, _payStub.YtdOverTimePay.ToString("0.00"), count, _fontNormal);
+            AddCellToBody(childTableLayout1, "Overtime", count, _fontNormal);
+            AddCellToBody(childTableLayout1, (_payStub.Employment.PayRate * 1.5).ToString("0.00"), count, _fontNormal);
+            AddCellToBody(childTableLayout1, _payStub.OverTimeHoursWorked.ToString("0.00"), count, _fontNormal);
+            AddCellToBody(childTableLayout1, _payStub.OverTimePay.ToString("0.00"), count, _fontNormal);
+            AddCellToBody(childTableLayout1, _payStub.YtdOverTimePay.ToString("0.00"), count, _fontNormal);
         }
 
         if (_otherMoneyReceived != null)
@@ -218,100 +221,94 @@ public class DocumentManager : IDocumentManager
             if (_otherMoneyReceived.YtdCreditCardTips > 0.0)
             {
                 count++;
-                AddCellToBody(_childTableLayout1, "Credit Card  Tips", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, _otherMoneyReceived.CreditCardTips.ToString("0.00"), count, _fontNormal);
-                AddCellToBody(_childTableLayout1, _otherMoneyReceived.YtdCreditCardTips.ToString("0.00"), count, _fontNormal);
+                AddCellToBody(childTableLayout1, "Credit Card  Tips", count, _fontNormal);
+                AddCellToBody(childTableLayout1, "", count, _fontNormal);
+                AddCellToBody(childTableLayout1, "", count, _fontNormal);
+                AddCellToBody(childTableLayout1, _otherMoneyReceived.CreditCardTips.ToString("0.00"), count, _fontNormal);
+                AddCellToBody(childTableLayout1, _otherMoneyReceived.YtdCreditCardTips.ToString("0.00"), count, _fontNormal);
             }
             if (_otherMoneyReceived.YtdCashTips > 0.0)
             {
                 count++;
-                AddCellToBody(_childTableLayout1, "Cash  Tips", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-                AddCellToBody(_childTableLayout1, _otherMoneyReceived.CashTips.ToString("0.00"), count, _fontNormal);
-                AddCellToBody(_childTableLayout1, _otherMoneyReceived.YtdCashTips.ToString("0.00"), count, _fontNormal);
+                AddCellToBody(childTableLayout1, "Cash  Tips", count, _fontNormal);
+                AddCellToBody(childTableLayout1, "", count, _fontNormal);
+                AddCellToBody(childTableLayout1, "", count, _fontNormal);
+                AddCellToBody(childTableLayout1, _otherMoneyReceived.CashTips.ToString("0.00"), count, _fontNormal);
+                AddCellToBody(childTableLayout1, _otherMoneyReceived.YtdCashTips.ToString("0.00"), count, _fontNormal);
             }
-            
+
             foreach (var item in _additionalMoneyReceived ?? new List<AdditionalOtherMoneyReceived>())
             {
                 count++;
                 var note = item.Note;
                 if (note.Length > 50)
                     note = note.Substring(0, 50);
-                AddCellToBody(_childTableLayout1, note.ToString(), count, _fontBold);
-                AddCellToBody(_childTableLayout1, "", count, _fontBold);
-                AddCellToBody(_childTableLayout1, "", count, _fontBold);
-                AddCellToBody(_childTableLayout1, item.Amount.ToString("0.00"), count, _fontBold);
-                AddCellToBody(_childTableLayout1, item.YtdAmount.ToString("0.00"), count, _fontBold);
+                AddCellToBody(childTableLayout1, note.ToString(), count, _fontBold);
+                AddCellToBody(childTableLayout1, "", count, _fontBold);
+                AddCellToBody(childTableLayout1, "", count, _fontBold);
+                AddCellToBody(childTableLayout1, item.Amount.ToString("0.00"), count, _fontBold);
+                AddCellToBody(childTableLayout1, item.YtdAmount.ToString("0.00"), count, _fontBold);
             }
         }
         count++;
-        AddCellToBody(_childTableLayout1, "Gross Pay", count, _fontBold);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-        AddCellToBody(_childTableLayout1, _payStub.GrossPay.ToString("0.00"), count, _fontBold);
-        AddCellToBody(_childTableLayout1, _payStub.YtdGrossPay.ToString("0.00"), count, _fontBold);
+        AddCellToBody(childTableLayout1, "Gross Pay", count, _fontBold);
+        AddCellToBody(childTableLayout1, "", count, _fontNormal);
+        AddCellToBody(childTableLayout1, "", count, _fontNormal);
+        AddCellToBody(childTableLayout1, _payStub.GrossPay.ToString("0.00"), count, _fontBold);
+        AddCellToBody(childTableLayout1, _payStub.YtdGrossPay.ToString("0.00"), count, _fontBold);
 
         count++;
-        AddCellToBody(_childTableLayout1, "Net Pay", count, _fontBold);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-        AddCellToBody(_childTableLayout1, _payStub.NetPay.ToString("0.00"), count, _fontBold);
-        AddCellToBody(_childTableLayout1, _payStub.YtdNetPay.ToString("0.00"), count, _fontBold);
+        AddCellToBody(childTableLayout1, "Net Pay", count, _fontBold);
+        AddCellToBody(childTableLayout1, "", count, _fontNormal);
+        AddCellToBody(childTableLayout1, "", count, _fontNormal);
+        AddCellToBody(childTableLayout1, _payStub.NetPay.ToString("0.00"), count, _fontBold);
+        AddCellToBody(childTableLayout1, _payStub.YtdNetPay.ToString("0.00"), count, _fontBold);
 
-        _tableLayout.AddCell(_childTableLayout1);
+        tableLayout.AddCell(childTableLayout1);
 
-        AddDeductionsToBody();
-        return _tableLayout;
+        AddDeductionsToBody(childTableLayout1, childTableLayout2,  tableLayout);
+        return tableLayout;
     }
 
-    private void AddDeductionsToBody()
+    private void AddDeductionsToBody(PdfPTable childTableLayout1, PdfPTable childTableLayout2, PdfPTable tableLayout)
     {
         var count = 1;
-        AddCellToBody(_childTableLayout2, "Deductions", count, _fontBold);
-        AddCellToBody(_childTableLayout2, "This Period", count, _fontBold);
-        AddCellToBody(_childTableLayout2, "Year To Date", count, _fontBold);
+        AddCellToBody(childTableLayout2, "Deductions", count, _fontBold);
+        AddCellToBody(childTableLayout2, "This Period", count, _fontBold);
+        AddCellToBody(childTableLayout2, "Year To Date", count, _fontBold);
         var incomeTaxType = new IncomeTaxType();
+        var incomeTaxes = _incomeTaxes.Where(e => e.PayStubId == _payStub.Id);
 
         if (_incomeTaxes != null)
         {
-            var employeeHasMedicare = _incomeTaxes.Any(e => e.IncomeTaxType.Id == 2 && e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId == null);
-            foreach (var incomeTax in _incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId == null))
+            foreach (var incomeTax in incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId == null))
             {
                 count++;
-                AddCellToBody(_childTableLayout2, incomeTax.IncomeTaxType.Name.ToString(), count, _fontNormal);
-                AddCellToBody(_childTableLayout2, incomeTax.Amount.ToString("0.00"), count, _fontNormal);
-                AddCellToBody(_childTableLayout2, incomeTax.YtdAmount.ToString("0.00"), count, _fontNormal);
+                AddCellToBody(childTableLayout2, incomeTax.IncomeTaxType.Name.ToString(), count, _fontNormal);
+                AddCellToBody(childTableLayout2, incomeTax.Amount.ToString("0.00"), count, _fontNormal);
+                AddCellToBody(childTableLayout2, incomeTax.YtdAmount.ToString("0.00"), count, _fontNormal);
             }
-            if (!employeeHasMedicare)
+                       
+            foreach (var incomeTax in incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null))
             {
                 count++;
-                AddCellToBody(_childTableLayout2, "Medicare", count, _fontNormal);
-                AddCellToBody(_childTableLayout2, "0.00", count, _fontNormal);
-                AddCellToBody(_childTableLayout2, "0.00", count, _fontNormal);
-            }
-                foreach (var incomeTax in _incomeTaxes.Where(e => e.IncomeTaxType.ForEmployee && e.IncomeTaxType.StateId != null))
-            {
-                count++;
-                AddCellToBody(_childTableLayout2, incomeTax.IncomeTaxType.Name.ToString(), count, _fontNormal);
-                AddCellToBody(_childTableLayout2, incomeTax.Amount.ToString("0.00"), count, _fontNormal);
-                AddCellToBody(_childTableLayout2, incomeTax.YtdAmount.ToString("0.00"), count, _fontNormal);
+                AddCellToBody(childTableLayout2, incomeTax.IncomeTaxType.Name.ToString(), count, _fontNormal);
+                AddCellToBody(childTableLayout2, incomeTax.Amount.ToString("0.00"), count, _fontNormal);
+                AddCellToBody(childTableLayout2, incomeTax.YtdAmount.ToString("0.00"), count, _fontNormal);
             }
         }
         count++;
-        AddCellToBody(_childTableLayout1, "", count, _fontBold);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
-        AddCellToBody(_childTableLayout1, "", count, _fontNormal);
+        AddCellToBody(childTableLayout1, "", count, _fontBold);
+        AddCellToBody(childTableLayout1, "", count, _fontNormal);
+        AddCellToBody(childTableLayout1, "", count, _fontNormal);
+        AddCellToBody(childTableLayout1, "", count, _fontNormal);
+        AddCellToBody(childTableLayout1, "", count, _fontNormal);
 
        
-        _tableLayout.AddCell(_childTableLayout2);
+        tableLayout.AddCell(childTableLayout2);
 
     }
-    private void AddCompanyToHeader()
+    private void AddCompanyToHeader(PdfPTable tableLayout)
     {
         var fontSmall = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL);
         var paragraph = new Paragraph
@@ -335,7 +332,7 @@ public class DocumentManager : IDocumentManager
         paragraph.Add(new Phrase($"              { _company.Zipcode.City.State.StateCode} {_company.Zipcode.Code}" ,fontSmall));
 
 
-        _tableLayout.AddCell(new PdfPCell(paragraph)
+        tableLayout.AddCell(new PdfPCell(paragraph)
         {
             HorizontalAlignment = Element.ALIGN_LEFT,
             Padding = 5,
@@ -344,7 +341,7 @@ public class DocumentManager : IDocumentManager
         });
     }
 
-    private void AddEmployeeToHeader()
+    private void AddEmployeeToHeader(PdfPTable tableLayout)
     {
         var fontSmall = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL);
 
@@ -363,12 +360,12 @@ public class DocumentManager : IDocumentManager
             paragraph.Add(new Phrase("              " + _person.AddressLine2, fontSmall));
         }
         paragraph.Add(new Phrase("\n", fontSmall));
-        paragraph.Add(new Phrase($"              { _person.Zipcode.City.Name}", fontSmall));
+        paragraph.Add(new Phrase($"              { _person.Zipcode?.City.Name}", fontSmall));
         paragraph.Add(new Phrase("\n", fontSmall));
-        paragraph.Add(new Phrase($"              { _person.Zipcode.City.State.StateCode} {_person.Zipcode.Code}", fontSmall));
+        paragraph.Add(new Phrase($"              { _person.Zipcode?.City.State.StateCode} {_person.Zipcode?.Code}", fontSmall));
         
 
-        _tableLayout.AddCell(new PdfPCell(paragraph)
+        tableLayout.AddCell(new PdfPCell(paragraph)
         {
             HorizontalAlignment = Element.ALIGN_LEFT,
             Padding = 5,
