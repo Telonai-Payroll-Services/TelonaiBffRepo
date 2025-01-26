@@ -105,12 +105,8 @@ public class PayrollsController : ControllerBase
 
         var countryId = 2;
 
-        lock (_scopedAuthorization)
-        {
-            _ = _payrollService.CreateNextPayrollForAll(countryId);
-            _ = _payrollService.CreateNextPaystubForAllCurrentPayrollsAsync();
-        }
-
+        _ = _payrollService.CreateNextPayrollForAll(countryId);
+        _ = _payrollService.CreateNextPaystubForAllCurrentPayrollsAsync();
         return Ok("Invocation of Payroll generation and Paystub generation completed");
     }
 

@@ -95,7 +95,6 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             var cityModel = new CityModel()
             {
                 Id = 1,
-                Countrys = countryModelList,
                 Name = "Sharlott",
                 State = stateModel
             };
@@ -202,7 +201,6 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             var cityModel = new CityModel()
             {
                 Id = 1,
-                Countrys = countryModelList,
                 Name = "Sharlott",
                 State = stateModel
             };
@@ -307,7 +305,6 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             var cityModel = new CityModel()
             {
                 Id = 1,
-                Countrys = countryModelList,
                 Name = "Sharlott",
                 State = stateModel
             };
@@ -412,7 +409,6 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             var cityModel = new CityModel()
             {
                 Id = 1,
-                Countrys = countryModelList,
                 Name = "Sharlott",
                 State = stateModel
             };
@@ -436,8 +432,6 @@ namespace TelonaiWebAPI.UnitTest.Controllers
                     Counties = countyModelList
                 }
             };
-
-
             _mockService.Setup(x => x.GetModelByZipcodeAndCountryId("1200",4)).Returns((List<ZipcodeModel>)null);
             _mockMapper.Setup(m => m.Map<List<ZipcodeModel>>(It.IsAny<List<Zipcode>>())).Returns(zipCodeModel);
 
@@ -517,7 +511,6 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             var cityModel = new CityModel()
             {
                 Id = 1,
-                Countrys = countryModelList,
                 Name = "Sharlott",
                 State = stateModel
             };
@@ -621,7 +614,6 @@ namespace TelonaiWebAPI.UnitTest.Controllers
             var cityModel = new CityModel()
             {
                 Id = 1,
-                Countrys = countryModelList,
                 Name = "Sharlott",
                 State = stateModel
             };

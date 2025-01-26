@@ -100,7 +100,6 @@ public class PersonService : IPersonService<PersonModel,Person>
     public PersonModel GetById(int id)
     {
         var obj = GetPerson(id);
-        DecryptPerson(obj);
         var result = _mapper.Map<PersonModel>(obj);
         return result;
     }
@@ -110,7 +109,6 @@ public class PersonService : IPersonService<PersonModel,Person>
             .ThenInclude(e => e.City).ThenInclude(e => e.State).ThenInclude(e => e.Country)
             .FirstOrDefault(e => e.Id == id);
 
-        DecryptPerson(obj);
         var result = _mapper.Map<PersonModel>(obj);
         return result;
     }
@@ -121,7 +119,6 @@ public class PersonService : IPersonService<PersonModel,Person>
             throw new AppException("Account with the email '" + model.Email + "' already exists.");
 
         var p = _mapper.Map<Person>(model);
-        EncryptPerson(p);
         _context.Person.Add(p);
         await _context.SaveChangesAsync();
         return p;
@@ -132,7 +129,6 @@ public class PersonService : IPersonService<PersonModel,Person>
         var existing = _context.Person.FirstOrDefault(x => !x.Deactivated && x.Email == person.Email && x.CompanyId == person.CompanyId);
         if (existing == null)
         {
-            EncryptPerson(person);
             _context.Person.Add(person);
             await _context.SaveChangesAsync();
             return _mapper.Map<PersonModel>(person);
@@ -169,8 +165,8 @@ public class PersonService : IPersonService<PersonModel,Person>
             person.AddressLine1 = string.IsNullOrWhiteSpace(model.AddressLine1) ? person.AddressLine1 : model.AddressLine1;
             person.AddressLine2 = string.IsNullOrWhiteSpace(model.AddressLine2) ? person.AddressLine2 : model.AddressLine2;
             person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
-            person.Ssn = string.IsNullOrWhiteSpace(model.Ssn) ? person.Ssn : _encryption.Encrypt(model.Ssn);
-            person.InternalEmployeeId = string.IsNullOrWhiteSpace(model.InternalEmployeeId) ? person.InternalEmployeeId : _encryption.Encrypt(model.InternalEmployeeId);
+            person.Ssn = (string.IsNullOrWhiteSpace(model.Ssn) || person.Ssn.Contains("****") || person.Ssn ==model.Ssn) ? person.Ssn : _encryption.Encrypt(model.Ssn);
+            person.InternalEmployeeId = string.IsNullOrWhiteSpace(model.InternalEmployeeId) ? person.InternalEmployeeId : model.InternalEmployeeId;
 
             if (model.ZipcodeId > 0)
             {
@@ -216,7 +212,6 @@ public class PersonService : IPersonService<PersonModel,Person>
     public Person GetPersonById(int Id)
     {
         var result = _context.Person.Include(z => z.Zipcode).Include(c => c.Zipcode.City).FirstOrDefault(p => p.Id == Id);
-        DecryptPerson(result);
         return result;
     }
 
@@ -231,7 +226,6 @@ public class PersonService : IPersonService<PersonModel,Person>
     {
         var currentUserEmail = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(e => e.Type == "email").Value.ToLower();
         var person = await _context.Person.FirstOrDefaultAsync(e => e.Email.ToLower() == currentUserEmail) ?? throw new InvalidDataException("User not found");
-        DecryptPerson(person); 
         return person;       
     }
 
@@ -246,28 +240,5 @@ public class PersonService : IPersonService<PersonModel,Person>
         {
             return false;
         }
-    }
-
-    Person DecryptPerson(Person person) {
-        if (!string.IsNullOrEmpty(person.Ssn))
-            person.Ssn = _encryption.Decrypt(person.Ssn);
-        if (!string.IsNullOrEmpty(person.InternalEmployeeId))
-            person.InternalEmployeeId = _encryption.Decrypt(person.InternalEmployeeId);
-        if (!string.IsNullOrEmpty(person.BankAccountNumber)) 
-            person.BankAccountNumber = _encryption.Decrypt(person.BankAccountNumber);
-
-        return person;
-    }
-
-    Person EncryptPerson(Person person)
-    {
-        if (!string.IsNullOrEmpty(person.Ssn))
-            person.Ssn = _encryption.Encrypt(person.Ssn);
-        if (!string.IsNullOrEmpty(person.InternalEmployeeId))
-            person.InternalEmployeeId = _encryption.Encrypt(person.InternalEmployeeId);
-        if (!string.IsNullOrEmpty(person.BankAccountNumber))
-            person.BankAccountNumber = _encryption.Encrypt(person.BankAccountNumber);
-
-        return person;
     }
 }
