@@ -2,7 +2,7 @@
 Description=Telonai BFF 
 
 [Service]
-WorkingDirectory=/var/www/
+WorkingDirectory=/var/www/dotnet
 ExecStart=/usr/bin/dotnet TelonaiWebApi.dll
 Restart=always
 RestartSec=10
