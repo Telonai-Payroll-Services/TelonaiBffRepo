@@ -22,7 +22,7 @@ public interface IUserService
     Task ForgotPasswordRequest(string username);
     Task ForgotPasswordResponse(string username, string code, string newPassword);
     Task<bool> CheckUsernameAvailability(string username);
-    Task<bool> SendForgettenUsername(string email);
+    Task<bool> SendForgottenUsername(string email);
     Task DeleteUserByEmailFromCognito(string email);
 }
 
