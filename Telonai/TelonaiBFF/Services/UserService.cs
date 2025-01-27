@@ -23,6 +23,7 @@ public interface IUserService
     Task ForgotPasswordResponse(string username, string code, string newPassword);
     Task<bool> CheckUsernameAvailability(string username);
     Task<bool> SendForgottenUsername(string email);
+    Task DeleteUserByEmailFromCognito(string email);
 }
 
 public class UserService : IUserService
@@ -292,5 +293,14 @@ public class UserService : IUserService
               $"<br/>If you have any questions or need further assistance, feel free to contact our support team at service@telonai.com ." +
               $"<br/>Thank you for choosing Telonai., " +
               $"<br/>Telonai Payroll Services Inc.";
+    }
+    public async Task DeleteUserByEmailFromCognito(string email)
+    {
+
+        var user = await _userManager.FindByEmailAsync(email) ?? throw new AppException("Invalid Username");
+        if (user != null)
+        {
+            await user.DeleteUserAsync();
+        }
     }
 }

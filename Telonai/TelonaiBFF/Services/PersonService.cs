@@ -3,6 +3,7 @@ namespace TelonaiWebApi.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System;
+using Npgsql;
 using System.Threading.Tasks;
 using TelonaiWebApi.Entities;
 using TelonaiWebApi.Helpers;
@@ -20,6 +21,8 @@ public interface IPersonService<Tmodel, Tdto> : IDataService<Tmodel, Tdto>
     Task<PersonModel> GetByEmailAndCompanyIdAsync(string email, int companyId);
     Task<Person> GetCurrentUserAsync();
     Person GetPersonById(int Id);
+    Task DeleteUserDataByEmailAsync(string email);
+    Task<bool> IsCompanyNameValidForPersonAsync(string email);
     bool IsEmployeeMinor(DateOnly dateOfBirth);
 }
 
@@ -228,8 +231,32 @@ public class PersonService : IPersonService<PersonModel,Person>
         var person = await _context.Person.FirstOrDefaultAsync(e => e.Email.ToLower() == currentUserEmail) ?? throw new InvalidDataException("User not found");
         return person;       
     }
+    public async Task DeleteUserDataByEmailAsync(string email)
+    {
+        var commandText = "CALL delete_user_data_by_email(@email)";
+        var parameters = new List<NpgsqlParameter>
+        {
+            new NpgsqlParameter("@email", email)
+        };
+        await _context.Database.ExecuteSqlRawAsync(commandText, parameters.ToArray());
+    }
+    public async Task<bool> IsCompanyNameValidForPersonAsync(string email) 
+    { 
+        var person = await _context.Person.FirstOrDefaultAsync(p => p.Email == email);
+        if (person == null) 
+        { 
+            return false;
+        } 
+        var companyContact = await _context.CompanyContact.FirstOrDefaultAsync(cc => cc.PersonId == person.Id); 
+        if (companyContact == null) 
+        { 
+            return false;
+        } 
+        var company = await _context.Company.FirstOrDefaultAsync(c => c.Id == companyContact.CompanyId);
+        return company != null && company.Name.StartsWith("Telonai Test Company"); 
+    }
 
-    public  bool IsEmployeeMinor(DateOnly dateOfBirth)
+    public bool IsEmployeeMinor(DateOnly dateOfBirth)
     {
         var yearDifference = DateTime.Today.Subtract(dateOfBirth.ToDateTime(TimeOnly.MinValue));
         if((yearDifference.TotalDays / 365.25) <= 17)

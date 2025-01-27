@@ -8,6 +8,7 @@ using TelonaiWebApi.Services;
 using TelonaiWebApi.Entities;
 using Amazon.Extensions.CognitoAuthentication;
 using System.Text.RegularExpressions;
+using TelonaiWebApi.Helpers;
 
 [ApiController]
 [Route("[controller]")]
@@ -20,10 +21,11 @@ public class UsersController : Controller
     private readonly IPersonService<PersonModel, Person> _personService;
     private readonly ITimecardUsaService _timecardService;
     private readonly IDayOffRequestService<DayOffRequestModel, DayOffRequest> _dayOffRequestService;
+    private readonly IScopedAuthorization _scopedAuthorization;
 
     public UsersController(IUserService userService, IPersonService<PersonModel, Person> personService, IInvitationService<InvitationModel, 
         Invitation> invitationService, IEmploymentService<EmploymentModel, Employment> employmentService, ITimecardUsaService timecardService
-        ,IDayOffRequestService<DayOffRequestModel, DayOffRequest> dayOffRequestService)
+        ,IDayOffRequestService<DayOffRequestModel, DayOffRequest> dayOffRequestService, IScopedAuthorization scopedAuthorization)
     {
         _userService = userService;
         _personService = personService;
@@ -31,6 +33,7 @@ public class UsersController : Controller
         _employmentService = employmentService;
         _timecardService = timecardService;
         _dayOffRequestService = dayOffRequestService;
+        _scopedAuthorization = scopedAuthorization;
     }
 
 
@@ -261,6 +264,32 @@ public class UsersController : Controller
         }
 
     }
+    [Authorize(Policy = "SystemAdmin")]
+    [HttpDelete("reset-test-user-and-related-data")]
+    public async Task<IActionResult> DeleteUserDataByEmail([FromQuery] string email)
+    {
+        if (string.IsNullOrEmpty(email))
+        {
+            return BadRequest("Email is required");
+        }
+        try
+        {
+            _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+            if (!await _personService.IsCompanyNameValidForPersonAsync(email))
+            {
+                return BadRequest("The company name does not start with 'Telonai Test Company'"); 
+            }
+
+            await _personService.DeleteUserDataByEmailAsync(email);
+            await _userService.DeleteUserByEmailFromCognito(email);
+            return Ok($"User data for email {email} has been deleted");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "An error occurred while deleting user data");
+        }
+    }
+
 
 
     private async Task<List<DayOffRequestModel>> GetPendingDayOffsAsync(List<EmploymentModel> employments)
