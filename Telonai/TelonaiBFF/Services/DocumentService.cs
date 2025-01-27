@@ -12,7 +12,7 @@ using System.Text;
 using Microsoft.OpenApi.Extensions;
 using Document = Entities.Document;
 using FilingStatus = Models.FilingStatus;
-using System.Security.Cryptography;
+
 
 public interface IDocumentService
 {
@@ -52,10 +52,11 @@ public class DocumentService : IDocumentService
     private readonly IPersonService<PersonModel, Person> _personService;
     private readonly IScopedAuthorization _scopedAuthorization;
     private readonly IInvitationService<InvitationModel, Invitation> _invitationService;
+    private readonly IEncryption _encryption;
 
     public DocumentService(DataContext context, IMapper mapper, IDocumentManager documentManager,
                            IHttpContextAccessor httpContextAccessor, IPersonService<PersonModel, Person> personService,
-                           IScopedAuthorization scopedAuthorization, IInvitationService<InvitationModel, Invitation> invitationService)
+                           IScopedAuthorization scopedAuthorization, IInvitationService<InvitationModel, Invitation> invitationService, IEncryption encryption )
     {
         _context = context;
         _mapper = mapper;
@@ -64,6 +65,7 @@ public class DocumentService : IDocumentService
         _personService = personService;
         _scopedAuthorization = scopedAuthorization;
         _invitationService = invitationService;
+        _encryption = encryption;
     }
     public async Task<DocumentModel> GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType)
     {
@@ -386,8 +388,9 @@ public class DocumentService : IDocumentService
         var middeName = _person?.LastName;
         var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
         var lastName = _person?.LastName;
-        var ssn = _person?.Ssn;
-        var address = _person?.AddressLine1;
+        var ssn = _encryption.Decrypt(_person?.Ssn);
+       
+       var address = _person?.AddressLine1;
         var zipCode = _person?.Zipcode?.Code;
         var cityOrTown = _person?.Zipcode?.City?.Name;
         var state = _person?.Zipcode?.City?.State.Name;
@@ -424,7 +427,7 @@ public class DocumentService : IDocumentService
 
                 formFields.SetField(PdfFields.EmployerNameAndAddress, company.Name + "" + company.Zipcode + "" + company.AddressLine1);
                 formFields.SetField(PdfFields.EmployerFirstDateOfEmployement, employee.CreatedDate.ToShortDateString());
-                formFields.SetField(PdfFields.EmployerIdentificationNumber, company.TaxId);
+                formFields.SetField(PdfFields.EmployerIdentificationNumber, _encryption.Decrypt(company?.TaxId));
                 pdfStamper.FormFlattening = formFlattening;
                 pdfStamper.Close();
                 pdfReader.Close();
@@ -771,7 +774,7 @@ public class DocumentService : IDocumentService
         var middeName = _person?.LastName;
         var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
         var lastName = _person?.LastName;
-        var ssn = _person?.Ssn;
+        var ssn = _encryption.Decrypt(_person?.Ssn);
         var address = _person?.AddressLine1;
         var zipCode = personAddress?.Zipcode?.Code;
         var city = personAddress?.Zipcode?.City?.Name;
