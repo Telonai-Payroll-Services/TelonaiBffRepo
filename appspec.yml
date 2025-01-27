@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: Telonai/TelonaiBFF/bin/Release/net6.0/
-    destination: /var/www
+    destination: /var/www/dotnet
   - source: scripts/webapi.service
     destination: /etc/systemd/system
 hooks:
