@@ -34,7 +34,8 @@ public class PersonService : IPersonService<PersonModel,Person>
     private readonly IZipcodeService _zipCodeService;
     private readonly ICityService _cityService;
     private readonly IStateService _stateService;
-    public PersonService(DataContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, IZipcodeService zipCodeService, ICityService cityService, IStateService stateService)
+    private readonly IEncryption _encryption;
+    public PersonService(DataContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, IZipcodeService zipCodeService, ICityService cityService, IStateService stateService, IEncryption encryption)
     {
         _context = context;
         _mapper = mapper;
@@ -42,6 +43,7 @@ public class PersonService : IPersonService<PersonModel,Person>
         _zipCodeService = zipCodeService;
         _cityService = cityService;
         _stateService = stateService;
+        _encryption = encryption;
     }
     public IList<PersonModel> GetByCompanyId(int companyId)
     {
@@ -166,7 +168,9 @@ public class PersonService : IPersonService<PersonModel,Person>
             person.AddressLine1 = string.IsNullOrWhiteSpace(model.AddressLine1) ? person.AddressLine1 : model.AddressLine1;
             person.AddressLine2 = string.IsNullOrWhiteSpace(model.AddressLine2) ? person.AddressLine2 : model.AddressLine2;
             person.MobilePhone = string.IsNullOrEmpty(model.MobilePhone) ? person.MobilePhone : model.MobilePhone;
-            person.Ssn = string.IsNullOrWhiteSpace(model.Ssn) ? person.Ssn : model.Ssn;
+            person.Ssn = (string.IsNullOrWhiteSpace(model.Ssn) || person.Ssn.Contains("****") || person.Ssn ==model.Ssn) ? person.Ssn : _encryption.Encrypt(model.Ssn);
+            person.InternalEmployeeId = string.IsNullOrWhiteSpace(model.InternalEmployeeId) ? person.InternalEmployeeId : model.InternalEmployeeId;
+
             if (model.ZipcodeId > 0)
             {
                 if (person.Zipcode == null)
@@ -223,10 +227,9 @@ public class PersonService : IPersonService<PersonModel,Person>
 
     public async Task<Person> GetCurrentUserAsync()
     {
-            var currentUserEmail = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(e => e.Type == "email").Value.ToLower();
-            var person = await _context.Person.FirstOrDefaultAsync(e => e.Email.ToLower() == currentUserEmail) ?? throw new InvalidDataException("User not found");
-            return person;       
-        
+        var currentUserEmail = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(e => e.Type == "email").Value.ToLower();
+        var person = await _context.Person.FirstOrDefaultAsync(e => e.Email.ToLower() == currentUserEmail) ?? throw new InvalidDataException("User not found");
+        return person;       
     }
     public async Task DeleteUserDataByEmailAsync(string email)
     {

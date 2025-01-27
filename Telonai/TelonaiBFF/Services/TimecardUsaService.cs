@@ -23,7 +23,7 @@ public interface ITimecardUsaService
     Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmployee(int companyId, int payrollSequece, int employeeId);
 
     //Task<EmployeeTimeCardUsaDetail> GetEmployeeTimeCardList(int companyId, int employeeIdId);
-
+    Task CheckOverdueClockOutsAsync();
     TimecardUsaModel GetById(int id);
     void Create(string emaild, int jobId);
     void Update(int id, TimecardUsaModel model);
@@ -35,12 +35,12 @@ public class TimecardUsaService : ITimecardUsaService
 {
     private readonly DataContext _context;
     private readonly IMapper _mapper;
-    private readonly PayrollScheduleService _payrollScheduleService;
-
-    public TimecardUsaService(DataContext context, IMapper mapper)
+    private readonly IMailSender _mailSender;
+    public TimecardUsaService(DataContext context, IMapper mapper, IMailSender mailSender)
     {
         _context = context;
         _mapper = mapper;
+        _mailSender = mailSender;
     }
 
     public IEnumerable<TimecardUsaModel> GetReport(string email, DateTime from, DateTime to)
@@ -69,32 +69,46 @@ public class TimecardUsaService : ITimecardUsaService
         return result;
     }
 
-    public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequence(int companyId, int payrollSequece)
+    public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequence(int companyId, int payrollSequence)
     {
-        Payroll currentPayroll;
+        Payroll currentPayroll = null;
 
-        if (payrollSequece == 0)
-            currentPayroll = await _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefaultAsync(e => e.CompanyId == companyId);
+        if (payrollSequence == 0)
+            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
+                .FirstOrDefault(e => e.CompanyId == companyId && e.StartDate <= DateOnly.FromDateTime(DateTime.Today));
         else
-            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).Skip(payrollSequece).FirstOrDefault(e => e.CompanyId == companyId);
+            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
+                .Where(e => e.CompanyId == companyId && e.StartDate <= DateOnly.FromDateTime(DateTime.Today))
+                .Skip(payrollSequence).FirstOrDefault();
 
-        var runDate = currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MinValue);
-        var obj = _context.TimecardUsa.Where(e => e.ClockIn < runDate && e.Job.CompanyId == companyId);
-        var result = _mapper.Map<List<TimecardUsaModel>>(obj);
+        var startDateTime = currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue);
+        var runDateTime = currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MaxValue);
+
+        var timecards = _context.TimecardUsa.Where(e => e.ClockIn < runDateTime && e.ClockIn >= startDateTime
+        && e.Job.CompanyId == companyId);
+
+        var result = _mapper.Map<List<TimecardUsaModel>>(timecards);
         return result;
     }
-    public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmployee(int companyId, int payrollSequece, int employeeId)
+    public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollSequenceAndEmployee(int companyId, int payrollSequence, int employeeId)
     {
-        Payroll currentPayroll;
+        Payroll currentPayroll = null;
 
-        if (payrollSequece == 0)
-            currentPayroll = await _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).FirstOrDefaultAsync(e => e.CompanyId == companyId);
+        if (payrollSequence == 0)
+            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
+                .FirstOrDefault(e => e.CompanyId == companyId && e.StartDate <= DateOnly.FromDateTime(DateTime.Today));
         else
-            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate).Skip(payrollSequece).FirstOrDefault(e => e.CompanyId == companyId);
+            currentPayroll = _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
+                .Where(e => e.CompanyId == companyId && e.StartDate <= DateOnly.FromDateTime(DateTime.Today))
+                .Skip(payrollSequence).FirstOrDefault();
 
-        var runDate = currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MinValue);
-        var obj = _context.TimecardUsa.Where(e => e.ClockIn < runDate && e.Job.CompanyId == companyId && e.PersonId==employeeId);
-        var result = _mapper.Map<List<TimecardUsaModel>>(obj);
+        var startDateTime = currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue);
+        var runDateTime = currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MaxValue);
+        
+        var timecards = _context.TimecardUsa.Where(e => e.ClockIn < runDateTime && e.ClockIn >= startDateTime
+        && e.Job.CompanyId == companyId && e.PersonId == employeeId);
+
+        var result = _mapper.Map<List<TimecardUsaModel>>(timecards);
         return result;
     }
     public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollIdAndEmployee(int companyId, int payrollId, int employeeId)
@@ -113,10 +127,10 @@ public class TimecardUsaService : ITimecardUsaService
 
     public async Task<List<TimecardUsaModel>> GetTimeCardsByPayrollId(int companyId, int payrollId)
     {
-        var currentPayroll = _context.Payroll.Find(payrollId);
+        var payroll = _context.Payroll.Find(payrollId);
 
-        var runDateTime = currentPayroll.ScheduledRunDate.ToDateTime(TimeOnly.MaxValue);
-        var startDateTime = currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue);
+        var runDateTime = payroll.ScheduledRunDate.ToDateTime(TimeOnly.MaxValue);
+        var startDateTime = payroll.StartDate.ToDateTime(TimeOnly.MinValue);
 
         var obj = _context.TimecardUsa.OrderByDescending(e=>e.ClockIn).Where(e => e.ClockIn >= startDateTime && e.ClockIn < runDateTime
         && e.Job.CompanyId == companyId && !e.Person.Deactivated);
@@ -128,12 +142,14 @@ public class TimecardUsaService : ITimecardUsaService
     public async Task<List<TimecardUsaModel>> GetCurrentTimeCards(string email, int companyId)
     {
         var personId = _context.Person.FirstOrDefault(e => e.Email == email && e.CompanyId == companyId)?.Id;
-
-        var currentPayroll = await _context.Payroll.OrderByDescending(e => e.ScheduledRunDate)
-            .FirstOrDefaultAsync(e => e.CompanyId == companyId);
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var currentPayroll = _context.Payroll.FirstOrDefault(e => e.CompanyId == companyId
+            && e.StartDate <= today  && e.ScheduledRunDate >= today);
         
-        var startDate = currentPayroll.StartDate.ToDateTime(TimeOnly.MinValue);
-        var obj = _context.TimecardUsa.Where(e => e.ClockIn >= startDate && e.Job.CompanyId == companyId && e.PersonId == personId);
+        var startDate = currentPayroll?.StartDate.ToDateTime(TimeOnly.MinValue);
+        var obj = _context.TimecardUsa.Where(e => e.ClockIn >= startDate && e.Job.CompanyId == companyId 
+        && e.PersonId == personId);
+        
         var result = _mapper.Map<List<TimecardUsaModel>>(obj);
         return result;
     }
@@ -275,4 +291,93 @@ public class TimecardUsaService : ITimecardUsaService
     //       return  employeeTimeCardHistory;
     //    }
     //}
+
+
+    public async Task CheckOverdueClockOutsAsync()
+    {
+        var now = DateTime.UtcNow;
+        var overdueTimeCards = _context.TimecardUsa.Include(c => c.Person)
+            .Where(tc => tc.ClockOut == null && (now - tc.ClockIn).TotalHours >= 8)
+            .ToList();
+
+        foreach (var timeCard in overdueTimeCards)
+        {
+            var hoursWorked = (now - timeCard.ClockIn).TotalHours;
+            string notificationNote = string.Empty;
+
+            if (hoursWorked >= 24)
+            {
+                // Clock out the user
+                timeCard.ClockOut = timeCard.ClockIn.AddHours(24);
+                await _context.SaveChangesAsync();
+
+                await _mailSender.SendUsingAwsClientAsync(timeCard.Person.Email, $"24 Hour Clock Out Notification",
+               CreateHtmlEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
+               CreateTextEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
+                notificationNote = $"User clocked out automatically after 24 hours for timecard ID: {timeCard.Id}";
+            }
+            else if (hoursWorked >= 16)
+            {
+                await _mailSender.SendUsingAwsClientAsync(timeCard.Person.Email, $"16 Hour Clock Out Notification",
+              CreateHtmlEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
+              CreateTextEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
+
+                notificationNote = $"16-hour clock out notification sent for timecard ID: {timeCard.Id}";
+            }
+            else if (hoursWorked >= 8)
+            {
+                await _mailSender.SendUsingAwsClientAsync(timeCard.Person.Email, $"8 Hour Clock Out Notification",
+              CreateHtmlEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"),
+              CreateTextEmailBody(hoursWorked, $"{timeCard.Person.FirstName} {timeCard.Person.LastName}"));
+
+                notificationNote = $"8-hour clock out notification sent for timecard ID: {timeCard.Id}";
+
+            }
+            if (!string.IsNullOrEmpty(notificationNote))
+            {
+                await AddNoteAsync(timeCard.Id, notificationNote);
+            }
+        }
+    }
+
+    private static string CreateHtmlEmailBody(double hours, string recieverName)
+    {
+        string formattedHours = hours.ToString("F2");
+        string message = $"<h1>Please clock out</h1>"
+         + $"Dear {recieverName}"
+         + $"<br/><p>We noticed that you have not clocked out after {formattedHours} hours.</p>";
+        if (hours < 16) 
+        { 
+            message += "<p>If you are still working please ignore this notification.</p>"; 
+        }
+        return message;
+
+    }
+    private static string CreateTextEmailBody(double hours, string recieverName)
+    {
+        string formattedHours = hours.ToString("F2");
+        string message = "Please clock out\r\n"
+                + $"Dear {recieverName},\r\n"
+               + $"<br/><p>We noticed that you have not clocked out after {formattedHours} hours.</p>";
+        if (hours < 16) 
+        { 
+            message += "\r\nIf you are still working please ignore this notification."; 
+        }
+        return message;
+    }
+    public async Task AddNoteAsync(int timeCardUsaId, string note)
+    {
+        var timecardUsaNote = new TimecardUsaNote
+        {
+            TimecardUsaId = timeCardUsaId,
+            Note = note,
+            CreatedBy = "System",
+            CreatedDate = DateTime.UtcNow
+        };
+
+        _context.TimecardUsaNote.Add(timecardUsaNote);
+        await _context.SaveChangesAsync();
+    }
+
+
 }

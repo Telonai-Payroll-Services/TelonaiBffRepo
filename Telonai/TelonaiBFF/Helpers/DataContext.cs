@@ -120,9 +120,9 @@ public class DataContext : DbContext
     public virtual DbSet<Employment> Employment { get; set; }
     public virtual DbSet<Person> Person { get; set; }
     public virtual DbSet<Company> Company { get; set; }
-    public DbSet<City> City { get; set; }
-    public DbSet<State> State { get; set; }
-    public DbSet<Country> Country { get; set; }
+    public virtual DbSet<City> City { get; set; }
+    public virtual DbSet<State> State { get; set; }
+    public virtual DbSet<Country> Country { get; set; }
     public virtual DbSet<County> County { get; set; }
     public DbSet<BusinessType> BusinessType { get; set; }
     public  DbSet<CompanyContact> CompanyContact { get; set; }
@@ -178,4 +178,5 @@ public class DataContext : DbContext
     public DbSet<FAQ> FAQ { get; set; }
     public DbSet<TelonaiSpecificFieldValue> TelonaiSpecificFieldValue { get; set; }
     public DbSet<TelonaiSpecificField> TelonaiSpecificField { get; set; }
+    public DbSet<ExemptFromFutaTaxType> ExemptFromFutaTaxType { get; set; }
 }

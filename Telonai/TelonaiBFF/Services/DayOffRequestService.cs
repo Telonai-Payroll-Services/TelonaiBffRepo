@@ -16,7 +16,8 @@ public interface IDayOffRequestService<Tmodel, Tdto> : IDataService<Tmodel, Tdto
     Task<bool> ApproveDayOffRequest(ApproveDayOffRequest approveDayOffRequest, DayOffRequest dayOffRequest);
     Task<bool> CancelDayOffRequest(int dayOffRequestId);
     DayOffRequest GetDayOffRequestDetail(int id);
-    Task<int> GetUnpaidCountDayOffRequestForSpecificPayrollSchedule(int employmentId, int PayrollSchedule);
+    List<DayOffRequest> GetUnpaidDaysOffForPayrollSchedule(int companyId, DateOnly payrollStartDate, DateOnly payrollRunDate);
+    Task<List<DayOffRequest>> GetPaidDaysOffForPayrollSchedule(int companyId, DateOnly payrollStartDate, DateOnly payrollRunDate);
 }
 
 public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,DayOffRequest>
@@ -211,21 +212,22 @@ public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,Day
         }
     }
 
-    public async Task<int> GetUnpaidCountDayOffRequestForSpecificPayrollSchedule(int employmentId, int payrollScheduleId)
+    public List<DayOffRequest> GetUnpaidDaysOffForPayrollSchedule(int companyId, DateOnly payrollStartDate, DateOnly payrollRunDate)
     {
-        var payrollScheduleInfo = await _context.PayrollSchedule.FindAsync(payrollScheduleId);
-        if (payrollScheduleInfo != null)
-        {
-            var unpaidDayOff = _context.DayOffRequest.Where(d => d.DayOffPayTypeId == (int)DayOffPayTypeModel.Unpaid && 
-                                                            d.EmploymentId == employmentId &&
-                                                            d.FromDate >= payrollScheduleInfo.StartDate && 
-                                                            d.ToDate <= payrollScheduleInfo.EndDate).Count();
-            return unpaidDayOff;
-        }
-        else
-        {
-            return 0;
-        }
+        var unpaidDayOff = _context.DayOffRequest.Where(d => d.DayOffPayTypeId == (int)DayOffPayTypeModel.Unpaid &&
+                                                        d.Employment.Job.CompanyId == companyId &&
+                                                        d.FromDate >= payrollStartDate &&
+                                                        d.ToDate <= payrollRunDate).ToList();
+        return unpaidDayOff;
+    }
+    
+    public async Task<List<DayOffRequest>> GetPaidDaysOffForPayrollSchedule(int companyId, DateOnly payrollStartDate, DateOnly payrollRunDate)
+    {
+        var paidDayOff = await _context.DayOffRequest.Where(d => d.DayOffPayTypeId == (int)DayOffPayTypeModel.Paid &&
+                                                        d.Employment.Job.CompanyId == companyId &&
+                                                        d.FromDate >= payrollStartDate &&
+                                                        d.ToDate <= payrollRunDate).ToListAsync();
+        return paidDayOff;
     }
 
     private DayOffRequest GetDayOff(int id)
@@ -233,5 +235,5 @@ public class DayOffRequestService : IDayOffRequestService<DayOffRequestModel,Day
         return _context.DayOffRequest.Find(id);
     }
 
-
+    
 }

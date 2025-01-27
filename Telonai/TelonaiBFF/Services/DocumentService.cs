@@ -33,7 +33,6 @@ public interface IDocumentService
     Task Update(Guid id, DocumentModel model);
     Task Delete(Guid id);
     Tuple<string, string> GetSelectedFilingStatus(Models.FilingStatus filingStatus);
-    DateTime GetInvitationDateForEmployee(int id);
     Task<Guid> UpdateW4PdfWithSignature(Guid id, byte[] file, DocumentTypeModel document);
     Task<W4PdfResult> GenerateW4pdf(int employmentId, W4Form model);
     Task<byte[]> SignW4DoumentAsync(Guid id, int employmentId, SignatureModel signature);
@@ -509,10 +508,9 @@ public class DocumentService : IDocumentService
 
     }
 
-    public DateTime GetInvitationDateForEmployee(int id)
+    private DateTime GetInvitationDateForCurrentEmployee()
     {
-        var person = _personService.GetById(id);
-        var invitation = _invitationService.GetByInviteeEmail(person.Email).FirstOrDefault();
+        var invitation = _invitationService.GetByInviteeEmail(_person.Email).FirstOrDefault();
         var effectiveDate = invitation.CreatedDate;
         return effectiveDate;
 
@@ -658,7 +656,7 @@ public class DocumentService : IDocumentService
     private EmployeeWithholdingModel CreateEmployeeWithholdingModel(Guid documentId, int fieldId, string fieldValue, DocumentModel documentModel)
     {
         var employeeAtCompany = _context.Employment.FirstOrDefault(e => e.PersonId == _person.Id && e.Job.CompanyId == _person.CompanyId);
-        var effectiveDate = GetInvitationDateForEmployee(employeeAtCompany.PersonId);
+        var effectiveDate = GetInvitationDateForCurrentEmployee();
         var employeeWithholdingModel = EmployeeWithholdingHelper.CreateEmployeeWithholdingModel(_person, documentId, fieldId, fieldValue, documentModel, employeeAtCompany.Id, effectiveDate);
         
         return employeeWithholdingModel;

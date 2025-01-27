@@ -32,8 +32,6 @@ var builder = WebApplication.CreateBuilder(args);
     
     builder.Host.ConfigureAppConfiguration((_, configurationBuilder) =>
     {
-        configurationBuilder.AddAmazonSecretsManager("us-east-2", "FileScanAuthSettings");
-        configurationBuilder.AddAmazonSecretsManager("us-east-2", "AwsUserPoolSettings");
         configurationBuilder.AddJsonStream(s3ObjectStream);
     });
 
@@ -89,6 +87,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IEmployeeWithholdingService<EmployeeWithholdingModel, EmployeeWithholding>, EmployeeWithholdingService>();
     services.AddScoped<IScopedAuthorization, ScopedAuthorization>();
     services.AddScoped<IIRSService, IRSService>();
+    services.AddScoped<IEncryption, EncryptionHelper>();
     services.AddScoped<IFormNineFortyOneService, FormNineFortyOneService>();
     services.AddScoped<IFormNineFortyFourService, FormNineFortyFourService>();
     services.AddScoped<IFormNineFortyService, FormNineFortyService>();
@@ -99,6 +98,7 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IDayOffRequestService<DayOffRequestModel, DayOffRequest>, DayOffRequestService>();
     services.AddScoped<IDayOffTypeService, DayOffTypeService>();
     services.AddScoped<IFAQService, FAQService>();
+    services.AddScoped<ICountyService, CountyService>();
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen();
     services.AddDefaultAWSOptions(configuration.GetAWSOptions());
@@ -110,11 +110,18 @@ var builder = WebApplication.CreateBuilder(args);
         config.SetMinimumLevel(LogLevel.Debug);
     });
 
+
     var fileScanSettings = builder.Configuration.GetSection("FileScan");
     builder.Services.Configure<FileScanSettings>(fileScanSettings);
 
-    builder.Services.Configure<FileScanAuthSettings>(builder.Configuration);
-    builder.Services.Configure<AwsUserPoolSettings>(builder.Configuration);
+    var fileScanAuthSettings = builder.Configuration.GetSection("FileScanLogin");
+    builder.Services.Configure<FileScanAuthSettings>(fileScanAuthSettings);
+
+    var encryptionSettings = builder.Configuration.GetSection("EncryptionSettings");
+    builder.Services.Configure<EncryptionSettings>(encryptionSettings);
+
+    var awsUserPoolSettings = builder.Configuration.GetSection("AWS");
+    builder.Services.Configure<AwsUserPoolSettings>(awsUserPoolSettings);
 
     // Adds Amazon Cognito as Identity Provider
     services.AddCognitoIdentity();
@@ -126,7 +133,7 @@ var builder = WebApplication.CreateBuilder(args);
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
         options.ReturnUrlParameter = CookieAuthenticationDefaults.ReturnUrlParameter;
         options.SlidingExpiration = true;
-        options.LoginPath = "/Users/Login";
+        options.LoginPath = "/Users/login";
         options.AccessDeniedPath = "/Users/AccessDenied";
     });
 
@@ -135,7 +142,7 @@ var builder = WebApplication.CreateBuilder(args);
         {
             options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
             options.SlidingExpiration = true;
-            options.LoginPath = "/Users/Login";
+            options.LoginPath = "/Users/login";
             options.AccessDeniedPath = "/Users/AccessDenied";
         });
 
@@ -174,7 +181,5 @@ var app = builder.Build();
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 }
 
-
-
-//app.Run("http://localhost:5000");
 app.Run();
+

@@ -1,6 +1,6 @@
 ﻿namespace TelonaiWebApi.Models;
 
-public class FAQModel
+public class FAQModel: BaseTracker
 {
     public int Id { get; set; }
     public string Question { get; set; }

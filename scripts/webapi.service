@@ -1,14 +1,14 @@
 [Unit]
-Description=BFF for Telonai
+Description=Telonai BFF 
 
 [Service]
-WorkingDirectory=/var/www/
-ExecStart=/usr/bin/dotnet /var/www/TelonaiWebApi.dll
+WorkingDirectory=/var/www/dotnet
+ExecStart=/usr/bin/dotnet TelonaiWebApi.dll
 Restart=always
 RestartSec=10
 KillSignal=SIGINT
 SyslogIdentifier=webapi
-Environment=ASPNETCORE_Environment=Production
+Environment=ASPNETCORE_Environment=dev
 Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
 Environment=ASPNETCORE_URLS=http://*:81
 

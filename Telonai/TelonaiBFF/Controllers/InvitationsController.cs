@@ -72,7 +72,7 @@ public class InvitationsController : ControllerBase
         if (!InputValidator.IsValidEmail(model.Email))
             throw new InvalidDataException("Invalid Email");
 
-        var result = _service.GetAllByActivaionCodeAndInviteeEmail(model.code,model.Email);
+        var result = _service.GetAllByActivationCodeAndInviteeEmail(model.code,model.Email);
         return Ok(result);
     }
 
@@ -118,7 +118,6 @@ public class InvitationsController : ControllerBase
             City = model.City,
             State = model.State,
             Zip = model.Zip,
-            //Phone=model.PhoneNumber,
             AgentCode = agentCode,
             CompanyAddress = model.Address,
             NumberOfEmployees = model.NumberOfEmployees, 
@@ -131,10 +130,19 @@ public class InvitationsController : ControllerBase
         return Ok();
     }
 
-    [Authorize(Policy = "SystemAdmin")]
+    [Authorize]
+    [HttpPost("employer/quote/")]
+    public async Task<IActionResult> SendQuote([FromBody] QuoteModel model)
+    {
+
+        await _service.SendQuoteAsync(model);
+        return Ok("Quote sent.");
+    }
+
     [HttpDelete("{id}")]
     public IActionResult Delete(Guid id)
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
         _service.DeleteAsync(id);
         return Ok(new { message = "Invitation deleted" });
     }

@@ -528,7 +528,6 @@ namespace TelonaiWebAPI.UnitTest.Services
             var cityModel = new CityModel()
             {
                 Id = 1,
-                Countrys = countryModelList,
                 Name = "Sharlott",
             };
 
@@ -667,7 +666,6 @@ namespace TelonaiWebAPI.UnitTest.Services
             var cityModel = new CityModel()
             {
                 Id = 1,
-                Countrys = countryModelList,
                 Name = "Sharlott",
             };
 

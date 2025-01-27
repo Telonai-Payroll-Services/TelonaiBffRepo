@@ -60,7 +60,8 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
         var companyId = currentPayStub.Payroll.CompanyId;
         _scopedAuthorization.ValidateByCompanyId(_httpContextAccessor.HttpContext.User, AuthorizationType.Admin, companyId);
 
-        currentPayStub.GrossPay += model.CreditCardTips + model.CashTips + model.Reimbursement + model.AdditionalOtherMoneyReceived?.Sum(e => e.Amount) ?? 0;
+        currentPayStub.GrossPay = currentPayStub.NetPay = currentPayStub.RegularPay + currentPayStub.OverTimePay + model.CreditCardTips + 
+            model.CashTips + model.Reimbursement + (model.AdditionalOtherMoneyReceived?.Sum(e => e.Amount) ?? 0);
 
         var previousPayStub = _context.PayStub.Include(e => e.OtherMoneyReceived).Include(e => e.Payroll).FirstOrDefault(e => e.Id < currentPayStub.Id
         && e.Payroll.CompanyId == companyId);
@@ -86,7 +87,7 @@ public class OtherMoneyReceivedService : IOtherMoneyReceivedService
         dtoNewOtherMoney.YtdReimbursement = previousPayStub?.OtherMoneyReceived?.YtdReimbursement > 0 ? previousPayStub.OtherMoneyReceived.YtdReimbursement
             + dtoNewOtherMoney.CreditCardTips : dtoNewOtherMoney.CreditCardTips;
 
-        if (currentAdditionalMoney.Any())
+        if (currentAdditionalMoney!=null && currentAdditionalMoney.Any())
             dtoNewOtherMoney.AdditionalOtherMoneyReceivedId = currentAdditionalMoney.Select(e => e.Id).ToArray();
 
         _context.OtherMoneyReceived.Add(dtoNewOtherMoney);

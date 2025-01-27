@@ -3,22 +3,17 @@ namespace TelonaiWebApi.Services;
 using Amazon.AspNetCore.Identity.Cognito;
 using Amazon.Extensions.CognitoAuthentication;
 using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
 using System;
 using TelonaiWebApi.Helpers;
 using TelonaiWebApi.Models;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using System.Data;
 using Amazon.CognitoIdentityProvider.Model;
-using Org.BouncyCastle.Asn1.Ocsp;
-using System.Reflection.Metadata.Ecma335;
-using Microsoft.VisualBasic;
-using System.Security.Cryptography;
 using TelonaiWebApi.Entities;
 
 public interface IUserService
 {
-    Task ChangePasswordAsync(string username, string oldPassword, string newPassword);
+    Task<bool> ChangePasswordAsync(string username, string oldPassword, string newPassword);
     Task<Tuple<CognitoUser, SignInManagerResponse>> LoginAsync(string username, string password, bool rememberMe);
     Task LogOutAsync();
     Task<IdentityResult> SignUpAsync(User user, UserRole userRole, int companyId, int jobId);
@@ -33,24 +28,20 @@ public interface IUserService
 
 public class UserService : IUserService
 {
-    private readonly SignInManager<CognitoUser> _signInManager;
-    private readonly CognitoSignInManager<CognitoUser> _signInManager2;
+    private readonly CognitoSignInManager<CognitoUser> _signInManager;
     private readonly CognitoUserManager<CognitoUser> _userManager;
     private readonly ILogger<UserService> _logger;
     private readonly CognitoUserPool _pool;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMailSender _mailSender;
     private readonly IPersonService<PersonModel,Person> _personService;
 
     public UserService(UserManager<CognitoUser> userManager, SignInManager<CognitoUser> signInManager,ILogger<UserService> logger, 
-                      CognitoUserPool pool, IHttpContextAccessor httpContextAccessor, IMailSender mailSender, IPersonService<PersonModel, Person> personService)
+                      CognitoUserPool pool, IMailSender mailSender, IPersonService<PersonModel, Person> personService)
     {
         _userManager = userManager as CognitoUserManager<CognitoUser>;
-        _signInManager = signInManager;
         _logger = logger;
         _pool = pool;
-        _httpContextAccessor = httpContextAccessor;
-        _signInManager2 = signInManager as CognitoSignInManager<CognitoUser>;
+        _signInManager = signInManager as CognitoSignInManager<CognitoUser>;
         _mailSender = mailSender;
         _personService = personService;
     }
@@ -58,8 +49,7 @@ public class UserService : IUserService
 
     public async Task<Tuple<CognitoUser, SignInManagerResponse>> LoginAsync(string username, string password, bool rememberMe)
     {
-        SignInResult result = new SignInResult();
-
+        SignInResult result;
         try
         {
             result = await _signInManager.PasswordSignInAsync(username, password, rememberMe, lockoutOnFailure: false);
@@ -105,15 +95,12 @@ public class UserService : IUserService
 
     public async Task<SignInResult> ConfirmTwoFactorCodeAsync(TwoFactoreModel model)
     {
-        var user = await _signInManager2.GetTwoFactorAuthenticationUserAsync();
-        if (user == null)
-        {
+        var user = await _signInManager.GetTwoFactorAuthenticationUserAsync() ??
             throw new InvalidOperationException($"Unable to load two-factor authentication user.");
-        }
 
         var authenticatorCode = model.TwoFactorCode.Replace(" ", string.Empty).Replace("-", string.Empty);
 
-        var result = await _signInManager2.RespondToTwoFactorChallengeAsync(authenticatorCode, model.RememberMe.Value, model.RememberMachine);
+        var result = await _signInManager.RespondToTwoFactorChallengeAsync(authenticatorCode, model.RememberMe.Value, model.RememberMachine);
 
         if (result.Succeeded)
         {
@@ -137,15 +124,19 @@ public class UserService : IUserService
         var user = await _userManager.FindByNameAsync(username) ?? throw new AppException("Invalid Username");
         await user.ConfirmForgotPasswordAsync(code, newPassword);
     }
-    public async Task ChangePasswordAsync(string username, string oldPassword, string newPassword)
+    public async Task<bool> ChangePasswordAsync(string username, string oldPassword, string newPassword)
     {
-
         var result = await _signInManager.PasswordSignInAsync(username, oldPassword, false, lockoutOnFailure: false);
 
         if (result.Succeeded)
         {
             var user = await _userManager.FindByNameAsync(username);
             await user.ChangePasswordAsync(oldPassword, newPassword);
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 
@@ -225,7 +216,7 @@ public class UserService : IUserService
         _logger.LogInformation("User logged out.");       
     }
 
-    public async Task<bool> SendForgettenUsername(string email)
+    public async Task<bool> SendForgottenUsername(string email)
     {
         //Fetch user information using registered email address.
         var user = await _userManager.FindByEmailAsync(email) ?? throw new AppException("Invalid Username");
@@ -285,12 +276,12 @@ public class UserService : IUserService
     private static string CreateTextEmailBody(string fullName, string username)
     {
         return $"Dear {fullName} \r\n" +
-              "We received a request to retrieve the username associated with this email address." +
-              $"Your username is: { username}" +
-              $"If you did not request this information, please ignore this email.Your account remains secure, and no further action is required." +
-              $"If you have any questions or need further assistance, feel free to contact our support team at support@telonai.com." +
-              $"Best regards, " +
-              $"Telonai Payroll Service.";
+              "We received a request to retrieve the username associated with this email address. \r\n" +
+              $"Your username is: { username} \r\n" +
+              $"If you did not request this information, please ignore this email.Your account remains secure, and no further action is required. \r\n" +
+              $"If you have any questions or need further assistance, please contact our support team at service@telonai.com .\r\n" +
+              "\r\n Thank you for choosing Telonai. \r\n" +
+              "Telonai Payroll Services Inc.";
     }
 
     private static string CreateHtmlEmailBody(string fullName, string username)
@@ -299,9 +290,9 @@ public class UserService : IUserService
               $"<br/>We received a request to retrieve the username associated with this email address." +
               $"<br/><p>Your username is: <b>{username}</b></p>" +
               $"<br/>If you did not request this information, please ignore this email.Your account remains secure, and no further action is required." +
-              $"<br/>If you have any questions or need further assistance, feel free to contact our support team at support@telonai.com." +
-              $"<br/>Best regards, " +
-              $"<br/>Telonai Payroll Service.";
+              $"<br/>If you have any questions or need further assistance, feel free to contact our support team at service@telonai.com ." +
+              $"<br/>Thank you for choosing Telonai., " +
+              $"<br/>Telonai Payroll Services Inc.";
     }
     public async Task DeleteUserByEmailFromCognito(string email)
     {

@@ -36,9 +36,11 @@ public class CompaniesController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = "SystemAdmin")]
+    [Authorize]
     public IActionResult GetAll()
     {
+        _scopedAuthorization.Validate(Request.HttpContext.User, AuthorizationType.SystemAdmin);
+
         var companies = _service.Get();
         return Ok(companies);
     }
@@ -65,7 +67,7 @@ public class CompaniesController : ControllerBase
         if (!ModelState.IsValid )
             return BadRequest();
 
-        var invitation = _invitationService.GetByActivaionCodeAndInviteeEmail(model.Manager.ActivationCode, model.Manager.Email, model.Company.TaxId);
+        var invitation = _invitationService.GetByActivationCodeAndInviteeEmail(model.Manager.ActivationCode, model.Manager.Email, model.Company.TaxId);
         model.Company.TaxId=invitation.TaxId;
 
         var company = MakeCompanyModel(model.Company);
