@@ -16,12 +16,14 @@ namespace UnitTests
         private readonly Fixture _fixture;
         private readonly Mock<ITransferUtility> _transferUtilityMock;
         private readonly DocumentManager _documentManager;
+        private readonly Random _random;
 
         public DocumentManagerTests()
         {
-            _fixture = CustomFixture.Create();       
+            _fixture = CustomFixture.Create();
             _transferUtilityMock = _fixture.Freeze<Mock<ITransferUtility>>();
             _documentManager = _fixture.Create<DocumentManager>();
+            _random = new Random();
         }
 
         [Theory, CustomAutoData]
@@ -29,18 +31,34 @@ namespace UnitTests
             PayStub payStub,
             List<AdditionalOtherMoneyReceived> additionalMoneyReceived)
         {
-
             SetupPayStub(payStub);
 
-            // Create IncomeTaxes with the PayStub correctly set
-            var incomeTaxes = _fixture.Build<IncomeTax>()
-                                          .With(t => t.PayStub, payStub)
-                                          .CreateMany(5)
-                                          .ToList();
+            var incomeTaxTypes = new List<string>
+                {
+                    "Social Security",
+                    "Medicare",
+                    "Federal Tax",
+                    "State Tax",
+                    "FUTA",
+                    "SUTA",
+                    "Additional Medicare"
+                };
+
+            var incomeTaxes = new List<IncomeTax>();
+            foreach (var name in incomeTaxTypes)
+            {
+                var incomeTax = _fixture.Build<IncomeTax>()
+                    .With(t => t.PayStub, payStub)
+                    .With(t => t.IncomeTaxType, _fixture.Build<IncomeTaxType>()
+                        .With(x => x.Name, name)
+                        .Create())
+                    .Create();
+                incomeTaxes.Add(incomeTax);
+            }
+
             var result = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, incomeTaxes);
 
             Assert.NotEqual(Guid.Empty, result);
-
         }
 
         [Theory, CustomAutoData]
@@ -50,33 +68,68 @@ namespace UnitTests
         {
             SetupPayStub(payStub);
 
-            var incomeTaxes = _fixture.Build<IncomeTax>()
-                                      .With(t => t.PayStub, payStub)
-                                      .CreateMany(5)
-                                      .ToList();
-       
+            var incomeTaxTypes = new List<string>
+                {
+                    "Social Security",
+                    "Medicare",
+                    "Federal Tax",
+                    "State Tax",
+                    "FUTA",
+                    "SUTA",
+                    "Additional Medicare"
+                };
+
+            var incomeTaxes = new List<IncomeTax>();
+            foreach (var name in incomeTaxTypes)
+            {
+                var incomeTax = _fixture.Build<IncomeTax>()
+                    .With(t => t.PayStub, payStub)
+                    .With(t => t.IncomeTaxType, _fixture.Build<IncomeTaxType>()
+                        .With(x => x.Name, name)
+                        .Create())
+                    .Create();
+                incomeTaxes.Add(incomeTax);
+            }
+
             var result = await _documentManager.CreatePayStubPdfAsync(payStub, null, incomeTaxes);
-       
+
             Assert.NotEqual(Guid.Empty, result);
-           
         }
+
         [Theory, CustomAutoData]
         public async Task CreatePayStubPdfAsync_ShouldHandleEmptyAdditionalMoneyReceived(
             PayStub payStub)
         {
             SetupPayStub(payStub);
 
-            var incomeTaxes = _fixture.Build<IncomeTax>()
-                                      .With(t => t.PayStub, payStub)
-                                      .CreateMany(5)
-                                      .ToList();
+            var incomeTaxTypes = new List<string>
+                {
+                    "Social Security",
+                    "Medicare",
+                    "Federal Tax",
+                    "State Tax",
+                    "FUTA",
+                    "SUTA",
+                    "Additional Medicare"
+                };
 
+            var incomeTaxes = new List<IncomeTax>();
+            foreach (var name in incomeTaxTypes)
+            {
+                var incomeTax = _fixture.Build<IncomeTax>()
+                    .With(t => t.PayStub, payStub)
+                    .With(t => t.IncomeTaxType, _fixture.Build<IncomeTaxType>()
+                        .With(x => x.Name, name)
+                        .Create())
+                    .Create();
+                incomeTaxes.Add(incomeTax);
+            }
 
             var result = await _documentManager.CreatePayStubPdfAsync(payStub, new List<AdditionalOtherMoneyReceived>(), incomeTaxes);
 
             Assert.NotEqual(Guid.Empty, result);
-          
         }
+
         [Theory, CustomAutoData]
         public async Task CreatePayStubPdfAsync_ShouldHandleNullOtherMoneyReceived(
             PayStub payStub,
@@ -84,15 +137,34 @@ namespace UnitTests
         {
             SetupPayStub(payStub);
 
-            var incomeTaxes = _fixture.Build<IncomeTax>()
-                                      .With(t => t.PayStub, payStub)
-                                      .CreateMany(5)
-                                      .ToList();
+            var incomeTaxTypes = new List<string>
+                {
+                    "Social Security",
+                    "Medicare",
+                    "Federal Tax",
+                    "State Tax",
+                    "FUTA",
+                    "SUTA",
+                    "Additional Medicare"
+                };
+
+            var incomeTaxes = new List<IncomeTax>();
+            foreach (var name in incomeTaxTypes)
+            {
+                var incomeTax = _fixture.Build<IncomeTax>()
+                    .With(t => t.PayStub, payStub)
+                    .With(t => t.IncomeTaxType, _fixture.Build<IncomeTaxType>()
+                        .With(x => x.Name, name)
+                        .Create())
+                    .Create();
+                incomeTaxes.Add(incomeTax);
+            }
 
             var result = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, incomeTaxes);
 
             Assert.NotEqual(Guid.Empty, result);
         }
+
         [Theory, CustomAutoData]
         public async Task CreatePayStubPdfAsync_ShouldHandleValidData(
             PayStub payStub,
@@ -101,20 +173,68 @@ namespace UnitTests
         {
             SetupPayStub(payStub);
 
+            var incomeTaxTypes = new List<string>
+                {
+                    "Social Security",
+                    "Medicare",
+                    "Federal Tax",
+                    "State Tax",
+                    "FUTA",
+                    "SUTA",
+                    "Additional Medicare"
+                };
+
+            incomeTaxes.Clear();
+            foreach (var name in incomeTaxTypes)
+            {
+                var incomeTax = _fixture.Build<IncomeTax>()
+                    .With(t => t.PayStub, payStub)
+                    .With(t => t.IncomeTaxType, _fixture.Build<IncomeTaxType>()
+                        .With(x => x.Name, name)
+                        .Create())
+                    .Create();
+                incomeTaxes.Add(incomeTax);
+            }
+
             var result = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, incomeTaxes);
 
-            Assert.NotEqual(Guid.Empty, result);         
+            Assert.NotEqual(Guid.Empty, result);
         }
+
         [Theory, CustomAutoData]
         public async Task CreatePayStubPdfAsync_ShouldHandleMinimumValidData(
             PayStub payStub)
         {
             SetupPayStub(payStub);
 
-            var result = await _documentManager.CreatePayStubPdfAsync(payStub, new List<AdditionalOtherMoneyReceived>(), new List<IncomeTax>());
+            var incomeTaxTypes = new List<string>
+                {
+                    "Social Security",
+                    "Medicare",
+                    "Federal Tax",
+                    "State Tax",
+                    "FUTA",
+                    "SUTA",
+                    "Additional Medicare"
+                };
 
-            Assert.NotEqual(Guid.Empty, result);         
+            var incomeTaxes = new List<IncomeTax>();
+            foreach (var name in incomeTaxTypes)
+            {
+                var incomeTax = _fixture.Build<IncomeTax>()
+                    .With(t => t.PayStub, payStub)
+                    .With(t => t.IncomeTaxType, _fixture.Build<IncomeTaxType>()
+                        .With(x => x.Name, name)
+                        .Create())
+                    .Create();
+                incomeTaxes.Add(incomeTax);
+            }
+
+            var result = await _documentManager.CreatePayStubPdfAsync(payStub, new List<AdditionalOtherMoneyReceived>(), incomeTaxes);
+
+            Assert.NotEqual(Guid.Empty, result);
         }
+
         [Theory, CustomAutoData]
         public async Task CreatePayStubPdfAsync_ShouldThrowAppExceptionWhenPayStubIsNull(
               OtherMoneyReceived otherReceived,
@@ -136,8 +256,9 @@ namespace UnitTests
 
             var result = await _documentManager.CreatePayStubPdfAsync(payStub, additionalMoneyReceived, new List<IncomeTax>());
 
-            Assert.NotEqual(Guid.Empty, result);         
+            Assert.NotEqual(Guid.Empty, result);
         }
+
         [Theory, CustomAutoData]
         public async Task CreatePayStubPdfAsync_ShouldHandleAllOptionalParametersNull(
             PayStub payStub)
@@ -146,16 +267,16 @@ namespace UnitTests
 
             var result = await _documentManager.CreatePayStubPdfAsync(payStub, null, null);
 
-            Assert.NotEqual(Guid.Empty, result);         
-        }
-        private void SetupPayStub(PayStub payStub)
-        { 
-            payStub.Employment.Person.FirstName = _fixture.Create<string>();
-            payStub.Employment.Person.LastName = _fixture.Create<string>(); 
-            payStub.Payroll.Company.Name = _fixture.Create<string>(); 
-            payStub.Payroll.StartDate = _fixture.Create<DateOnly>();
-            payStub.Payroll.ScheduledRunDate = _fixture.Create<DateOnly>(); 
+            Assert.NotEqual(Guid.Empty, result);
         }
 
+        private void SetupPayStub(PayStub payStub)
+        {
+            payStub.Employment.Person.FirstName = _fixture.Create<string>();
+            payStub.Employment.Person.LastName = _fixture.Create<string>();
+            payStub.Payroll.Company.Name = _fixture.Create<string>();
+            payStub.Payroll.StartDate = _fixture.Create<DateOnly>();
+            payStub.Payroll.ScheduledRunDate = _fixture.Create<DateOnly>();
+        }
     }
 }
