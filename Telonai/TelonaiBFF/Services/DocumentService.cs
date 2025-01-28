@@ -52,11 +52,10 @@ public class DocumentService : IDocumentService
     private readonly IPersonService<PersonModel, Person> _personService;
     private readonly IScopedAuthorization _scopedAuthorization;
     private readonly IInvitationService<InvitationModel, Invitation> _invitationService;
-    private readonly IEncryption _encryption;
 
     public DocumentService(DataContext context, IMapper mapper, IDocumentManager documentManager,
                            IHttpContextAccessor httpContextAccessor, IPersonService<PersonModel, Person> personService,
-                           IScopedAuthorization scopedAuthorization, IInvitationService<InvitationModel, Invitation> invitationService, IEncryption encryption )
+                           IScopedAuthorization scopedAuthorization, IInvitationService<InvitationModel, Invitation> invitationService )
     {
         _context = context;
         _mapper = mapper;
@@ -65,7 +64,6 @@ public class DocumentService : IDocumentService
         _personService = personService;
         _scopedAuthorization = scopedAuthorization;
         _invitationService = invitationService;
-        _encryption = encryption;
     }
     public async Task<DocumentModel> GetOwnDocumentDetailsByDocumentTypeAsync(DocumentTypeModel documentType)
     {
