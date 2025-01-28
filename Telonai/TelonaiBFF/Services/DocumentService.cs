@@ -384,17 +384,19 @@ public class DocumentService : IDocumentService
     }
     private async Task<byte[]> SetPdfFormFilds(W4Form model, Stream documentStream, string filingStatus, Employment employee, bool formFlattening)
     {
-        var firstName = _person?.FirstName;
-        var middeName = _person?.LastName;
+        var personModel=_mapper.Map<PersonModel>(_person);
+        var firstName = personModel?.FirstName;
+        var middeName = personModel?.LastName;
         var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
-        var lastName = _person?.LastName;
-        var ssn = _encryption.Decrypt(_person?.Ssn);
+        var lastName = personModel?.LastName;
+        var ssn = personModel?.Ssn;
        
-       var address = _person?.AddressLine1;
+       var address = personModel?.AddressLine1;
         var zipCode = _person?.Zipcode?.Code;
         var cityOrTown = _person?.Zipcode?.City?.Name;
         var state = _person?.Zipcode?.City?.State.Name;
         var company = _context.Company.FirstOrDefault(e => e.Id == employee.Person.CompanyId);
+        var companyModel = _mapper.Map<CompanyModel>(company);
 
         using (var workStream = new MemoryStream())
         {
@@ -425,9 +427,9 @@ public class DocumentService : IDocumentService
                 formFields.SetField(PdfFields.Step4b_Deductions, model.Deductions.ToString());
                 formFields.SetField(PdfFields.Step4c_ExtraWithholding, model.ExtraWithholding.ToString());
 
-                formFields.SetField(PdfFields.EmployerNameAndAddress, company.Name + "" + company.Zipcode + "" + company.AddressLine1);
+                formFields.SetField(PdfFields.EmployerNameAndAddress, companyModel?.Name + "" + companyModel?.ZipCode + "" + companyModel?.AddressLine1);
                 formFields.SetField(PdfFields.EmployerFirstDateOfEmployement, employee.CreatedDate.ToShortDateString());
-                formFields.SetField(PdfFields.EmployerIdentificationNumber, _encryption.Decrypt(company?.TaxId));
+                formFields.SetField(PdfFields.EmployerIdentificationNumber, companyModel?.TaxId);
                 pdfStamper.FormFlattening = formFlattening;
                 pdfStamper.Close();
                 pdfReader.Close();
@@ -769,13 +771,14 @@ public class DocumentService : IDocumentService
     }
     private async Task<byte[]> SetNC4PdfFormFilds(NC4Form model, Stream documentStream, string filingStatus, Employment employee, bool formFlattening)
     {
+       var personModel= _mapper.Map<PersonModel>(_person);
         var personAddress = _context.Person.Include(z => z.Zipcode).Include(c => c.Zipcode.City).Include(c => c.Zipcode.City.State).FirstOrDefault(c => c.Id == _person.Id);
-        var firstName = _person?.FirstName;
-        var middeName = _person?.LastName;
+        var firstName = personModel?.FirstName;
+        var middeName = personModel?.LastName;
         var middeNameInitial = !string.IsNullOrEmpty(middeName) ? middeName[0].ToString() : "";
-        var lastName = _person?.LastName;
-        var ssn = _encryption.Decrypt(_person?.Ssn);
-        var address = _person?.AddressLine1;
+        var lastName = personModel?.LastName;
+        var ssn = personModel?.Ssn;
+        var address = personModel?.AddressLine1;
         var zipCode = personAddress?.Zipcode?.Code;
         var city = personAddress?.Zipcode?.City?.Name;
         var state = personAddress?.Zipcode?.City?.State?.Name;
